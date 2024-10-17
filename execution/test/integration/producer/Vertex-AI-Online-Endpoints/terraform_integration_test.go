@@ -76,8 +76,6 @@ func TestCreateEndpointWithVPC(t *testing.T) {
 		NoColor:              true,
 		SetVarsAfterVarFiles: true,
 	})
-	// Refresh the Terraform state before applying changes
-	terraform.RunTerraformCommand(t, terraformOptions, "refresh")
 
 	defer terraform.Destroy(t, terraformOptions)
 
@@ -192,7 +190,7 @@ func validateEndpoints(t *testing.T, terraformOptions *terraform.Options, expect
 func getProjectNumber(t *testing.T, projectID string) string {
 	cmd := shell.Command{
 		Command: "gcloud",
-		Args:    []string{"projects", "describe", projectID, "--format=value(projectNumber)"},
+		Args:    []string{"projects", "describe", projectID, "--format=value(projectNumber)","--quiet"},
 	}
 	output, err := shell.RunCommandAndGetOutputE(t, cmd)
 	if err != nil {
@@ -208,7 +206,7 @@ func createVPC(t *testing.T, projectID string, networkName string) {
 	// Create VPC
 	cmd := shell.Command{
 		Command: "gcloud",
-		Args:    []string{text, "networks", "create", networkName, "--project=" + projectID, "--format=json", "--bgp-routing-mode=global", "--subnet-mode=custom", "--verbosity=none"},
+		Args:    []string{text, "networks", "create", networkName, "--project=" + projectID, "--format=json", "--bgp-routing-mode=global", "--subnet-mode=custom", "--verbosity=none","--quiet"},
 	}
 	_, err := shell.RunCommandAndGetOutputE(t, cmd)
 	if err != nil {
@@ -228,6 +226,7 @@ func createVPC(t *testing.T, projectID string, networkName string) {
 			"--network=" + networkName,
 			"--region=" + region,
 			"--range=10.0.0.0/24",
+			"--quiet",
 		},
 	}
 	_, err = shell.RunCommandAndGetOutputE(t, cmd)
@@ -251,6 +250,7 @@ func createInternalIPRange(t *testing.T, projectID, networkName string) {
 			"--network=" + networkName,
 			"--purpose=VPC_PEERING",
 			"--prefix-length=24", // Adjust prefix length if needed
+			"--quiet",
 		},
 	}
 	_, err := shell.RunCommandAndGetOutputE(t, cmd)
@@ -269,6 +269,7 @@ func enablePrivateServiceAccess(t *testing.T, projectID, networkName, psaRangeNa
 			"--project=" + projectID,
 			"--network=" + networkName,
 			"--ranges=" + psaRangeName,
+			"--quiet",
 		},
 	}
 	_, err := shell.RunCommandAndGetOutputE(t, cmd)
@@ -285,6 +286,7 @@ func deletePSARange(t *testing.T, projectID string, psaRangeName string) {
 			"compute", "addresses", "delete", psaRangeName,
 			"--project=" + projectID,
 			"--global",
+			"--quiet",
 		},
 	}
 	_, err := shell.RunCommandAndGetOutputE(t, cmd)
@@ -301,6 +303,7 @@ func deletePSAConnection(t *testing.T, projectID string, networkName string) {
 			"services", "vpc-peerings", "delete", "--service=servicenetworking.googleapis.com",
 			"--network=" + networkName,
 			"--project=" + projectID,
+			"--quiet",
 		},
 	}
 	_, err := shell.RunCommandAndGetOutputE(t, cmd)
