@@ -1,6 +1,6 @@
 name: <instance-name>
 project_id: <project-id>
-kubernetes_version: 1.27.16-gke.1287000
+kubernetes_version: 1.31.1-gke.2105000
 network: gke-cluster-vpc
 subnetwork: gke-cluster-subnetwork
 ip_range_pods: pods

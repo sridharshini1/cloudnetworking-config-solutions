@@ -41,7 +41,7 @@ var (
 	configFolderPath   = filepath.Join(projectRoot, "test/integration/producer/GKE/config")
 	projectID          = os.Getenv("TF_VAR_project_id")
 	region             = "us-central1"
-	kubernetesVersion  = "1.27.16-gke.1287000"
+	kubernetesVersion  = "1.31.1-gke.2105000"
 	instanceName       = fmt.Sprintf("gke-%d", rand.Int())
 	networkName        = fmt.Sprintf("gke-cluster-vpc-%d", rand.Int())
 	subnetName         = fmt.Sprintf("gke-cluster-subnetwork-%d", rand.Int())
@@ -137,8 +137,8 @@ func TestCreateGKECluster(t *testing.T) {
 
 			// Verify Kubernetes Version
 			kubernetesVersion := clusterData.Get("master_version").String()
-			if kubernetesVersion != "1.27.16-gke.1287000" {
-				t.Errorf("GKE Cluster Kubernetes version is invalid: got %s, want 1.27.16-gke.1287000", kubernetesVersion)
+			if kubernetesVersion != "1.31.1-gke.2105000" {
+				t.Errorf("GKE Cluster Kubernetes version is invalid: got %s, want 1.31.1-gke.2105000", kubernetesVersion)
 			} else {
 				t.Logf("GKE Cluster Kubernetes version is valid: %s", kubernetesVersion) // Success message
 			}
