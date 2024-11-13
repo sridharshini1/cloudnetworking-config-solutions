@@ -16,10 +16,21 @@
 
 output "cluster_details" {
   description = "Display cluster name and details like cluster id, network configuration and state of the AlloyDB cluster created."
-  value = { for name, cluster in module.alloy_db :
-    name => {
-      "cluster_id" : cluster.cluster_id,
-      "network_config" : cluster.cluster.network_config,
+  value = {
+    for name, cluster in module.alloy_db : name => {
+      "cluster_id" : cluster.cluster.cluster_id,
+      "cluster_display_name" : cluster.cluster.display_name,
+      "database_version" : cluster.cluster.database_version,
+      "network_config" : {
+        "network" : try(cluster.cluster.network_config[0].network, null),
+        "allocated_ip_range" : try(cluster.cluster.network_config[0].allocated_ip_range, null),
+        "psc_config" : {
+          "psc_enabled" : local.alloydb_network_config[name].psc_config != null ? true : false,
+          "configured_allowed_consumer_projects" : local.alloydb_network_config[name].psc_config != null ? local.alloydb_network_config[name].psc_config.psc_allowed_consumer_projects : []
+        }
+      },
       "cluster_status" : cluster.cluster.state,
-  } }
+      "connectivity_options" : local.alloydb_network_config[name].network_self_link != null ? "PSA" : (local.alloydb_network_config[name].psc_config != null ? "PSC" : "UNKNOWN")
+    }
+  }
 }

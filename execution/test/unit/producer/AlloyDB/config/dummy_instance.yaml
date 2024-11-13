@@ -29,3 +29,5 @@ primary_instance:
 read_pool_instance : null
 automated_backup_policy : null
 deletion_protection: false
+connectivity_options: "psc" # Use "psa" for PSA connectivity
+psc_allowed_consumer_projects: ["854523102947"] # Include the list of allowed consumer projects here

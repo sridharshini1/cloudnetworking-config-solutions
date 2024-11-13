@@ -1,9 +1,8 @@
 cluster_id: <cluster-id-here>
 cluster_display_name: <cluster-display-name-here>
 project_id: <project-id>
-region: us-central1
+region: <region> #e.g. : us-central1
 network_id: <network-id> #e.g. : projects/<project-id>/global/networks/<network-name>
-allocated_ip_range: range1
 primary_instance:
   instance_id : <instance-id-here>
   display_name : <instance-display-name-here>
@@ -12,3 +11,5 @@ primary_instance:
   database_flags : null
 read_pool_instance : null
 automated_backup_policy : null
+connectivity_options: "psc" # Use "psa" for PSA connectivity
+psc_allowed_consumer_projects: ["<project-number>, <project-number>"] # Include the list of allowed consumer projects here

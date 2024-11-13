@@ -15,11 +15,12 @@ package unittest
 
 import (
 	compare "cmp"
+	"testing"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"golang.org/x/exp/slices"
-	"testing"
 )
 
 const (

@@ -13,6 +13,3 @@ automated_backup_policy : null
 connectivity_options: "PSC" # Use "PSA" for PSA connectivity
 psc_allowed_consumer_projects: ["<project-number>, <project-number>"] # Include the list of allowed consumer projects here
 
-
-
-
