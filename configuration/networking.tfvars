@@ -42,3 +42,7 @@ tunnel_2_shared_secret            = ""
 ## Cloud Interconnect input variables
 
 create_interconnect = false # Use true or false
+
+## NCC input variables
+
+create_ncc = false

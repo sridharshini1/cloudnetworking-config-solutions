@@ -447,3 +447,69 @@ variable "admin_enabled" {
   type        = bool
   default     = true
 }
+
+## Variables for NCC
+
+variable "create_ncc" {
+  type        = string
+  description = "Set to true to create NCC resources."
+  default     = "false"
+}
+
+variable "vpn_region" {
+  description = "The region where to deploy the VPN"
+  default     = "europe-west4"
+}
+
+variable "instance_region" {
+  description = "The region where to deploy the Router Instance in"
+  default     = "us-central1"
+}
+
+variable "ncc_hub_name" {
+  description = "The Name of the NCC Hub"
+  type        = string
+  default     = "ncc-hub"
+}
+
+variable "vpc_spoke_vpc_name" {
+  description = "The VPC Name for the VPC Spoke"
+  type        = string
+  default     = "vpc-spoke"
+}
+
+variable "vpn_spoke_local_vpc_name" {
+  description = "The name for the local VPC (GCP side) for the VPN Spoke"
+  type        = string
+  default     = "vpn-local-spoke"
+}
+
+variable "vpn_spoke_remote_vpc_name" {
+  description = "The name for the remote VPC (fake on-orem) for the VPN Spoke"
+  type        = string
+  default     = "vpn-remote-spoke"
+}
+
+variable "router_appliance_vpc_name" {
+  description = "The VPC Name for the VPC Spoke"
+  type        = string
+  default     = "router-appliance-spoke"
+}
+
+variable "ncc_hub_labels" {
+  description = "Labels to be attached to network connectivity center hub resource."
+  type        = map(string)
+  default     = null
+}
+
+variable "spoke_labels" {
+  description = "Labels to be attached to network connectivity center spoke resource."
+  type        = map(string)
+  default     = null
+}
+
+variable "vpc_spoke1" {
+  description = "The key values for the VPC spoke."
+  type        = string
+  default     = "vpc-spoke1"
+}
