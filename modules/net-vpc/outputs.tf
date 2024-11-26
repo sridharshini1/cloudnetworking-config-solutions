@@ -22,14 +22,13 @@ output "id" {
     google_compute_network_peering.remote,
     google_compute_shared_vpc_host_project.shared_vpc_host,
     google_compute_shared_vpc_service_project.service_projects,
-    google_service_networking_connection.psa_connection,
-    google_compute_network_peering_routes_config.psa_routes
+    google_service_networking_connection.psa_connection
   ]
 }
 
 output "internal_ipv6_range" {
   description = "ULA range."
-  value       = try(local.network.internal_ipv6_range, null)
+  value       = try(google_compute_network.network[0].internal_ipv6_range, null)
 }
 
 output "name" {
@@ -54,6 +53,14 @@ output "network" {
     google_compute_shared_vpc_service_project.service_projects,
     google_service_networking_connection.psa_connection
   ]
+}
+
+output "network_attachment_ids" {
+  description = "IDs of network attachments."
+  value = {
+    for k, v in google_compute_network_attachment.default :
+    k => v.id
+  }
 }
 
 output "project_id" {
@@ -139,6 +146,11 @@ output "subnets" {
     # allows correct destruction of internal application load balancers
     google_compute_subnetwork.proxy_only
   ]
+}
+
+output "subnets_private_nat" {
+  description = "Private NAT subnet resources."
+  value       = { for k, v in google_compute_subnetwork.private_nat : k => v }
 }
 
 output "subnets_proxy_only" {

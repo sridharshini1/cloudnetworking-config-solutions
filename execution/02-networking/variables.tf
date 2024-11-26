@@ -131,7 +131,7 @@ variable "shared_vpc_service_projects" {
 variable "deletion_policy" {
   description = "The deletion policy for the service networking connection. Setting to ABANDON allows the resource to be abandoned rather than deleted. This will enable a successful terraform destroy when destroying CloudSQL instances. Use with care as it can lead to dangling resources."
   type        = string
-  default     = ""
+  default     = null
 }
 
 ## Cloud NAT input variables

@@ -59,9 +59,12 @@ variable "dns_policy" {
 variable "factories_config" {
   description = "Paths to data files and folders that enable factory functionality."
   type = object({
-    subnets_folder = string
+    context = optional(object({
+      regions = optional(map(string), {})
+    }), {})
+    subnets_folder = optional(string)
   })
-  default = null
+  default = {}
 }
 
 variable "firewall_policy_enforcement_order" {
@@ -95,6 +98,19 @@ variable "mtu" {
 variable "name" {
   description = "The name of the network being created."
   type        = string
+}
+
+variable "network_attachments" {
+  description = "PSC network attachments, names as keys."
+  type = map(object({
+    subnet                = string
+    automatic_connection  = optional(bool, false)
+    description           = optional(string, "Terraform-managed.")
+    producer_accept_lists = optional(list(string))
+    producer_reject_lists = optional(list(string))
+  }))
+  nullable = false
+  default  = {}
 }
 
 variable "peering_config" {
@@ -161,15 +177,35 @@ variable "project_id" {
   type        = string
 }
 
-variable "psa_config" {
-  description = "The Private Service Access configuration for Service Networking."
-  type = object({
-    ranges         = map(string)
-    export_routes  = optional(bool, false)
-    import_routes  = optional(bool, false)
-    peered_domains = optional(list(string), [])
-  })
-  default = null
+variable "psa_configs" {
+  description = "The Private Service Access configuration."
+  type = list(object({
+    deletion_policy  = optional(string, null)
+    ranges           = map(string)
+    export_routes    = optional(bool, false)
+    import_routes    = optional(bool, false)
+    peered_domains   = optional(list(string), [])
+    range_prefix     = optional(string)
+    service_producer = optional(string, "servicenetworking.googleapis.com")
+  }))
+  nullable = false
+  default  = []
+  validation {
+    condition = (
+      length(var.psa_configs) == length(toset([
+        for v in var.psa_configs : v.service_producer
+      ]))
+    )
+    error_message = "At most one configuration is possible for each service producer."
+  }
+  validation {
+    condition = alltrue([
+      for v in var.psa_configs : (
+        v.deletion_policy == null || v.deletion_policy == "ABANDON"
+      )
+    ])
+    error_message = "Deletion policy supports only ABANDON."
+  }
 }
 
 variable "routes" {
@@ -218,11 +254,12 @@ variable "shared_vpc_service_projects" {
 variable "subnets" {
   description = "Subnet configuration."
   type = list(object({
-    name                  = string
-    ip_cidr_range         = string
-    region                = string
-    description           = optional(string)
-    enable_private_access = optional(bool, true)
+    name                             = string
+    ip_cidr_range                    = string
+    region                           = string
+    description                      = optional(string)
+    enable_private_access            = optional(bool, true)
+    allow_subnet_cidr_routes_overlap = optional(bool, null)
     flow_logs_config = optional(object({
       aggregation_interval = optional(string)
       filter_expression    = optional(string)
@@ -237,8 +274,7 @@ variable "subnets" {
       # enable_private_access = optional(string)
     }))
     secondary_ip_ranges = optional(map(string))
-
-    iam = optional(map(list(string)), {})
+    iam                 = optional(map(list(string)), {})
     iam_bindings = optional(map(object({
       role    = string
       members = list(string)
@@ -257,6 +293,18 @@ variable "subnets" {
         description = optional(string)
       }))
     })), {})
+  }))
+  default  = []
+  nullable = false
+}
+
+variable "subnets_private_nat" {
+  description = "List of private NAT subnets."
+  type = list(object({
+    name          = string
+    ip_cidr_range = string
+    region        = string
+    description   = optional(string)
   }))
   default  = []
   nullable = false
@@ -332,10 +380,4 @@ variable "vpc_create" {
   description = "Create VPC. When set to false, uses a data source to reference existing VPC."
   type        = bool
   default     = true
-}
-
-variable "deletion_policy" {
-  description = "The deletion policy for the service networking connection. Setting to ABANDON allows the resource to be abandoned rather than deleted. This will enable a successful terraform destroy when destroying CloudSQL instances. Use with care as it can lead to dangling resources."
-  type        = string
-  default     = ""
 }

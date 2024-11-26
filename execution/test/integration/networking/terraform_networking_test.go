@@ -148,8 +148,11 @@ func TestCreateVPCNetworkModule(t *testing.T) {
 	}
 
 	t.Log(" ========= Verify Subnetwork Id ========= ")
-	got = terraform.Output(t, terraformOptions, "subnet_ids")
-	subnetworkID := fmt.Sprintf("[projects/%s/regions/%s/subnetworks/%s]", projectID, region, subnetworkName)
+
+	subnetworkIDPath := fmt.Sprintf("%s/%s",region,subnetworkName)
+	output := terraform.OutputJson(t, terraformOptions, "subnet_ids")
+	got = gjson.Get(output, subnetworkIDPath).String()
+	subnetworkID := fmt.Sprintf("projects/%s/regions/%s/subnetworks/%s", projectID, region, subnetworkName)
 	wantSubnetworkID := subnetworkID
 	if got != wantSubnetworkID {
 		t.Errorf("Subnetwork with invalid subnetwork ID is created = %v, want = %v", got, wantSubnetworkID)
@@ -157,7 +160,7 @@ func TestCreateVPCNetworkModule(t *testing.T) {
 
 	// Verify Service Connection Policy from Terraform Output
 	t.Logf("======= Verify Service Connection Policy (Terraform Output) =======")
-	output := terraform.OutputJson(t, terraformOptions, "service_connection_policy_details") // Assuming this is your output
+	output = terraform.OutputJson(t, terraformOptions, "service_connection_policy_details") // Assuming this is your output
 
 	defaultServiceClass := "gcp-memorystore-redis"
 	policyName := fmt.Sprintf("SCP-%s-%s", networkName, defaultServiceClass)
@@ -180,9 +183,9 @@ func TestCreateVPCNetworkModule(t *testing.T) {
 		t.Errorf("Error parsing output, invalid json: %s", vpcOutputValue)
 	}
 	result := gjson.Parse(vpcOutputValue)
-	psaRangeNamePath := fmt.Sprintf("subnets_psa.%s.name", psaRangeName)
+	psaRangeNamePath := fmt.Sprintf("subnets_psa.servicenetworking-googleapis-com-%s.name", psaRangeName)
 	got = gjson.Get(result.String(), psaRangeNamePath).String()
-	want = psaRangeName
+	want = fmt.Sprintf("servicenetworking-googleapis-com-%s",psaRangeName)
 	if got != want {
 		t.Errorf("Invalid PSA range created = %v, want = %v", got, want)
 	}
@@ -263,13 +266,6 @@ func TestExistingVPCNetworkModule(t *testing.T) {
 		t.Errorf("Network with invalid name created = %v, want = %v", got, want)
 	}
 
-	t.Logf(" ========= Verify Subnetwork Id ========= ")
-	got = terraform.Output(t, terraformOptions, "subnet_ids")
-	subnetworkID := fmt.Sprintf("[projects/%s/regions/%s/subnetworks/%s]", projectID, region, subnetworkName)
-	wantSubnetworkID := subnetworkID
-	if got != wantSubnetworkID {
-		t.Errorf("Subnetwork with invalid sub network id created = %v, want = %v", got, wantSubnetworkID)
-	}
 
 	// Create SCP outside of terraform
 	defaultServiceClass := "gcp-memorystore-redis"
@@ -341,9 +337,9 @@ func TestExistingVPCNetworkModule(t *testing.T) {
 		t.Errorf("Error parsing output, invalid json: %s", vpcOutputValue)
 	}
 	result := gjson.Parse(vpcOutputValue)
-	psaRangeNamePath := fmt.Sprintf("subnets_psa.%s.name", psaRangeName)
+	psaRangeNamePath := fmt.Sprintf("subnets_psa.servicenetworking-googleapis-com-%s.name", psaRangeName)
 	got = gjson.Get(result.String(), psaRangeNamePath).String()
-	want = psaRangeName
+	want = fmt.Sprintf("servicenetworking-googleapis-com-%s",psaRangeName)
 	if got != want {
 		t.Errorf("Invalid PSA range created = %v, want = %v", got, want)
 	}
