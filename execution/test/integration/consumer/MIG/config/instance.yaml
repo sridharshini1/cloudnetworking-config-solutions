@@ -1,0 +1,16 @@
+name: mig-1401523974151902498
+project_id: project-id
+location: us-central1
+zone: us-central1-a
+vpc_name: testing-net-mig
+subnetwork_name: testing-subnet-mig
+target_size: 1
+auto_healing_policies:
+  initial_delay_sec: 30
+health_check_config:
+  enable_logging: true
+  tcp:
+    port: 80
+autoscaler_config:
+  max_replicas: 3
+  min_replicas: 1

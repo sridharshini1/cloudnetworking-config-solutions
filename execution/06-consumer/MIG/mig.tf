@@ -1,0 +1,59 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+module "mig" {
+  for_each = local.mig_map
+  source   = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/compute-mig"
+
+  project_id = each.value.project_id
+  location   = each.value.location
+  name       = each.value.name
+
+  target_size       = try(each.value.target_size, var.target_size)
+  instance_template = module.mig-template[each.key].template.self_link
+
+  auto_healing_policies = {
+    health_check      = try(each.value.auto_healing_policies.health_check, var.auto_healing_policies.health_check)
+    initial_delay_sec = try(each.value.auto_healing_policies.initial_delay_sec, var.auto_healing_policies.initial_delay_sec)
+  }
+
+  health_check_config = {
+    enable_logging = try(each.value.health_check_config.enable_logging, var.health_check_config.enable_logging)
+
+    # Check if TCP is defined and use it if available
+    tcp = try(each.value.health_check_config.tcp, var.health_check_config.tcp)
+
+    # If TCP is not defined, fall back to HTTP
+    http = try(each.value.health_check_config.http, var.health_check_config.http)
+
+    # Handle HTTPS, HTTP2, gRPC, and SSL if needed
+    https = try(each.value.health_check_config.https, var.health_check_config.https)
+    http2 = try(each.value.health_check_config.http2, var.health_check_config.http2)
+    grpc  = try(each.value.health_check_config.grpc, var.health_check_config.grpc)
+    ssl   = try(each.value.health_check_config.ssl, var.health_check_config.ssl)
+  }
+
+  autoscaler_config = {
+    max_replicas    = try(each.value.autoscaler_config.max_replicas, var.autoscaler_config.max_replicas)
+    min_replicas    = try(each.value.autoscaler_config.min_replicas, var.autoscaler_config.min_replicas)
+    cooldown_period = try(each.value.autoscaler_config.cooldown_period, var.autoscaler_config.cooldown_period)
+
+    scaling_signals = {
+      cpu_utilization = {
+        target                = try(each.value.autoscaler_config.scaling_signals.cpu_utilization.target, var.autoscaler_config.scaling_signals.cpu_utilization.target)
+        optimize_availability = try(each.value.autoscaler_config.scaling_signals.cpu_utilization.optimize_availability, var.autoscaler_config.scaling_signals.cpu_utilization.optimize_availability)
+      }
+    }
+  }
+}

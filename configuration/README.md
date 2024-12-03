@@ -43,6 +43,11 @@ This directory serves as a centralized repository for all Terraform configuratio
         - gce.tfvars
         - config
           - instance.yaml.example
+  - MIG
+        - mig.tfvars
+        - config
+          - instance1.yaml.example
+          - instance2.yaml.example
   - CloudRun
     - Job
       - cloudrunjob.tfvars
