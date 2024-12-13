@@ -23,8 +23,8 @@ output "network_id" {
 }
 
 output "subnet_ids" {
-  description = "List of fully qualified subnetwork IDs."
-  value       = local.subnet_ids
+  description = "Map of subnet IDs keyed by name."
+  value       = module.vpc_network.subnet_ids
 }
 
 output "vpc_networks" {

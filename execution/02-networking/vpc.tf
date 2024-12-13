@@ -19,20 +19,16 @@ module "vpc_network" {
   project_id                        = var.project_id
   delete_default_routes_on_create   = var.delete_default_routes_on_create
   firewall_policy_enforcement_order = var.firewall_policy_enforcement_order
-  deletion_policy                   = var.deletion_policy
-  psa_config = {
-    export_routes = var.export_custom_routes
-    import_routes = var.import_custom_routes
+  psa_configs = [{
+    export_routes   = var.export_custom_routes
+    import_routes   = var.import_custom_routes
+    deletion_policy = var.deletion_policy
     ranges = {
       "${var.psa_range_name}" = "${var.psa_range}"
     }
-  }
+  }]
   shared_vpc_host             = var.shared_vpc_host
   shared_vpc_service_projects = var.shared_vpc_service_projects
   subnets                     = var.create_subnetwork ? var.subnets : null
 }
 
-data "google_compute_network" "vpc_network" {
-  name    = module.vpc_network.name
-  project = var.project_id
-}
