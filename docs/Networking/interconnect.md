@@ -26,101 +26,103 @@ Key features include automated setup using Terraform, secure networking with Vir
 
 ## Architecture
 
-**Scenario 1: The diagram illustrates a hybrid cloud architecture with connectivity between an on-premises environment and Google Cloud.**
+**Scenario 1:** The diagram illustrates a hybrid cloud architecture with connectivity between an on-premises environment and Google Cloud.
 
 <img src="./images/alloydbandcloudsql.png" alt="alloydbandcloudsql" width="800"/>
 
-## Request flow
+#### Request flow
 
-**1. User Request:**
+The request flow in this diagram is as follows:
 
-* A user within the "OnPrem Environment" initiates a request to access resources (e.g., database query, application access) located in the "Consumer Service Project" (either SQL Instance or AlloyDB Instance).
+  1. User Request:
 
-**2. On-Premises Routing:**
+      * A user within the "OnPrem Environment" initiates a request to access resources (e.g., database query, application access) located in the "Consumer Service Project" (either SQL Instance or AlloyDB Instance).
 
-* The request is routed through the "On-premises Router" within the user's "OnPrem Environment."
-* The router directs the request to the "Dedicated Interconnect" that establishes a private connection to the "Colocation Facility."
+  2. On-Premises Routing:
 
-**3. Colocation Facility:**
+      * The request is routed through the "On-premises Router" within the user's "OnPrem Environment."
+      * The router directs the request to the "Dedicated Interconnect" that establishes a private connection to the "Colocation Facility."
 
-* The request enters the "Colocation Facility" where it reaches the "VM" (Virtual Machine).
-* The VM acts as a gateway or intermediary within the "Consumer Host Project."
+  3. Colocation Facility:
 
-**4. Consumer Host Project:**
+      * The request enters the "Colocation Facility" where it reaches the "VM" (Virtual Machine).
+      * The VM acts as a gateway or intermediary within the "Consumer Host Project."
 
-* The request is forwarded from the VM to the "Cloud Router" within the "Host VPC" (Virtual Private Cloud) in the us-central1 region.
-* The Cloud Router directs the request based on the destination:
-    * **SQL Instance:** The request is routed within the same VPC (us-central1) to the "Subnet1" where the "SQL Instance with Private IP" resides.
-    * **AlloyDB Instance:** The request traverses through "VPC Peering" to reach the us-west1 region. It then goes to "Subnet2" and finally to the "AlloyDB Instance with Private IP" in "Subnet4 for AlloyDB."
+  4. Consumer Host Project:
 
-**5. Google Managed Shared Host Project:**
+      * The request is forwarded from the VM to the "Cloud Router" within the "Host VPC" (Virtual Private Cloud) in the us-central1 region.
+      * The Cloud Router directs the request based on the destination:
+          * SQL Instance: The request is routed within the same VPC (us-central1) to the "Subnet1" where the "SQL Instance with Private IP" resides.
+          * AlloyDB Instance: The request traverses through "VPC Peering" to reach the us-west1 region. It then goes to "Subnet2" and finally to the "AlloyDB Instance with Private IP" in "Subnet4 for AlloyDB."
 
-* If the request targets resources within the "Google Organisation," it passes through the "Google Managed Shared Host Project."
-* The request is routed to the appropriate "Tenant Service Project" (either 1 or 2) based on the specific resource being accessed.
-    * **Tenant Service Project 1:** The request is routed to the "Cloud SQL (VMs)" in the us-central1 region.
-    * **Tenant Service Project 2:** The request is routed to the "AlloyDB (VM)" in the us-west1 region.
+  5. Google Managed Shared Host Project:
 
-**6. Response:**
+      * If the request targets resources within the "Google Organisation," it passes through the "Google Managed Shared Host Project."
+      * The request is routed to the appropriate "Tenant Service Project" (either 1 or 2) based on the specific resource being accessed.
+          * Tenant Service Project 1: The request is routed to the "Cloud SQL (VMs)" in the us-central1 region.
+          * Tenant Service Project 2: The request is routed to the "AlloyDB (VM)" in the us-west1 region.
 
-* Once the request is processed by the respective service (SQL Instance, AlloyDB Instance, Cloud SQL, or AlloyDB), the response follows the reverse path back to the user in the "OnPrem Environment."
+  6. Response:
 
-**Scenario 2: The diagram depicts three environments: the on-premises environment (left box), the Google Cloud consumer organization (middle box), and the Google-managed google organization (right box).**
+      * Once the request is processed by the respective service (SQL Instance, AlloyDB Instance, Cloud SQL, or AlloyDB), the response follows the reverse path back to the user in the "OnPrem Environment."
+
+**Scenario 2:** The diagram depicts three environments: the on-premises environment (left box), the Google Cloud consumer organization (middle box), and the Google-managed google organization (right box).
 
 <img src="./images/cloudsqlwithpsc.png" alt="cloudsqlwithpsc" width="800"/>
 
-## Request flow
+#### Request flow
 
 The request flow in this diagram is as follows:
 
-1. **On-premises Environment**:
-   * A **VM** in the on-premises environment sends a request.
-   * The traffic is routed through the **on-premises router**.
-2. **Interconnect to GCP**:
-   * The request passes through a **Dedicated Interconnect** (or VPN) that links the on-premises environment to the Google Cloud Platform (GCP).
+1. On-premises Environment:
+   * A VM in the on-premises environment sends a request.
+   * The traffic is routed through the on-premises router.
+2. Interconnect to GCP:
+   * The request passes through a Dedicated Interconnect (or VPN) that links the on-premises environment to the Google Cloud Platform (GCP).
    * The interconnect connectivity facilitates secure communication between the on-premises environment and the cloud.
-3. **Consumer Project (GCP)**:
-   * Once in GCP, the traffic enters the **Consumer VPC**.
-   * The **Cloud Router** manages the routing within the VPC, forwarding the request to the **Private Service Connect (PSC) Endpoint**.
-   * The **PSC Endpoint** is associated with:
+3. Consumer Project (GCP):
+   * Once in GCP, the traffic enters the Consumer VPC.
+   * The Cloud Router manages the routing within the VPC, forwarding the request to the Private Service Connect (PSC) Endpoint.
+   * The PSC Endpoint is associated with:
      * A forwarding rule.
      * An endpoint IP.
      * A service attachment URI.
-4. **Crossing to Producer Project**:
-   * The request is routed via the **Service Attachment**, a component configured in the **Producer VPC**.
-   * The **Service Attachment** maps the connection to the **Internal Load Balancer (ILB) Forwarding Rule**.
-5. **Producer Project (GCP)**:
-   * The **ILB Forwarding Rule** in the Producer VPC directs the traffic to its final destination.
-   * The destination in this case is a **Cloud SQL VM**, representing the physical manifestation of the service being accessed.
+4. Crossing to Producer Project:
+   * The request is routed via the Service Attachment, a component configured in the Producer VPC.
+   * The Service Attachment maps the connection to the Internal Load Balancer (ILB) Forwarding Rule.
+5. Producer Project (GCP):
+   * The ILB Forwarding Rule in the Producer VPC directs the traffic to its final destination.
+   * The destination in this case is a Cloud SQL VM, representing the physical manifestation of the service being accessed.
 
-**Packet Path**
 
-* The **User Data Path** (solid red line) illustrates the route of the request, starting from the on-premises VM to the Cloud SQL instance.
-* The **Interconnect Connectivity** (dashed red line) facilitates communication between the on-premises environment and GCP infrastructure.
+* **Packet Path**
 
-**Scenario 3: On-Premises to Google Cloud Connectivity with Private Service Access Emphasizing Security**
+    * The User Data Path (solid red line) illustrates the route of the request, starting from the on-premises VM to the Cloud SQL instance.
+    * The Interconnect Connectivity (dashed red line) facilitates communication between the on-premises environment and GCP infrastructure.
+
+**Scenario 3:** On-Premises to Google Cloud Connectivity with Private Service Access Emphasizing Security
 
 <img src="./images/cloudsqlwithpsa.png" alt="cloudsqlwithpsa" width="800"/>
 
-## Request flow
+#### Request flow
 
 The request flow in this diagram is as follows:
 
-1. **On-premises VM:**
+1. On-premises VM:
    * A request is initiated from the VM in the on-premises environment.
    * Traffic is routed through the on-premises cloud router.
-2. **Dedicated Interconnect:**
-   * The request travels through the Dedicated Interconnect in a colocation facility, connecting the on-premises environment to Google Cloud. 
-3. **Host Project (Consumer VPC):**
+2. Dedicated Interconnect:
+   * The request travels through the Dedicated Interconnect in a colocation facility, connecting the on-premises environment to Google Cloud.
+3. Host Project (Consumer VPC):
    * The request enters the Consumer VPC Network.
-   * The Cloud Router in the Consumer VPC forwards the request to the Private Connection, which uses an allocated Private Service Access (PSA) range. 
+   * The Cloud Router in the Consumer VPC forwards the request to the Private Connection, which uses an allocated Private Service Access (PSA) range.
    * The Private Connection establishes VPC Peering to the service producer project.
-4. **Service Producer Project:**
+4. Service Producer Project:
    * The request reaches the Internal Load Balancer (ILB) in the Service Producer VPC.
    * The ILB directs the request to the Cloud SQL VM (the physical instance handling the database).
 
 **Simplified Flow Summary:**
-
-**VM (On-Premises) → On-Premises Router → Dedicated Interconnect → Cloud Router (Consumer VPC) → Private Connection → VPC Peering → Internal Load Balancer (ILB) → Cloud SQL VM**
+VM (On-Premises) → On-Premises Router → Dedicated Interconnect → Cloud Router (Consumer VPC) → Private Connection → VPC Peering → Internal Load Balancer (ILB) → Cloud SQL VM**
 
 ## Products Used
 
@@ -150,11 +152,11 @@ The solution for setting up Google Cloud Interconnect for Cloud SQL and AlloyDB 
 
 This section guides you through the process of deploying the solution.
 
-## Prerequisites
+### Prerequisites
 
-To establish connectivity between your on-premises environment and Google Cloud resources like **AlloyDB** and **Cloud SQL**, the following prerequisites and steps must be followed:
+  To establish connectivity between your on-premises environment and Google Cloud resources like **AlloyDB** and **Cloud SQL**, the following prerequisites and steps must be followed:
 
-## Establishing Interconnect and Configuring Connectivity for AlloyDB or Cloud SQL
+### Establishing Interconnect and Configuring Connectivity for AlloyDB or Cloud SQL
 
 This document outlines the process of setting up Dedicated Interconnect and configuring connectivity for AlloyDB or Cloud SQL within a Google Cloud environment.
 
@@ -195,47 +197,47 @@ Before running any scripts, ensure the following:
 
 **5. Required IAM Permissions**
 
-Ensure the user executing the script has the following permissions in the respective projects:
+  Ensure the user executing the script has the following permissions in the respective projects:
 
-**Interconnect Project**
+   * **Interconnect Project**
 
-* compute.interconnectAttachments.use
-* compute.interconnectAttachments.get
-* compute.interconnectAttachments.list
+      * compute.interconnectAttachments.use
+      * compute.interconnectAttachments.get
+      * compute.interconnectAttachments.list
 
-**Host Project**
+   *  **Host Project**
 
-* roles/compute.networkAdmin
-* roles/compute.securityAdmin
-* roles/iam.serviceAccountAdmin
-* roles/serviceusage.serviceUsageAdmin
-* roles/resourcemanager.projectIamAdmin
+      * roles/compute.networkAdmin
+      * roles/compute.securityAdmin
+      * roles/iam.serviceAccountAdmin
+      * roles/serviceusage.serviceUsageAdmin
+      * roles/resourcemanager.projectIamAdmin
 
-**Service Project**
+   * **Service Project**
 
-* roles/compute.instanceAdmin
-* roles/iam.serviceAccountAdmin
-* roles/serviceusage.serviceUsageAdmin
-* roles/resourcemanager.projectIamAdmin
+      * roles/compute.instanceAdmin
+      * roles/iam.serviceAccountAdmin
+      * roles/serviceusage.serviceUsageAdmin
+      * roles/resourcemanager.projectIamAdmin
 
-**[Optional] Compute XPN Permission**
+  * **[Optional] Compute XPN Permission**
 
-* If using the Host-Service project topology, ensure the user has roles/compute.xpnAdmin permission at the common folder containing both host and service projects. Learn more.
+      * If using the Host-Service project topology, ensure the user has roles/compute.xpnAdmin permission at the common folder containing both host and service projects. Learn more.
 
 **6. Assigning Permissions**
 
 You can assign IAM permissions using either of the following methods:
 
-**Using Google Cloud Console:**
+* **Using Google Cloud Console:**
 
-* Assign the required roles via the web console to the user executing the script.
+  * Assign the required roles via the web console to the user executing the script.
 
-**Using gcloud CLI:**
+* **Using gcloud CLI:**
 
-1. Run the following commands to assign roles programmatically:
-   `gcloud projects add-iam-policy-binding <PROJECT_ID> \
-     --member="user:<USER_EMAIL>" \
-     --role="roles/<ROLE>"`
+  1. Run the following commands to assign roles programmatically:
+    `gcloud projects add-iam-policy-binding <PROJECT_ID> \
+      --member="user:<USER_EMAIL>" \
+      --role="roles/<ROLE>"`
 
 **7. Service Account and Impersonation**
 
@@ -257,12 +259,12 @@ Once the prerequisites are complete:
 
 This process ensures seamless and secure connectivity between your on-premises environment and Google Cloud databases.
 
-## Deploy through “terraform-cli”
+### Deploy through “terraform-cli”
 
 1. **Clone the cloudnetworking-config-solutions repository:**
    `git clone https://github.com/GoogleCloudPlatform/cloudnetworking-config-solutions.git`
 
-## Configuration
+### Configuration
 
 To configure networking.tfvars for your environment, here's an example which can be used for your reference:
 
@@ -357,14 +359,12 @@ private_ip_address_prefix_length = 30             # Example prefix length
 
 ```
 
- `Example :` terraform plan \-var-file=../configuration/networking.tfvars terraform apply \-var-file=../configuration/networking.tfvars
+ **Example** : `terraform plan \-var-file=../configuration/networking.tfvars terraform apply \-var-file=../configuration/networking.tfvars`
 
 ```
-
 - Initialize: Run `terraform init`.
 - Plan: Run `terraform plan -var-file=../configuration/networking.tfvars` to review the planned changes.
 - Apply:  If the plan looks good, run `terraform apply -var-file=../configuration/networking.tfvars` to create or update the resources.
-
 ```
 
 ```
@@ -373,27 +373,25 @@ private_ip_address_prefix_length = 30             # Example prefix length
 - Security: Review the default firewall rules and SCPs to ensure they align with your security requirements
 ```
 
-2. **Execute the terraform script**  
+2. **Execute the terraform script**
    You can now deploy the stages individually using **run.sh** or you can deploy all the stages automatically using the [run.sh](http://run.sh) file. Navigate to the execution/ directory and run this command to run the automatic deployment using **run.sh .**
 
-```
-./run.sh -s all -t init-apply-auto-approve
-or
-./run.sh --stage all --tfcommand init-apply-auto-approve
-```
+    ```
+    ./run.sh -s all -t init-apply-auto-approve
+    or
+    ./run.sh --stage all --tfcommand init-apply-auto-approve
+    ```
 
-## 
+### **Optional : Delete the deployment**
 
-## **Optional : Delete the deployment**
-
-1. In Cloud Shell or in your terminal, make sure that the current working directory is $HOME/cloudshell\_open/\<Folder-name\>/execution. If it isn't, go to that directory.  
+1. In Cloud Shell or in your terminal, make sure that the current working directory is $HOME/cloudshell\_open/\<Folder-name\>/execution. If it isn't, go to that directory.
 2. Remove the resources that were provisioned by the solution guide:
 
-```
-./run.sh -s all -t destroy-auto-approve
-```
+    ```
+    ./run.sh -s all -t destroy-auto-approve
+    ```
 
-Terraform displays a list of the resources that will be destroyed.
+    Terraform displays a list of the resources that will be destroyed.
 
 3. When you're prompted to perform the actions, enter yes.
 
@@ -403,65 +401,65 @@ This document provides a guide to troubleshooting connectivity issues between an
 
 **1. Connectivity Issues**
 
-**On-premises to Google Cloud:**
+* **On-premises to Google Cloud:**
 
-* **Symptom:** No connectivity between on-premises systems and Google Cloud resources.
+  * **Symptom:** No connectivity between on-premises systems and Google Cloud resources.
 
-* **Troubleshooting Steps:**
+  * **Troubleshooting Steps:**
 
-* **Interconnect Connectivity:**
-    * Verify the physical connection of the Dedicated Interconnect.
-    * Check the status of the Interconnect link on the Google Cloud Console.
-    * Inspect Cloud Router configuration for BGP peering and route propagation.
-    * Use `ping` and `traceroute` to test connectivity between on-premises systems and the Cloud Router.
+  * **Interconnect Connectivity:**
+      * Verify the physical connection of the Dedicated Interconnect.
+      * Check the status of the Interconnect link on the Google Cloud Console.
+      * Inspect Cloud Router configuration for BGP peering and route propagation.
+      * Use `ping` and `traceroute` to test connectivity between on-premises systems and the Cloud Router.
 
-* **VPC Peering:**
-    * Ensure VPC peering connections are established and active.
-    * Verify route propagation between peered VPCs.
-    * Check for any route conflicts or blackholes.
-
-* **Firewall Rules:**
-    * Review and adjust firewall rules in both on-premises and Google Cloud environments.
-    * Ensure necessary ports and protocols are allowed.
-
-* **DNS Resolution:**
-    * Check DNS resolution for both on-premises and Google Cloud resources.
-    * Verify that DNS servers can resolve names correctly.
-
-**Within Google Cloud:**
-
-* **Symptom:** Connectivity issues between resources within Google Cloud (e.g., between VMs in different VPCs).
-
-* **Troubleshooting Steps:**
-
-* **VPC Peering:**
-  * Verify the status of VPC peering connections.
-  * Check route propagation and ensure routes are being advertised correctly.
-
-* **Firewall Rules:**
-  * Review firewall rules within the VPCs to ensure traffic between resources is allowed.
-
-* **Routing Tables:**
-  * Check routing tables for any misconfigurations or incorrect routes.
-
-  * **Network Tags:**
-  * If using network tags, verify that tags are correctly applied to resources and that firewall rules are configured accordingly.
-
-**Private Service Access (PSA):**
-
-* **Symptom:** Unable to access services like Cloud SQL or AlloyDB using PSA.
-
-* **Troubleshooting Steps:**
-
-  * **PSA Configuration:**
-  * Verify the correct configuration of PSA endpoints.
-  * Ensure that the service account used has the necessary permissions.
+  * **VPC Peering:**
+      * Ensure VPC peering connections are established and active.
+      * Verify route propagation between peered VPCs.
+      * Check for any route conflicts or blackholes.
 
   * **Firewall Rules:**
-  * Check firewall rules within the VPC where the PSA endpoint is deployed to allow traffic.
+      * Review and adjust firewall rules in both on-premises and Google Cloud environments.
+      * Ensure necessary ports and protocols are allowed.
 
-  * **Network Connectivity:**
-  * Verify that the VPC where the PSA endpoint is deployed has proper connectivity to the service (e.g., Cloud SQL).
+  * **DNS Resolution:**
+      * Check DNS resolution for both on-premises and Google Cloud resources.
+      * Verify that DNS servers can resolve names correctly.
+
+ *  **Within Google Cloud:**
+
+    * **Symptom:** Connectivity issues between resources within Google Cloud (e.g., between VMs in different VPCs).
+
+    * **Troubleshooting Steps:**
+
+    * **VPC Peering:**
+      * Verify the status of VPC peering connections.
+      * Check route propagation and ensure routes are being advertised correctly.
+
+    * **Firewall Rules:**
+      * Review firewall rules within the VPCs to ensure traffic between resources is allowed.
+
+    * **Routing Tables:**
+      * Check routing tables for any misconfigurations or incorrect routes.
+
+      * **Network Tags:**
+      * If using network tags, verify that tags are correctly applied to resources and that firewall rules are configured accordingly.
+
+  * **Private Service Access (PSA):**
+
+    * **Symptom:** Unable to access services like Cloud SQL or AlloyDB using PSA.
+
+    * **Troubleshooting Steps:**
+
+      * **PSA Configuration:**
+      * Verify the correct configuration of PSA endpoints.
+      * Ensure that the service account used has the necessary permissions.
+
+      * **Firewall Rules:**
+      * Check firewall rules within the VPC where the PSA endpoint is deployed to allow traffic.
+
+      * **Network Connectivity:**
+      * Verify that the VPC where the PSA endpoint is deployed has proper connectivity to the service (e.g., Cloud SQL).
 
 **2. Performance Issues**
 
@@ -515,19 +513,15 @@ This document provides a guide to troubleshooting connectivity issues between an
 * **Cloud Trace:**
   * Helps to identify and troubleshoot latency issues within distributed systems.
 
-**Note:**
-
-This document provides general troubleshooting guidance. Specific steps and configurations may vary depending on your environment and the nature of the issue.
+**Note:** This document provides general troubleshooting guidance. Specific steps and configurations may vary depending on your environment and the nature of the issue.
 
 
-## **Submit feedback** 
+## Submit feedback
 
 To troubleshoot errors, check Terraform's logs and output.
 
 To submit feedback, do the following:
 
-* If you're looking for assistance with streamlining network configuration automation for a comparable use case, feel free to submit an issue on the [GitHub repository](https://github.com/GoogleCloudPlatform/cloudnetworking-config-solutions/issues).  
-* For unmodified Terraform code, create issues in the [GitHub repository](https://github.com/GoogleCloudPlatform/cloudnetworking-config-solutions/issues). GitHub issues are reviewed on a best-effort basis and are not intended for general use questions.  
+* If you're looking for assistance with streamlining network configuration automation for a comparable use case, feel free to submit an issue on the [GitHub repository](https://github.com/GoogleCloudPlatform/cloudnetworking-config-solutions/issues).
+* For unmodified Terraform code, create issues in the [GitHub repository](https://github.com/GoogleCloudPlatform/cloudnetworking-config-solutions/issues). GitHub issues are reviewed on a best-effort basis and are not intended for general use questions.
 * For issues with the products that are used in the solution, contact [Cloud Customer Care](https://cloud.google.com/support-hub).
-
-## 
