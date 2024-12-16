@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Google LLC
+ * Copyright 2024-2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,26 @@
 
 # The self-links of the forwarding rules created for each service attachment.
 # This map uses the SQL instance names as keys and the self-links as values.
-
 output "forwarding_rule_self_link" {
-  value       = module.psc_forwarding_rules.forwarding_rule_self_link
-  description = "Map of forwarding rule self-links, keyed by SQL instance name"
+  value       = module.psc_forwarding_rule.forwarding_rule_self_link
+  description = "Map of created forwarding rule self-links, keyed by endpoint index."
 }
 
-# The IP addresses of the forwarding rules created for each service attachment.
-# This map uses the SQL instance names as keys and the IP addresses as values.
+# Outputs the self-links of the addresses created for each service attachment where a static IP is specified. 
+# The map uses the SQL instance names as keys and the self-links as values.
+output "address_self_link" {
+  value       = module.psc_forwarding_rule.address_self_link
+  description = "Map of created address self-links (for static IPs), keyed by endpoint index."
+}
 
+# Outputs the IP addresses of the addresses created for each service attachment where a static IP is specified. 
+# The map uses the SQL instance names as keys and the IP addresses as values.
 output "ip_address_literal" {
-  value       = module.psc_forwarding_rules.ip_address_literal
-  description = "Map of IP addresses, keyed by SQL instance name"
+  value       = module.psc_forwarding_rule.ip_address_literal
+  description = "Map of created address IP literals (for static IPs), keyed by endpoint index."
 }
 
 output "forwarding_rule_target" {
-  value       = module.psc_forwarding_rules.forwarding_rule_target
+  value       = module.psc_forwarding_rule.forwarding_rule_target
   description = "Map of forwarding rule targets, keyed by endpoint index"
 }

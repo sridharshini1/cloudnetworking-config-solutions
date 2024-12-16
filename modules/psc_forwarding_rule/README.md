@@ -1,5 +1,5 @@
 <!-- BEGIN_TF_DOCS -->
-Copyright 2024 Google LLC
+Copyright 2024-25 Google LLC
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -38,12 +38,13 @@ No modules.
 | [google_compute_address.psc_address](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_address) | resource |
 | [google_compute_forwarding_rule.psc_forwarding_rule](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_forwarding_rule) | resource |
 | [google_sql_database_instance.instance](https://registry.terraform.io/providers/hashicorp/google/latest/docs/data-sources/sql_database_instance) | data source |
+| [google_alloydb_instance.alloydb_instance](https://registry.terraform.io/providers/hashicorp/google/latest/docs/data-sources/alloydb_instance) | data source |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_psc_endpoints"></a> [psc\_endpoints](#input\_psc\_endpoints) | List of PSC Endpoint configurations | <pre>list(object({<br>    # The Google Cloud project ID where the forwarding rule and address will be created.<br>    endpoint_project_id = string<br><br>    # The Google Cloud project ID where the Cloud SQL instance is located.<br>    producer_instance_project_id = string<br><br>    # The name of the subnet where the internal IP address will be allocated.<br>    subnetwork_name = string<br><br>    # The name of the network where the forwarding rule will be created.<br>    network_name = string<br><br>    # The region where the forwarding rule and address will be created.<br>    region = optional(string)<br><br>    # Optional: The static internal IP address to use. If not provided,<br>    # Google Cloud will automatically allocate an IP address.<br>    ip_address_literal = optional(string, "")<br>    # Allow access to the PSC endpoint from any region.<br>    allow_psc_global_access = optional(bool, false)<br>    # Resource labels to apply to the forwarding rule.<br>    labels = optional(map(string), {})<br><br>    # Either producer_instance_name OR target must be specified, but not both<br>    producer_instance_name = optional(string)<br>    target                 = optional(string)<br>  }))</pre> | n/a | yes |
+| <a name="input_psc_endpoints"></a> [psc\_endpoints](#input\_psc\_endpoints) | List of PSC Endpoint configurations | <pre>list(object({<br>    # The Google Cloud project ID where the forwarding rule and address will be created.<br>    endpoint_project_id = string<br><br>    # The Google Cloud project ID where the Cloud SQL instance is located.<br>    producer_instance_project_id = string<br><br>    # The name of the subnet where the internal IP address will be allocated.<br>    subnetwork_name = string<br><br>    # The name of the network where the forwarding rule will be created.<br>    network_name = string<br><br>    # The region where the forwarding rule and address will be created.<br>    region = optional(string)<br><br>    # Optional: The static internal IP address to use. If not provided,<br>    # Google Cloud will automatically allocate an IP address.<br>    ip_address_literal = optional(string, "")<br>    # Allow access to the PSC endpoint from any region.<br>    allow_psc_global_access = optional(bool, false)<br>    # Resource labels to apply to the forwarding rule.<br>    labels = optional(map(string), {})<br><br>    # The name of the Cloud SQL instance.<br>    producer_cloudsql_instance_name = optional(string)<br><br>    # The name of the AlloyDB instance.<br>    producer_alloydb_instance_name = optional(string)<br><br>    # The ID of the AlloyDB cluster.<br>    alloydb_cluster_id = optional(string)<br><br>    # The target for the forwarding rule.<br>    target = optional(string)<br>  }))</pre> | n/a | yes |
 
 ## Outputs
 
@@ -51,6 +52,5 @@ No modules.
 |------|-------------|
 | <a name="output_address_self_link"></a> [address\_self\_link](#output\_address\_self\_link) | Self-links of the created addresses |
 | <a name="output_forwarding_rule_self_link"></a> [forwarding\_rule\_self\_link](#output\_forwarding\_rule\_self\_link) | Self-links of the created forwarding rules |
-| <a name="output_forwarding_rule_target"></a> [forwarding\_rule\_target](#output\_forwarding\_rule\_target) | Map of forwarding rule targets, keyed by endpoint index |
+| <a name="output_forwarding_rule_target"></a> [forwarding\_rule\_target](#output\_forwarding\_rule\_target) | Targets for the PSC forwarding rules |
 | <a name="output_ip_address_literal"></a> [ip\_address\_literal](#output\_ip\_address\_literal) | IP addresses of the created addresses |
-<!-- END_TF_DOCS -->

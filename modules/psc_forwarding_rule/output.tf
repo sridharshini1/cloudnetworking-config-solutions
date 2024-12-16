@@ -1,4 +1,4 @@
-# Copyright 2024 Google LLC
+# Copyright 2024-2025 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,24 +17,27 @@
 
 output "forwarding_rule_self_link" {
   value       = { for k, v in google_compute_forwarding_rule.psc_forwarding_rule : k => v.self_link }
-  description = "Self-links of the created forwarding rules"
+  description = "Map of created forwarding rule self-links, keyed by endpoint index."
 }
 
 # Outputs the self-links of the addresses created for each service attachment where a static IP is specified. 
 # The map uses the SQL instance names as keys and the self-links as values.
 output "address_self_link" {
   value       = { for k, v in google_compute_address.psc_address : k => v.self_link }
-  description = "Self-links of the created addresses"
+  description = "Map of created address self-links (for static IPs), keyed by endpoint index."
 }
 
 # Outputs the IP addresses of the addresses created for each service attachment where a static IP is specified. 
 # The map uses the SQL instance names as keys and the IP addresses as values.
 output "ip_address_literal" {
   value       = { for k, v in google_compute_address.psc_address : k => v.address }
-  description = "IP addresses of the created addresses"
+  description = "Map of created address IP literals (for static IPs), keyed by endpoint index."
 }
 
 output "forwarding_rule_target" {
-  value       = local.forwarding_rule_targets
   description = "Map of forwarding rule targets, keyed by endpoint index"
+  value = {
+    for idx, config in var.psc_endpoints :
+    idx => local.forwarding_rule_targets[idx]
+  }
 }

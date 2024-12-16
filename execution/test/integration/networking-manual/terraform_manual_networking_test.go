@@ -1,16 +1,16 @@
-// Copyright 2024 Google LLC
+//  Copyright 2024-2025 Google LLC
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+//  Licensed under the Apache License, Version 2.0 (the "License");
+//  you may not use this file except in compliance with the License.
+//  You may obtain a copy of the License at
 //
 //      http://www.apache.org/licenses/LICENSE-2.0
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+//  Unless required by applicable law or agreed to in writing, software
+//  distributed under the License is distributed on an "AS IS" BASIS,
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  See the License for the specific language governing permissions and
+//  limitations under the License.
 
 package integrationtest
 
@@ -32,18 +32,20 @@ const (
 	planFilePath           = "./plan"                         // Path where Terraform will save the execution plan
 )
 
-// Define the names of the producer SQL instances to be tested with their Service Attachments
+// Define the names of the producer CloudSQL and AlloyDB instances to be tested with their Service Attachments
 
 var (
-	producerInstanceNameWithoutIP = "psc"                                                               // Replace with your actual SQL instance name for testing without IP
-	producerInstanceNameWithIP    = "psc-instance"                                                      // Replace with your actual SQL instance name for testing with IP
-	targetLink                    = "target-link"                                                       // Define in format projects/project-tp/regions/region/serviceAttachments/unique-id"
-	producerInstanceNames         = []string{producerInstanceNameWithoutIP, producerInstanceNameWithIP} // Replace with your actual instance names to be tested in total (2 to be added)
-	networkName                   = "default"                                                           // Replace with an existing VPC Network
-	subnetworkName                = "default"                                                           // Replace with an existing subnet
-	ipAddressLiteral              = "10.128.0.30"                                                       // Replace with an available IP Address
-	ipAddressLiteralWithTarget    = "10.128.0.31"                                                       // Replace with an available IP Address
-	region                        = "us-central1"                                                       // Replace with your chosen region
+	networkName                   = "default"                                                         // Replace with an existing VPC Network
+	subnetworkName                = "default"                                                         // Replace with an existing subnet
+	ipAddressLiteral              = "10.128.0.30"                                                     // Replace with an available IP Address
+	ipAddressLiteralWithTarget    = "10.128.0.31"                                                     // Replace with an available IP Address
+	alloyDBClusterName            = "your-cluster-name"                                               // Replace with your actual AlloyDB cluster ID
+	alloyDBInstanceName           = "your-cluster-instance-name"                                      // Replace with your actual AlloyDB instance ID
+	region                        = "us-central1"                                                     // Replace with your actual AlloyDB region
+	alloyDBIPAddress              = "10.128.0.10"                                                     // Replace with your actual available IP address
+	targetLink                    = "projects/project-tp/regions/region/serviceAttachments/unique-id" // Define in format projects/project-tp/regions/region/serviceAttachments/unique-id"
+	cloudSQLInstanceNameWithoutIP = "psc"                                                             // Replace with your actual CloudSQL instance name for testing without IP
+	cloudSQLInstanceNameWithIP    = "psc-instance"                                                    // Replace with your actual CloudSQL instance name for testing with IP
 )
 
 // Global variable to store the Terraform variables used in tests.
@@ -59,19 +61,40 @@ func initTfVars() {
 		producerInstanceProjectID = endpointProjectID // If not set, use the same as endpointProjectID
 	}
 
-	// Create an array of endpoint configurations (pscEndpoints) based on the instance names.
-	pscEndpoints := make([]interface{}, len(producerInstanceNames))
-	for i, name := range producerInstanceNames {
-		// Each endpoint configuration is a map with details like project IDs, instance name, subnetwork, network, and IP address (auto-allocated in this case).
-		// The subnetwork and network are set to "default" for now, but can be changed to other values if needed.
-		pscEndpoints[i] = map[string]interface{}{
+	// Create an array of endpoint configurations (pscEndpoints)
+	pscEndpoints := []map[string]interface{}{
+		{ // Add AlloyDB configuration
 			"endpoint_project_id":          endpointProjectID,
 			"producer_instance_project_id": producerInstanceProjectID,
-			"producer_instance_name":       name,
+			"subnetwork_name":              subnetworkName, // CloudSQL subnet
+			"network_name":                 networkName,    // CloudSQL network name
+			"ip_address_literal":           alloyDBIPAddress,
+			"region":                       region,
+			"producer_alloydb": map[string]interface{}{
+				"instance_name": alloyDBInstanceName,
+				"cluster_id":    alloyDBClusterName,
+			},
+		},
+		{ // Add CloudSQL configuration
+			"endpoint_project_id":          endpointProjectID,
+			"producer_instance_project_id": producerInstanceProjectID,
 			"subnetwork_name":              subnetworkName,
 			"network_name":                 networkName,
-			"ip_address_literal":           "", // This signifies that the IP address will be auto-allocated
-		}
+			"ip_address_literal":           ipAddressLiteral,
+			"region":                       region,
+			"producer_cloudsql": map[string]interface{}{
+				"instance_name": cloudSQLInstanceNameWithoutIP,
+			},
+		},
+		{ // Add CloudSQL with target link configuration
+			"endpoint_project_id":          endpointProjectID,
+			"producer_instance_project_id": producerInstanceProjectID,
+			"subnetwork_name":              subnetworkName,
+			"network_name":                 networkName,
+			"ip_address_literal":           ipAddressLiteralWithTarget,
+			"region":                       region,
+			"target":                       targetLink,
+		},
 	}
 
 	// Assign the pscEndpoints array to the global tfVars map under the key "psc_endpoints".
@@ -79,6 +102,7 @@ func initTfVars() {
 		"psc_endpoints": pscEndpoints,
 	}
 }
+
 func TestInitAndPlanRunWithTfVars(t *testing.T) {
 	initTfVars() // Initialize Terraform variables using environment variables or defaults
 
@@ -122,14 +146,16 @@ func TestResourcesCount(t *testing.T) {
 	resourceCount := terraform.GetResourceCount(t, planStruct)
 
 	// Assert that the plan adds the expected number of resources.
-	assert.Equal(t, 4, resourceCount.Add, "TestResourcesCount failed. Expected %d resources to be added, but got %d", 4, resourceCount.Add) // Expecting 4 resources (2 addresses and 2 forwarding rules)
+	assert.Equal(t, 6, resourceCount.Add, "TestResourcesCount failed. Expected %d resources to be added, but got %d", 6, resourceCount.Add) // Expecting 6 resources (3 addresses and 3 forwarding rules)
 
 	// Assert that the plan doesn't change any existing resources.
 	assert.Zero(t, resourceCount.Change, "TestResourcesCount failed. Expected %d resources to be changed, but got %d", 0, resourceCount.Change)
 
 	// Assert that the plan doesn't destroy any existing resources.
 	assert.Zero(t, resourceCount.Destroy, "TestResourcesCount failed. Expected %d resources to be destroyed, but got %d", 0, resourceCount.Destroy)
-} // TestPlanFailsWithoutVars tests that the Terraform plan fails when required input variables are missing.
+}
+
+// TestPlanFailsWithoutVars tests that the Terraform plan fails when required input variables are missing.
 func TestPlanFailsWithoutVars(t *testing.T) {
 	// Create Terraform options with default settings, but no variables provided
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
@@ -163,14 +189,6 @@ func TestPlanFailsWithoutVars(t *testing.T) {
 func TestTerraformModuleResourceAddressListMatch(t *testing.T) {
 	initTfVars() // Initialize Terraform variables
 
-	// List of expected module addresses
-	expectedModuleAddress := []string{
-		"module.psc_forwarding_rules",
-		"module.psc_forwarding_rules",
-		"module.psc_forwarding_rules",
-		"module.psc_forwarding_rules",
-	}
-
 	// Create Terraform options
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		TerraformDir: terraformDirectoryPath, // Path to Terraform configuration
@@ -201,6 +219,14 @@ func TestTerraformModuleResourceAddressListMatch(t *testing.T) {
 	for _, rc := range content.ResourceChangesMap {
 		if rc.ModuleAddress != "" { // Filter for resources within the module
 			actualModuleAddresses = append(actualModuleAddresses, rc.ModuleAddress)
+		}
+	}
+
+	// Generate the expected module addresses based on the count of actual module addresses
+	expectedModuleAddress := make([]string, len(actualModuleAddresses))
+	if len(expectedModuleAddress) != 0 {
+		for i := range expectedModuleAddress {
+			expectedModuleAddress[i] = "module.psc_forwarding_rule"
 		}
 	}
 
@@ -239,23 +265,24 @@ func configureTerraformOptions(t *testing.T) *terraform.Options {
 	assert.NotEmpty(t, endpointProjectID, "Environment variable 'TF_VAR_endpoint_project_id' must be set")
 
 	// Retrieve or set the producer project ID (if not specified, it defaults to the same as the project ID)
-	producerProjectID := os.Getenv("TF_VAR_producer_project_id")
+	producerProjectID := os.Getenv("TF_VAR_producer_instance_project_id")
 	if producerProjectID == "" {
 		producerProjectID = endpointProjectID
 	}
-
-	// Set the producer instance name
 
 	// Create a map of Terraform variables
 	tfVars := map[string]interface{}{
 		"psc_endpoints": []interface{}{
 			map[string]interface{}{
-				"endpoint_project_id":          endpointProjectID,          // Project ID for the endpoint
-				"producer_instance_project_id": producerProjectID,          // Project ID where the SQL instance resides
-				"producer_instance_name":       producerInstanceNameWithIP, // Name of the SQL instance
-				"subnetwork_name":              subnetworkName,             // Modifiable Subnetwork name for the forwarding rule
-				"network_name":                 networkName,                // Modifiable Network name for the forwarding rule
-				"ip_address_literal":           ipAddressLiteral,           // Specify the IP address to use
+				"endpoint_project_id":          endpointProjectID, // Project ID for the endpoint
+				"producer_instance_project_id": producerProjectID, // Project ID where the CloudSQL instance resides
+				"subnetwork_name":              subnetworkName,    // Modifiable Subnetwork name for the forwarding rule
+				"network_name":                 networkName,       // Modifiable Network name for the forwarding rule
+				"ip_address_literal":           ipAddressLiteral,  // Specify the IP address to use
+				"region":                       region,            // Region for the forwarding rule
+				"producer_cloudsql": map[string]interface{}{
+					"instance_name": cloudSQLInstanceNameWithIP, // Name of the CloudSQL instance
+				},
 			},
 		},
 	}
@@ -276,10 +303,10 @@ func assertOutputs(t *testing.T, tfOptions *terraform.Options) {
 	actualIPAddressMap := terraform.OutputMap(t, tfOptions, "ip_address_literal")
 
 	// Extract the producer instance name from the Terraform options
-	producerInstanceName := tfOptions.Vars["psc_endpoints"].([]interface{})[0].(map[string]interface{})["producer_instance_name"].(string)
+	cloudSQLInstanceNameWithoutIP := tfOptions.Vars["psc_endpoints"].([]interface{})[0].(map[string]interface{})["producer_cloudsql"].(map[string]interface{})["instance_name"].(string)
 
 	// Construct the expected forwarding rule name
-	expectedForwardingRuleName := fmt.Sprintf("psc-forwarding-rule-%s", producerInstanceName)
+	expectedForwardingRuleName := fmt.Sprintf("psc-forwarding-rule-%s", cloudSQLInstanceNameWithoutIP)
 
 	// Get the actual forwarding rule self link and extract the name
 	actualForwardingRuleSelfLink := actualForwardingRuleSelfLinkMap["0"]
@@ -299,7 +326,7 @@ func assertOutputs(t *testing.T, tfOptions *terraform.Options) {
 // TestPSCForwardingRuleModuleWithAutoAllocatedIPAddress tests the Terraform module for PSC forwarding rule creation
 // when the IP address is NOT explicitly provided (auto-allocated).
 func TestPSCForwardingRuleModuleWithAutoAllocatedIPAddress(t *testing.T) {
-	// Configure Terraform options, setting the IP address to "" (empty string) for auto-allocation.
+	// Configure Terraform options, setting the IP address to null for auto-allocation.
 	tfOptions := configureTerraformOptionsWithNullIPAddress(t)
 
 	// Defer the destruction of Terraform resources to clean up after the test.
@@ -312,36 +339,34 @@ func TestPSCForwardingRuleModuleWithAutoAllocatedIPAddress(t *testing.T) {
 	assertOutputsForAutoAllocatedIPAddress(t, tfOptions)
 }
 
-// configureTerraformOptionsWithNullIPAddress sets up Terraform options with a null (empty) IP address for auto-allocation.
 func configureTerraformOptionsWithNullIPAddress(t *testing.T) *terraform.Options {
-	// Retrieve the project ID from environment variables, or use a default if not set.
 	endpointProjectID := os.Getenv("TF_VAR_endpoint_project_id")
 	assert.NotEmpty(t, endpointProjectID, "Environment variable 'TF_VAR_endpoint_project_id' must be set")
 
-	// If the producer project ID is not set, it defaults to the same as the project ID.
-	producerProjectID := os.Getenv("TF_VAR_producer_project_id")
+	producerProjectID := os.Getenv("TF_VAR_producer_instance_project_id")
 	if producerProjectID == "" {
 		producerProjectID = endpointProjectID
 	}
 
-	// Configure the Terraform variables with the project IDs, instance name, subnetwork, network, and an empty IP address.
 	tfVars := map[string]interface{}{
 		"psc_endpoints": []interface{}{
 			map[string]interface{}{
-				"endpoint_project_id":          endpointProjectID,             // Project where the forwarding rule will be created
-				"producer_instance_project_id": producerProjectID,             // Project where the Cloud SQL instance resides
-				"producer_instance_name":       producerInstanceNameWithoutIP, // Name of the Cloud SQL instance
-				"subnetwork_name":              subnetworkName,                // Modifiable Subnetwork name for the forwarding rule and address - ensure this is same region as the cloud sql instance
-				"network_name":                 networkName,                   // Modifiable Network name for the forwarding rule
-				"ip_address_literal":           "",                            // Empty IP address signifies auto-allocation
+				"endpoint_project_id":          endpointProjectID,
+				"producer_instance_project_id": producerProjectID,
+				"subnetwork_name":              subnetworkName,
+				"network_name":                 networkName,
+				"ip_address_literal":           "", // Leave empty to use auto-allocated IP
+				"region":                       region,
+				"producer_cloudsql": map[string]interface{}{
+					"instance_name": cloudSQLInstanceNameWithoutIP,
+				},
 			},
 		},
 	}
 
-	// Return the configured Terraform options with error handling.
 	return terraform.WithDefaultRetryableErrors(t, &terraform.Options{
-		TerraformDir: terraformDirectoryPath, // Path to the Terraform code directory
-		Vars:         tfVars,                 // Terraform variables
+		TerraformDir: terraformDirectoryPath,
+		Vars:         tfVars,
 	})
 }
 
@@ -352,7 +377,7 @@ func assertOutputsForAutoAllocatedIPAddress(t *testing.T, tfOptions *terraform.O
 	actualIPAddressMap := terraform.OutputMap(t, tfOptions, "ip_address_literal")
 
 	// Extract the producer instance name from the Terraform options.
-	producerInstanceName := tfOptions.Vars["psc_endpoints"].([]interface{})[0].(map[string]interface{})["producer_instance_name"].(string)
+	producerInstanceName := tfOptions.Vars["psc_endpoints"].([]interface{})[0].(map[string]interface{})["producer_cloudsql"].(map[string]interface{})["instance_name"].(string)
 
 	// Construct the expected forwarding rule name based on the instance name.
 	expectedForwardingRuleName := fmt.Sprintf("psc-forwarding-rule-%s", producerInstanceName)
@@ -400,7 +425,7 @@ func configureTerraformOptionsWithTarget(t *testing.T) *terraform.Options {
 	assert.NotEmpty(t, endpointProjectID, "Environment variable 'TF_VAR_endpoint_project_id' must be set")
 
 	// Retrieve or set the producer project ID (if not specified, it defaults to the same as the project ID)
-	producerProjectID := os.Getenv("TF_VAR_producer_project_id")
+	producerProjectID := os.Getenv("TF_VAR_producer_instance_project_id")
 	if producerProjectID == "" {
 		producerProjectID = endpointProjectID
 	}
@@ -411,11 +436,11 @@ func configureTerraformOptionsWithTarget(t *testing.T) *terraform.Options {
 			map[string]interface{}{
 				"endpoint_project_id":          endpointProjectID,          // Project ID for the endpoint
 				"producer_instance_project_id": producerProjectID,          // Project ID where the service attachment resides
-				"target":                       targetLink,                 // Service attachment link
-				"subnetwork_name":              subnetworkName,             // Modifiable Subnetwork name for the forwarding rule
-				"network_name":                 networkName,                // Modifiable Network name for the forwarding rule
-				"ip_address_literal":           ipAddressLiteralWithTarget, // Specify the IP address to use
-				"region":                       region,                     // Specify the region
+				"target":                       targetLink,                 // Use the targetLink variable defined at the top
+				"subnetwork_name":              subnetworkName,             // Use the subnetworkName variable defined at the top
+				"network_name":                 networkName,                // Use the networkName variable defined at the top
+				"ip_address_literal":           ipAddressLiteralWithTarget, // Use the ipAddressLiteralWithTarget variable defined at the top
+				"region":                       region,                     // Use the Region variable defined at the top
 			},
 		},
 	}
@@ -435,6 +460,9 @@ func assertOutputsWithTarget(t *testing.T, tfOptions *terraform.Options) {
 	// Get the IP address output
 	actualIPAddressMap := terraform.OutputMap(t, tfOptions, "ip_address_literal")
 
+	// Get the forwarding rule target output
+	actualForwardingRuleTargetMap := terraform.OutputMap(t, tfOptions, "forwarding_rule_target")
+
 	// Extract the target from the Terraform options
 	target := tfOptions.Vars["psc_endpoints"].([]interface{})[0].(map[string]interface{})["target"].(string)
 
@@ -449,6 +477,9 @@ func assertOutputsWithTarget(t *testing.T, tfOptions *terraform.Options) {
 	// Get the actual IP address
 	actualIPAddress := actualIPAddressMap["0"]
 
+	// Get the actual forwarding rule target
+	actualForwardingRuleTarget := actualForwardingRuleTargetMap["0"]
+
 	// Assert that the forwarding rule name matches the expected name
 	assert.Equal(t, expectedForwardingRuleName, actualForwardingRuleName, "Forwarding rule name mismatch")
 
@@ -456,7 +487,5 @@ func assertOutputsWithTarget(t *testing.T, tfOptions *terraform.Options) {
 	assert.NotNil(t, actualIPAddress, "IP address is nil")
 
 	// Assert that the target in the forwarding rule matches the provided target
-	actualTargetMap := terraform.OutputMap(t, tfOptions, "forwarding_rule_target") // Get the output as a map
-	actualTarget := actualTargetMap["0"]                                           // Access the target value using the key "0"
-	assert.Equal(t, target, actualTarget, "Target mismatch")
+	assert.Equal(t, target, actualForwardingRuleTarget, "Target mismatch")
 }
