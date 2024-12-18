@@ -26,6 +26,12 @@ locals {
   interconnect_project_id    = var.interconnect_project_id
   first_interconnect_name    = var.first_interconnect_name
   second_interconnect_name   = var.second_interconnect_name
+  vpc_spoke1 = {
+    "${var.vpc_spoke1}" = {
+      uri = local.network_id
+    }
+  }
+  vpc_spokes = merge(local.vpc_spoke1, var.existing_vpc_spoke)
 }
 
 

@@ -19,10 +19,6 @@ module "network_connectivity_center" {
   ncc_hub_name   = var.ncc_hub_name
   ncc_hub_labels = var.ncc_hub_labels
   spoke_labels   = var.spoke_labels
-  vpc_spokes = {
-    "${var.vpc_spoke1}" = {
-      uri = local.network_id
-    }
-  }
-  depends_on = [module.vpc_network]
+  vpc_spokes     = local.vpc_spokes
+  depends_on     = [module.vpc_network]
 }

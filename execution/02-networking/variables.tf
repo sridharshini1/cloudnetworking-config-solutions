@@ -513,3 +513,11 @@ variable "vpc_spoke1" {
   type        = string
   default     = "vpc-spoke1"
 }
+
+variable "existing_vpc_spoke" {
+  description = "The key values pair for the existing VPC which could be in same project or in different project."
+  type = map(object({
+    uri = string
+  }))
+  default = {}
+}

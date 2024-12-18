@@ -188,17 +188,17 @@ terraform apply -var-file=../configuration/networking.tfvars
 
 | Name | Version |
 |------|---------|
-| <a name="provider_google"></a> [google](#provider\_google) | 5.45.0 |
+| <a name="provider_google"></a> [google](#provider\_google) | 6.14.0 |
 
 ## Modules
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_havpn"></a> [havpn](#module\_havpn) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-vpn-ha | v30.0.0 |
-| <a name="module_nat"></a> [nat](#module\_nat) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-cloudnat | v30.0.0 |
+| <a name="module_havpn"></a> [havpn](#module\_havpn) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-vpn-ha | v36.0.1 |
+| <a name="module_nat"></a> [nat](#module\_nat) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-cloudnat | v36.0.1 |
 | <a name="module_network_connectivity_center"></a> [network\_connectivity\_center](#module\_network\_connectivity\_center) | ../../modules/network-connectivity-center | n/a |
-| <a name="module_vlan_attachment_a"></a> [vlan\_attachment\_a](#module\_vlan\_attachment\_a) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-vlan-attachment | v34.1.0 |
-| <a name="module_vlan_attachment_b"></a> [vlan\_attachment\_b](#module\_vlan\_attachment\_b) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-vlan-attachment | v34.1.0 |
+| <a name="module_vlan_attachment_a"></a> [vlan\_attachment\_a](#module\_vlan\_attachment\_a) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-vlan-attachment | v36.0.1 |
+| <a name="module_vlan_attachment_b"></a> [vlan\_attachment\_b](#module\_vlan\_attachment\_b) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-vlan-attachment | v36.0.1 |
 | <a name="module_vpc_network"></a> [vpc\_network](#module\_vpc\_network) | ../../modules/net-vpc | n/a |
 
 ## Resources
@@ -208,7 +208,6 @@ terraform apply -var-file=../configuration/networking.tfvars
 | [google_compute_route.default](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_route) | resource |
 | [google_compute_router.interconnect-router](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_router) | resource |
 | [google_network_connectivity_service_connection_policy.policy](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/network_connectivity_service_connection_policy) | resource |
-| [google_compute_network.vpc_network](https://registry.terraform.io/providers/hashicorp/google/latest/docs/data-sources/compute_network) | data source |
 
 ## Inputs
 
@@ -235,8 +234,9 @@ terraform apply -var-file=../configuration/networking.tfvars
 | <a name="input_create_second_vc_router"></a> [create\_second\_vc\_router](#input\_create\_second\_vc\_router) | Select 'true' to create a separate router for this VLAN attachment, or 'false' to use the current router configuration. | `bool` | `false` | no |
 | <a name="input_create_subnetwork"></a> [create\_subnetwork](#input\_create\_subnetwork) | Variable to determine if a new sub network should be created or not. | `bool` | `true` | no |
 | <a name="input_delete_default_routes_on_create"></a> [delete\_default\_routes\_on\_create](#input\_delete\_default\_routes\_on\_create) | Set to true to delete the default routes at creation time. | `bool` | `true` | no |
-| <a name="input_deletion_policy"></a> [deletion\_policy](#input\_deletion\_policy) | The deletion policy for the service networking connection. Setting to ABANDON allows the resource to be abandoned rather than deleted. This will enable a successful terraform destroy when destroying CloudSQL instances. Use with care as it can lead to dangling resources. | `string` | `""` | no |
+| <a name="input_deletion_policy"></a> [deletion\_policy](#input\_deletion\_policy) | The deletion policy for the service networking connection. Setting to ABANDON allows the resource to be abandoned rather than deleted. This will enable a successful terraform destroy when destroying CloudSQL instances. Use with care as it can lead to dangling resources. | `string` | `null` | no |
 | <a name="input_destination_range"></a> [destination\_range](#input\_destination\_range) | The destination range of outgoing packets that this route applies to. Only IPv4 is supported. | `string` | `"0.0.0.0/0"` | no |
+| <a name="input_existing_vpc_spoke"></a> [existing\_vpc\_spoke](#input\_existing\_vpc\_spoke) | The key values pair for the existing VPC which could be in same project or in different project. | <pre>map(object({<br>    uri = string<br>  }))</pre> | `{}` | no |
 | <a name="input_export_custom_routes"></a> [export\_custom\_routes](#input\_export\_custom\_routes) | Whether to export the custom routes to the peer network. | `bool` | `true` | no |
 | <a name="input_firewall_policy_enforcement_order"></a> [firewall\_policy\_enforcement\_order](#input\_firewall\_policy\_enforcement\_order) | Order that Firewall Rules and Firewall Policies are evaluated. Can be either 'BEFORE\_CLASSIC\_FIREWALL' or 'AFTER\_CLASSIC\_FIREWALL'. | `string` | `"AFTER_CLASSIC_FIREWALL"` | no |
 | <a name="input_first_interconnect_name"></a> [first\_interconnect\_name](#input\_first\_interconnect\_name) | Name of the first interconnect object. This will be used to populate the URL of the underlying Interconnect object that this attachment's traffic will traverse through. | `string` | `""` | no |
@@ -293,10 +293,11 @@ terraform apply -var-file=../configuration/networking.tfvars
 | Name | Description |
 |------|-------------|
 | <a name="output_name"></a> [name](#output\_name) | Name of the VPC network. |
+| <a name="output_network_connectivity_center"></a> [network\_connectivity\_center](#output\_network\_connectivity\_center) | Detailed information about resources created by network connectivity center. |
 | <a name="output_network_id"></a> [network\_id](#output\_network\_id) | Fully qualified network ID. |
 | <a name="output_service_connection_policy_details"></a> [service\_connection\_policy\_details](#output\_service\_connection\_policy\_details) | Detailed information about each service connection policy |
 | <a name="output_service_connection_policy_ids"></a> [service\_connection\_policy\_ids](#output\_service\_connection\_policy\_ids) | Map of service class to service connection policy IDs |
-| <a name="output_subnet_ids"></a> [subnet\_ids](#output\_subnet\_ids) | List of fully qualified subnetwork IDs. |
+| <a name="output_subnet_ids"></a> [subnet\_ids](#output\_subnet\_ids) | Map of subnet IDs keyed by name. |
 | <a name="output_subnet_self_links_for_scp_policy"></a> [subnet\_self\_links\_for\_scp\_policy](#output\_subnet\_self\_links\_for\_scp\_policy) | The self-links of the subnets where the SCP policy is applied. |
 | <a name="output_vpc_networks"></a> [vpc\_networks](#output\_vpc\_networks) | Complete details of the VPC network. |
 <!-- END_TF_DOCS -->

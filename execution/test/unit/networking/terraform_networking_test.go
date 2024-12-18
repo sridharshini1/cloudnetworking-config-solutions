@@ -156,6 +156,7 @@ func TestInitAndPlanRunWithoutTfVarsExpectFailureScenario(t *testing.T) {
 func TestResourcesCount(t *testing.T) {
 	// Construct the terraform options with default retryable errors to handle the most common
 	// retryable errors in terraform testing.
+	tfVars["create_ncc"] = false
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// Set the path to the Terraform code that will be tested.
 		TerraformDir: terraformDirectoryPath,
@@ -167,7 +168,32 @@ func TestResourcesCount(t *testing.T) {
 	})
 	planStruct := terraform.InitAndPlan(t, terraformOptions)
 	resourceCount := terraform.GetResourceCount(t, planStruct)
+	// Validate total number of resources to be created except NCC hub and spoke
 	if got, want := resourceCount.Add, 30; got != want {
+		t.Errorf("Test Resource Count Add = %v, want = %v", got, want)
+	}
+	if got, want := resourceCount.Change, 0; got != want {
+		t.Errorf("Test Resource Count Change = %v, want = %v", got, want)
+	}
+	if got, want := resourceCount.Destroy, 0; got != want {
+		t.Errorf("Test Resource Count Destroy = %v, want = %v", got, want)
+	}
+	t.Log("Test the resource count after enabling the creation of NCC resource")
+	// Enable Creation of NCC resource
+	tfVars["create_ncc"] = true
+	terraformOptions = terraform.WithDefaultRetryableErrors(t, &terraform.Options{
+		// Set the path to the Terraform code that will be tested.
+		TerraformDir: terraformDirectoryPath,
+		Vars:         tfVars,
+		Reconfigure:  true,
+		Lock:         true,
+		PlanFilePath: "./plan",
+		NoColor:      true,
+	})
+	planStruct = terraform.InitAndPlan(t, terraformOptions)
+	resourceCount = terraform.GetResourceCount(t, planStruct)
+	// Validate total number of resources to be created along with NCC hub and spoke
+	if got, want := resourceCount.Add, 32; got != want {
 		t.Errorf("Test Resource Count Add = %v, want = %v", got, want)
 	}
 	if got, want := resourceCount.Change, 0; got != want {
@@ -181,6 +207,7 @@ func TestResourcesCount(t *testing.T) {
 func TestTerraformModuleResourceAddressListMatch(t *testing.T) {
 	// Construct the terraform options with default retryable errors to handle the most common
 	// retryable errors in terraform testing.
+	tfVars["create_ncc"] = false
 	expectedModuleAddresses := []string{"module.vpc_network", "module.vlan_attachment_a[0]", "module.vlan_attachment_b[0]", "module.havpn[0]", "module.nat[0]"}
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// Set the path to the Terraform code that will be tested.
@@ -208,9 +235,39 @@ func TestTerraformModuleResourceAddressListMatch(t *testing.T) {
 	if !cmp.Equal(got, want, cmpopts.SortSlices(compare.Less[string])) {
 		t.Errorf("Test Element Mismatch = %v, want = %v", got, want)
 	}
+	t.Log("Test the Terraform Module / Resource Address Match after enabling the creation of NCC resource")
+	tfVars["create_ncc"] = true
+	expectedModuleAddresses = []string{"module.vpc_network", "module.vlan_attachment_a[0]", "module.vlan_attachment_b[0]", "module.havpn[0]", "module.nat[0]", "module.network_connectivity_center[0]"}
+	terraformOptions = terraform.WithDefaultRetryableErrors(t, &terraform.Options{
+		// Set the path to the Terraform code that will be tested.
+		TerraformDir: terraformDirectoryPath,
+		Vars:         tfVars,
+		Reconfigure:  true,
+		Lock:         true,
+		PlanFilePath: "./plan",
+		NoColor:      true,
+	})
+	planStruct = terraform.InitAndPlanAndShow(t, terraformOptions)
+	content, err = terraform.ParsePlanJSON(planStruct)
+	if err != nil {
+		t.Errorf("Error parsing Terraform plan: %v", err) // Detailed error message
+		return                                            // Exit early on parsing error
+	}
+	actualModuleAddresses = make([]string, 0)
+	for _, element := range content.ResourceChangesMap {
+		if element.ModuleAddress != "" && !slices.Contains(actualModuleAddresses, element.ModuleAddress) {
+			actualModuleAddresses = append(actualModuleAddresses, element.ModuleAddress)
+		}
+	}
+	want = expectedModuleAddresses
+	got = actualModuleAddresses
+	if !cmp.Equal(got, want, cmpopts.SortSlices(compare.Less[string])) {
+		t.Errorf("Test Element Mismatch = %v, want = %v", got, want)
+	}
 }
 
 func TestTerraformResourceAddressListMatch(t *testing.T) {
+	tfVars["create_ncc"] = false
 	expectedResourceAddresses := []string{
 		"google_compute_route.default[0]",
 		"google_network_connectivity_service_connection_policy.policy[0]",
