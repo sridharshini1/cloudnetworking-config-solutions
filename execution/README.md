@@ -16,13 +16,18 @@ The deployment is divided into seven logically isolated stages, each handled by 
 
     **Bootstrap Output (Example):**
     ```
-    consumer_stage_email          = "serviceAccount:consumer-stage-sa@<project-id>.iam.gserviceaccount.com"
-    networking_manual_stage_email = "serviceAccount:networking-manual-stage-sa@<project-id>.iam.gserviceaccount.com"
-    networking_stage_email        = "serviceAccount:networking-stage-sa@<project-id>.iam.gserviceaccount.com"
-    organization_stage_email      = "serviceAccount:organization-stage-sa@<project-id>.iam.gserviceaccount.com"
-    producer_stage_email          = "serviceAccount:producer-stage-sa@<project-id>.iam.gserviceaccount.com"
-    security_stage_email          = "serviceAccount:security-stage-sa@<project-id>.iam.gserviceaccount.com"
-    storage_bucket_name           = "terraform-state"
+   + consumer_cloudrun_email = "serviceAccount:consumer-cloudrun-sa@<project-id>.iam.gserviceaccount.com"
+   + consumer_gce_email      = "serviceAccount:consumer-gce-sa@<project-id>.iam.gserviceaccount.com"
+   + networking_email        = "serviceAccount:networking-sa@<project-id>.iam.gserviceaccount.com"
+   + networking_manual_email = "serviceAccount:networking-manual-sa@<project-id>.iam.gserviceaccount.com"
+   + organization_email      = "serviceAccount:organization-sa@<project-id>.iam.gserviceaccount.com"
+   + producer_alloydb_email  = "serviceAccount:producer-alloydb-sa@<project-id>.iam.gserviceaccount.com"
+   + producer_cloudsql_email = "serviceAccount:producer-cloudsql-sa@<project-id>.iam.gserviceaccount.com"
+   + producer_gke_email      = "serviceAccount:producer-gke-sa@<project-id>.iam.gserviceaccount.com"
+   + producer_mrc_email      = "serviceAccount:producer-mrc-sa@<project-id>.iam.gserviceaccount.com"
+   + producer_vertex_email   = "serviceAccount:producer-vertex-sa@<project-id>.iam.gserviceaccount.com"
+   + security_email          = "serviceAccount:security-sa@<project-id>.iam.gserviceaccount.com"
+   + storage_bucket_name     = "terraform-state"
     ```
 
     **Generating the provider.tf file**

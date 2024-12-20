@@ -14,14 +14,16 @@
 
 locals {
   config_folder_path = var.config_folder_path
-  instances          = [for file in fileset(local.config_folder_path, "[^_]*.yaml") : yamldecode(file("${local.config_folder_path}/${file}"))]
+
+  instances = [for file in fileset(local.config_folder_path, "[^_]*.yaml") : yamldecode(file("${local.config_folder_path}/${file}"))]
+
   instance_list = flatten([
     for instance in try(local.instances, []) : {
       cluster_id                  = instance.cluster_id
       cluster_display_name        = instance.cluster_display_name
       project_id                  = instance.project_id
       region                      = instance.region
-      network_id                  = instance.network_id
+      network_id                  = try(instance.network_id, var.network_id)
       primary_instance            = instance.primary_instance
       database_version            = try(instance.database_version, var.database_version)
       allocated_ip_range          = try(instance.allocated_ip_range, var.allocated_ip_range)
@@ -30,6 +32,32 @@ locals {
       read_pool_instance          = try(instance.read_pool_instance, var.read_pool_instance)
       automated_backup_policy     = try(instance.automated_backup_policy, var.automated_backup_policy)
       cluster_encryption_key_name = try(instance.cluster_encryption_key_name, var.cluster_encryption_key_name)
+
+      # Connectivity options field
+      connectivity_options          = try(instance.connectivity_options, var.connectivity_options)
+      psc_allowed_consumer_projects = try(instance.psc_allowed_consumer_projects, var.psc_allowed_consumer_projects)
     }
   ])
+
+  alloydb_network_config = {
+    for instance in local.instance_list : instance.cluster_display_name => {
+      network_self_link  = upper(instance.connectivity_options) == "PSA" ? instance.network_id : null
+      allocated_ip_range = upper(instance.connectivity_options) == "PSA" ? instance.allocated_ip_range : null
+      psc_config = upper(instance.connectivity_options) == "PSC" ? {
+        psc_enabled                   = true,
+        psc_allowed_consumer_projects = instance.psc_allowed_consumer_projects
+      } : null
+    }
+  }
 }
+
+
+
+
+
+
+
+
+
+
+

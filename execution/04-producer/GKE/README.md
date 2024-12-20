@@ -72,7 +72,7 @@ zones:
 network: your-vpc-network 
 subnetwork: your-subnet
 description: "Production GKE cluster"
-kubernetes_version: 1.27
+kubernetes_version: 1.31.1-gke.2105000
 ip_range_pods: pod-range-name
 ip_range_services: services-range-name
 node_pools:

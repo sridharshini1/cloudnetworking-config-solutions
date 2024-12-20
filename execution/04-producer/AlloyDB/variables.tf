@@ -24,12 +24,10 @@ variable "automated_backup_policy" {
     location      = optional(string)
     backup_window = optional(string)
     enabled       = optional(bool)
-
     weekly_schedule = optional(object({
       days_of_week = optional(list(string))
       start_times  = list(string)
     })),
-
     quantity_based_retention_count = optional(number)
     time_based_retention_count     = optional(string)
     labels                         = optional(map(string))
@@ -96,3 +94,22 @@ variable "config_folder_path" {
   type        = string
   default     = "../../../configuration/producer/AlloyDB/config"
 }
+
+variable "connectivity_options" {
+  type        = string
+  description = "Connectivity options for the AlloyDB cluster. Valid values are 'psc' and 'psa'. 'allocated_ip_range' will only be used if connectivity is set to 'psa'."
+  default     = "psa"
+}
+
+variable "psc_allowed_consumer_projects" {
+  type        = list(string)
+  description = "List of allowed consumer projects for PSC."
+  default     = []
+}
+
+variable "network_id" {
+  type        = string
+  description = "The Network ID of the VPC network where your AlloyDB instance will be deployed (PSA Configuration only)"
+  default     = null
+}
+

@@ -16,8 +16,6 @@ locals {
   network_name    = try(module.vpc_network.name, "")
   network_id      = try(module.vpc_network.id, "")
   nat_router_name = "${var.nat_name}-route"
-  // For generating list of subnet IDs to be displayed as output.
-  subnet_ids = [for subnetwork_link in data.google_compute_network.vpc_network.subnetworks_self_links : trimprefix(subnetwork_link, "https://www.googleapis.com/compute/v1/")]
   // Subnets for SCP
   subnet_self_links_for_scp_policy = [
     for subnet in module.vpc_network.subnets :
@@ -28,6 +26,12 @@ locals {
   interconnect_project_id    = var.interconnect_project_id
   first_interconnect_name    = var.first_interconnect_name
   second_interconnect_name   = var.second_interconnect_name
+  vpc_spoke1 = {
+    "${var.vpc_spoke1}" = {
+      uri = local.network_id
+    }
+  }
+  vpc_spokes = merge(local.vpc_spoke1, var.existing_vpc_spoke)
 }
 
 

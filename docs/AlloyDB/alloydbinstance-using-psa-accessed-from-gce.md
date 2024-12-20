@@ -267,7 +267,7 @@ To use this configuration solution, ensure the following are installed:
 2. Remove the resources that were provisioned by the solution guide:
 
     ```
-    ./run.sh -s all -t init-destroy-auto-approve
+    ./run.sh -s all -t destroy-auto-approve
     ```
 
 Terraform displays a list of the resources that will be destroyed.

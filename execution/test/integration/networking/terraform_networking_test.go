@@ -39,6 +39,8 @@ const (
 	tunnel1SharedSecret      = "secret1"
 	tunnel2BGPPeerASNAddress = "169.254.2.1"
 	tunnel2SharedSecret      = "secret2"
+	vpcSpoke1Name            = "vpc-spoke1"
+	vpcSpoke2Name            = "vpc_spoke2"
 )
 
 var (
@@ -48,6 +50,7 @@ var (
 	subnetworkName     = fmt.Sprintf("test-subnet-existing-%d", uniqueID)
 	subnetworkIPCIDR   = "10.0.0.0/24"
 	createInterconnect = true
+	hubName            = "ncc-hub"
 )
 
 // Name of the deployed dedicated interconnect received after deploying the resource in the test lab
@@ -58,7 +61,7 @@ var deployedInterconnectName = os.Getenv("deployed_interconnect_name")
 var interconnectProjectID = os.Getenv("TF_VAR_interconnect_project_id")
 
 var zone = "us-west2-a"
-var subnetworkIPCidr = "10.0.0.0/24"
+
 var deletionProtection = false
 
 // Variables for Interconnect configuration.
@@ -116,9 +119,12 @@ func TestCreateVPCNetworkModule(t *testing.T) {
 			"tunnel_2_shared_secret":       tunnel2SharedSecret,
 			"psa_range_name":               psaRangeName,
 			"psa_range":                    psaRange,
+			"create_ncc":                   false,
 		}
 	)
 
+	existingNetworkName := fmt.Sprintf("test-vpc-existing-%d", uniqueID)
+	existingSubnetworkName := fmt.Sprintf("test-subnet-existing-%d", uniqueID)
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// Set the path to the Terraform code that will be tested.
 		Vars:                 tfVars,
@@ -130,6 +136,8 @@ func TestCreateVPCNetworkModule(t *testing.T) {
 	})
 
 	// Clean up resources with "terraform destroy" at the end of the test.
+	// Delete VPC and subnet created outside of the terraform module.
+	defer deleteVPCSubnets(t, projectID, existingNetworkName, existingSubnetworkName, region)
 	defer terraform.Destroy(t, terraformOptions)
 
 	// Run "terraform init" and "terraform apply". Fail the test if there are any errors.
@@ -148,8 +156,11 @@ func TestCreateVPCNetworkModule(t *testing.T) {
 	}
 
 	t.Log(" ========= Verify Subnetwork Id ========= ")
-	got = terraform.Output(t, terraformOptions, "subnet_ids")
-	subnetworkID := fmt.Sprintf("[projects/%s/regions/%s/subnetworks/%s]", projectID, region, subnetworkName)
+
+	subnetworkIDPath := fmt.Sprintf("%s/%s",region,subnetworkName)
+	output := terraform.OutputJson(t, terraformOptions, "subnet_ids")
+	got = gjson.Get(output, subnetworkIDPath).String()
+	subnetworkID := fmt.Sprintf("projects/%s/regions/%s/subnetworks/%s", projectID, region, subnetworkName)
 	wantSubnetworkID := subnetworkID
 	if got != wantSubnetworkID {
 		t.Errorf("Subnetwork with invalid subnetwork ID is created = %v, want = %v", got, wantSubnetworkID)
@@ -157,7 +168,7 @@ func TestCreateVPCNetworkModule(t *testing.T) {
 
 	// Verify Service Connection Policy from Terraform Output
 	t.Logf("======= Verify Service Connection Policy (Terraform Output) =======")
-	output := terraform.OutputJson(t, terraformOptions, "service_connection_policy_details") // Assuming this is your output
+	output = terraform.OutputJson(t, terraformOptions, "service_connection_policy_details") // Assuming this is your output
 
 	defaultServiceClass := "gcp-memorystore-redis"
 	policyName := fmt.Sprintf("SCP-%s-%s", networkName, defaultServiceClass)
@@ -180,11 +191,101 @@ func TestCreateVPCNetworkModule(t *testing.T) {
 		t.Errorf("Error parsing output, invalid json: %s", vpcOutputValue)
 	}
 	result := gjson.Parse(vpcOutputValue)
-	psaRangeNamePath := fmt.Sprintf("subnets_psa.%s.name", psaRangeName)
+	psaRangeNamePath := fmt.Sprintf("subnets_psa.servicenetworking-googleapis-com-%s.name", psaRangeName)
 	got = gjson.Get(result.String(), psaRangeNamePath).String()
-	want = psaRangeName
+	want = fmt.Sprintf("servicenetworking-googleapis-com-%s",psaRangeName)
 	if got != want {
 		t.Errorf("Invalid PSA range created = %v, want = %v", got, want)
+	}
+
+	// Test Creation of the NCC modules and resources, set create_ncc as true and recreate the resource allowing hub and spoke to be created
+	existingNetworkID := fmt.Sprintf("projects/%s/global/networks/%s", projectID, existingNetworkName)
+	tfVars["existing_vpc_spoke"] = map[string]any{
+		vpcSpoke2Name: map[string]any{
+			"uri": existingNetworkID,
+		},
+	}
+	tfVars["ncc_hub_name"] = hubName
+	tfVars["create_ncc"] = true
+	terraformOptions = terraform.WithDefaultRetryableErrors(t, &terraform.Options{
+		// Set the path to the Terraform code that will be tested.
+		Vars:                 tfVars,
+		TerraformDir:         terraformDirectoryPath,
+		Reconfigure:          true,
+		Lock:                 true,
+		NoColor:              true,
+		SetVarsAfterVarFiles: true,
+	})
+	createVPCSubnets(t, projectID, existingNetworkName, existingSubnetworkName, region)
+
+	// Run "terraform init" and "terraform apply". Fail the test if there are any errors.
+	terraform.InitAndApply(t, terraformOptions)
+
+	// Wait for 60 seconds to let resource acheive stable state
+	time.Sleep(60 * time.Second)
+	// Create VPC and subnet outside of the terraform module.
+
+	t.Log(" ========= Verify NCC Hub and Spoke resources ========= ")
+	t.Log(" ========= Verify NCC Hub resources ========= ")
+	nccOutputValue := terraform.OutputJson(t, terraformOptions, "network_connectivity_center")
+	if !gjson.Valid(nccOutputValue) {
+		t.Errorf("Error parsing output, invalid json: %s", nccOutputValue)
+	}
+	result = gjson.Parse(nccOutputValue)
+	hubIDPath := fmt.Sprintf("0.%s.id", "ncc_hub")
+	got = gjson.Get(result.String(), hubIDPath).String()
+	wantHubID := fmt.Sprintf("projects/%s/locations/global/hubs/%s", projectID, hubName)
+	if got != wantHubID {
+		t.Errorf("Hub with invalid name created = %v, want = %v", got, wantHubID)
+	}
+
+	hubStatePath := fmt.Sprintf("0.%s.state", "ncc_hub")
+	got = gjson.Get(result.String(), hubStatePath).String()
+	want = "ACTIVE"
+	if got != want {
+		t.Errorf("Hub with invalid state created = %v, want = %v", got, want)
+	}
+	t.Log(" ========= Verify NCC Spoke resources ========= ")
+	spoke1IDPath := fmt.Sprintf("0.spokes.0.vpc/%s.id", vpcSpoke1Name)
+	got = gjson.Get(result.String(), spoke1IDPath).String()
+	want = fmt.Sprintf("projects/%s/locations/global/spokes/%s", projectID, vpcSpoke1Name)
+	if got != want {
+		t.Errorf("Spoke1 with invalid Spoke ID created = %v, want = %v", got, want)
+	}
+
+	spoke1HubIDPath := fmt.Sprintf("0.spokes.0.vpc/%s.hub", vpcSpoke1Name)
+	got = gjson.Get(result.String(), spoke1HubIDPath).String()
+	want = wantHubID
+	if got != want {
+		t.Errorf("Spoke1 with invalid Hub ID created = %v, want = %v", got, want)
+	}
+
+	spokeStatePath := fmt.Sprintf("0.spokes.0.vpc/%s.state", vpcSpoke1Name)
+	got = gjson.Get(result.String(), spokeStatePath).String()
+	want = "ACTIVE"
+	if got != want {
+		t.Errorf("Spoke1 with invalid state created = %v, want = %v", got, want)
+	}
+
+	spoke2IDPath := fmt.Sprintf("0.spokes.0.vpc/%s.id", vpcSpoke2Name)
+	got = gjson.Get(result.String(), spoke2IDPath).String()
+	want = fmt.Sprintf("projects/%s/locations/global/spokes/%s", projectID, vpcSpoke2Name)
+	if got != want {
+		t.Errorf("Spoke2 with invalid Spoke ID created = %v, want = %v", got, want)
+	}
+
+	spoke2HubIDPath := fmt.Sprintf("0.spokes.0.vpc/%s.hub", vpcSpoke2Name)
+	got = gjson.Get(result.String(), spoke2HubIDPath).String()
+	want = wantHubID
+	if got != want {
+		t.Errorf("Spoke2 with invalid Hub ID created = %v, want = %v", got, want)
+	}
+
+	spokeStatePath = fmt.Sprintf("0.spokes.0.vpc/%s.state", vpcSpoke2Name)
+	got = gjson.Get(result.String(), spokeStatePath).String()
+	want = "ACTIVE"
+	if got != want {
+		t.Errorf("Spoke2 with invalid state created = %v, want = %v", got, want)
 	}
 }
 
@@ -226,6 +327,7 @@ func TestExistingVPCNetworkModule(t *testing.T) {
 			"tunnel_2_shared_secret":       tunnel2SharedSecret,
 			"psa_range_name":               psaRangeName,
 			"psa_range":                    psaRange,
+			"create_ncc":                   false,
 		}
 	)
 
@@ -263,13 +365,6 @@ func TestExistingVPCNetworkModule(t *testing.T) {
 		t.Errorf("Network with invalid name created = %v, want = %v", got, want)
 	}
 
-	t.Logf(" ========= Verify Subnetwork Id ========= ")
-	got = terraform.Output(t, terraformOptions, "subnet_ids")
-	subnetworkID := fmt.Sprintf("[projects/%s/regions/%s/subnetworks/%s]", projectID, region, subnetworkName)
-	wantSubnetworkID := subnetworkID
-	if got != wantSubnetworkID {
-		t.Errorf("Subnetwork with invalid sub network id created = %v, want = %v", got, wantSubnetworkID)
-	}
 
 	// Create SCP outside of terraform
 	defaultServiceClass := "gcp-memorystore-redis"
@@ -341,9 +436,9 @@ func TestExistingVPCNetworkModule(t *testing.T) {
 		t.Errorf("Error parsing output, invalid json: %s", vpcOutputValue)
 	}
 	result := gjson.Parse(vpcOutputValue)
-	psaRangeNamePath := fmt.Sprintf("subnets_psa.%s.name", psaRangeName)
+	psaRangeNamePath := fmt.Sprintf("subnets_psa.servicenetworking-googleapis-com-%s.name", psaRangeName)
 	got = gjson.Get(result.String(), psaRangeNamePath).String()
-	want = psaRangeName
+	want = fmt.Sprintf("servicenetworking-googleapis-com-%s",psaRangeName)
 	if got != want {
 		t.Errorf("Invalid PSA range created = %v, want = %v", got, want)
 	}
@@ -384,6 +479,7 @@ execution of the test expecting to use existing VPC and subnets.
 */
 
 func createVPCSubnets(t *testing.T, projectID string, networkName string, subnetworkName string, region string) {
+	subnetworkIPCIDR = "10.0.1.0/24"
 	text := "compute"
 	cmd := shell.Command{
 		Command: "gcloud",
@@ -488,6 +584,7 @@ func TestInterconnectWithVPCCreation(t *testing.T) {
 		"second_va_bandwidth":          secondVaBandwidth,
 		"second_va_bgp_range":          secondVaBgpRange,
 		"second_vlan_tag":              secondVlanTag,
+		"create_ncc":                   false,
 	}
 
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
@@ -560,6 +657,7 @@ func TestInterconnectWithoutVPCCreation(t *testing.T) {
 		"second_va_bandwidth":          secondVaBandwidth,
 		"second_va_bgp_range":          secondVaBgpRange,
 		"second_vlan_tag":              secondVlanTag,
+		"create_ncc":                   false,
 	}
 
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
