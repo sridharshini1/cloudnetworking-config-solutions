@@ -3,7 +3,6 @@ cluster_display_name: "4915955890040594730"
 project_id: <PROJECT_ID>
 region: us-central1
 network_id: projects/<PROJECT_ID>/global/networks/vpc-4915955890040594730-test
-allocated_ip_range: psatestrange
 cluster_labels:
   key: value
 primary_instance:
@@ -15,3 +14,5 @@ primary_instance:
 read_pool_instance : null
 automated_backup_policy : null
 deletion_protection: false
+connectivity_options: "psc" # Use "psa" for PSA connectivity
+psc_allowed_consumer_projects: ["<project-number>, <project-number>"] # Include the list of allowed consumer projects here

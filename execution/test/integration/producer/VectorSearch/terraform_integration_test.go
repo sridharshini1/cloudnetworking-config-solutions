@@ -201,7 +201,7 @@ func createVPC(t *testing.T, projectID string, networkName string) error {
 	text := "compute"
 	cmd := shell.Command{
 		Command: "gcloud",
-		Args:    []string{text, "networks", "create", networkName, "--project=" + projectID, "--format=json", "--bgp-routing-mode=global", "--subnet-mode=custom", "--verbosity=info"},
+		Args:    []string{text, "networks", "create", networkName, "--project=" + projectID, "--format=json", "--bgp-routing-mode=global", "--subnet-mode=custom", "--verbosity=info","--quiet"},
 	}
 	_, err := shell.RunCommandAndGetOutputE(t, cmd)
 	if err != nil {
@@ -219,7 +219,7 @@ func createPSA(t *testing.T, projectID string, networkName string, rangeName str
 	text := "compute"
 	cmd := shell.Command{
 		Command: "gcloud",
-		Args:    []string{text, "addresses", "create", rangeName, "--purpose=VPC_PEERING", "--addresses=10.0.64.0", "--prefix-length=20", "--project=" + projectID, "--network=" + networkName, "--global", "--verbosity=info", "--format=json"},
+		Args:    []string{text, "addresses", "create", rangeName, "--purpose=VPC_PEERING", "--addresses=10.0.64.0", "--prefix-length=20", "--project=" + projectID, "--network=" + networkName, "--global", "--verbosity=info", "--format=json","--quiet"},
 	}
 	_, err := shell.RunCommandAndGetOutputE(t, cmd)
 	if err != nil {
@@ -229,7 +229,7 @@ func createPSA(t *testing.T, projectID string, networkName string, rangeName str
 	text = "services"
 	cmd = shell.Command{
 		Command: "gcloud",
-		Args:    []string{text, "vpc-peerings", "connect", "--service=servicenetworking.googleapis.com", "--ranges=" + rangeName, "--project=" + projectID, "--network=" + networkName, "--verbosity=info", "--format=json"},
+		Args:    []string{text, "vpc-peerings", "connect", "--service=servicenetworking.googleapis.com", "--ranges=" + rangeName, "--project=" + projectID, "--network=" + networkName, "--verbosity=info", "--format=json","--quiet"},
 	}
 	_, err = shell.RunCommandAndGetOutputE(t, cmd)
 	if err != nil {
@@ -247,7 +247,7 @@ func createConfigYAML(t *testing.T) {
 	text := "projects"
 	cmd := shell.Command{
 		Command: "gcloud",
-		Args:    []string{text, "describe", projectID, "--format=value(\"projectNumber\")"},
+		Args:    []string{text, "describe", projectID, "--format=value(\"projectNumber\")","--quiet"},
 	}
 	projectNumber, err := shell.RunCommandAndGetOutputE(t, cmd)
 	if err != nil {

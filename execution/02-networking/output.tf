@@ -23,8 +23,8 @@ output "network_id" {
 }
 
 output "subnet_ids" {
-  description = "List of fully qualified subnetwork IDs."
-  value       = local.subnet_ids
+  description = "Map of subnet IDs keyed by name."
+  value       = module.vpc_network.subnet_ids
 }
 
 output "vpc_networks" {
@@ -58,4 +58,9 @@ output "service_connection_policy_details" {
 output "subnet_self_links_for_scp_policy" {
   value       = local.subnet_self_links_for_scp_policy
   description = "The self-links of the subnets where the SCP policy is applied."
+}
+
+output "network_connectivity_center" {
+  value       = module.network_connectivity_center
+  description = "Detailed information about resources created by network connectivity center."
 }

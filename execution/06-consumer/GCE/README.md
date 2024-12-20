@@ -126,7 +126,7 @@ Terraform will read the YAML files from the `configuration/consumer/GCE/config` 
 - The Terraform module used in this solution (cloud-foundation-fabric/modules/compute-vm) might have additional configuration options and capabilities. Refer to its [documentation](https://github.com/GoogleCloudPlatform/cloud-foundation-fabric/tree/master/modules/compute-vm) for further customization.
 - Remember to replace placeholders ( \<project-id>, \<network-name>, \<subnetwork-name>) with your actual values in the YAML files and Terraform configuration.
 
-
+<!-- BEGIN_TF_DOCS -->
 
 ## Modules
 
@@ -140,10 +140,10 @@ Terraform will read the YAML files from the `configuration/consumer/GCE/config` 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_attached_disk_defaults"></a> [attached\_disk\_defaults](#input\_attached\_disk\_defaults) | Defaults for attached disks options. | <pre>object({<br>    auto_delete  = optional(bool, false)<br>    mode         = string<br>    replica_zone = string<br>    type         = string<br>  })</pre> | <pre>{<br>  "auto_delete": true,<br>  "mode": "READ_WRITE",<br>  "replica_zone": null,<br>  "type": "pd-balanced"<br>}</pre> | no |
-| <a name="input_attached_disks"></a> [attached\_disks](#input\_attached\_disks) | Additional disks, if options is null defaults will be used in its place. Source type is one of 'image' (zonal disks in vms and template), 'snapshot' (vm), 'existing', and null. | <pre>list(object({<br>    name        = string<br>    device_name = optional(string)<br>    # TODO: size can be null when source_type is attach<br>    size              = string<br>    snapshot_schedule = optional(string)<br>    source            = optional(string)<br>    source_type       = optional(string)<br>    options = optional(<br>      object({<br>        auto_delete  = optional(bool, false)<br>        mode         = optional(string, "READ_WRITE")<br>        replica_zone = optional(string)<br>        type         = optional(string, "pd-balanced")<br>      }),<br>      {<br>        auto_delete  = true<br>        mode         = "READ_WRITE"<br>        replica_zone = null<br>        type         = "pd-balanced"<br>      }<br>    )<br>  }))</pre> | `[]` | no |
-| <a name="input_boot_disk"></a> [boot\_disk](#input\_boot\_disk) | Boot disk properties. | <pre>object({<br>    auto_delete       = optional(bool, true)<br>    snapshot_schedule = optional(string)<br>    source            = optional(string)<br>    initialize_params = optional(object({<br>      image = optional(string, "projects/debian-cloud/global/images/family/debian-11")<br>      size  = optional(number, 10)<br>      type  = optional(string, "pd-balanced")<br>    }))<br>    use_independent_disk = optional(bool, false)<br>  })</pre> | <pre>{<br>  "initialize_params": {}<br>}</pre> | no |
+| <a name="input_attached_disks"></a> [attached\_disks](#input\_attached\_disks) | Additional disks, if options is null defaults will be used in its place. Source type is one of 'image' (zonal disks in vms and template), 'snapshot' (vm), 'existing', and null. | <pre>list(object({<br>    name        = string<br>    device_name = optional(string)<br>    # TODO: size can be null when source_type is attach<br>    size              = string<br>    snapshot_schedule = optional(list(string))<br>    source            = optional(string)<br>    source_type       = optional(string)<br>    options = optional(<br>      object({<br>        auto_delete  = optional(bool, false)<br>        mode         = optional(string, "READ_WRITE")<br>        replica_zone = optional(string)<br>        type         = optional(string, "pd-balanced")<br>      }),<br>      {<br>        auto_delete  = true<br>        mode         = "READ_WRITE"<br>        replica_zone = null<br>        type         = "pd-balanced"<br>      }<br>    )<br>  }))</pre> | `[]` | no |
+| <a name="input_boot_disk"></a> [boot\_disk](#input\_boot\_disk) | Boot disk properties. | <pre>object({<br>    auto_delete       = optional(bool, true)<br>    snapshot_schedule = optional(list(string))<br>    source            = optional(string)<br>    initialize_params = optional(object({<br>      image = optional(string, "projects/debian-cloud/global/images/family/debian-11")<br>      size  = optional(number, 10)<br>      type  = optional(string, "pd-balanced")<br>    }))<br>    use_independent_disk = optional(bool, false)<br>  })</pre> | <pre>{<br>  "initialize_params": {}<br>}</pre> | no |
 | <a name="input_can_ip_forward"></a> [can\_ip\_forward](#input\_can\_ip\_forward) | Enable IP forwarding. | `bool` | `false` | no |
-| <a name="input_config_folder_path"></a> [config\_folder\_path](#input\_config\_folder\_path) | Location of YAML files holding GCE configuration values. | `string` | `"./config"` | no |
+| <a name="input_config_folder_path"></a> [config\_folder\_path](#input\_config\_folder\_path) | Location of YAML files holding GCE configuration values. | `string` | `"../../../configuration/consumer/GCE/config"` | no |
 | <a name="input_create_template"></a> [create\_template](#input\_create\_template) | Create instance template instead of instances. | `bool` | `false` | no |
 | <a name="input_description"></a> [description](#input\_description) | Description of a Compute Instance. | `string` | `"Managed by the compute-vm Terraform module."` | no |
 | <a name="input_enable_display"></a> [enable\_display](#input\_enable\_display) | Enable virtual display on the instances. | `bool` | `false` | no |
@@ -151,6 +151,7 @@ Terraform will read the YAML files from the `configuration/consumer/GCE/config` 
 | <a name="input_group"></a> [group](#input\_group) | Define this variable to create an instance group for instances. Disabled for template use. | <pre>object({<br>    named_ports = map(number)<br>  })</pre> | `null` | no |
 | <a name="input_hostname"></a> [hostname](#input\_hostname) | Instance FQDN name. | `string` | `null` | no |
 | <a name="input_iam"></a> [iam](#input\_iam) | IAM bindings in {ROLE => [MEMBERS]} format. | `map(list(string))` | `{}` | no |
+| <a name="input_image"></a> [image](#input\_image) | Image used to create the GCE instance. | `string` | `"projects/debian-cloud/global/images/family/debian-11"` | no |
 | <a name="input_instance_schedule"></a> [instance\_schedule](#input\_instance\_schedule) | Assign or create and assign an instance schedule policy. Either resource policy id or create\_config must be specified if not null. Set active to null to dtach a policy from vm before destroying. | <pre>object({<br>    resource_policy_id = optional(string)<br>    create_config = optional(object({<br>      active          = optional(bool, true)<br>      description     = optional(string)<br>      expiration_time = optional(string)<br>      start_time      = optional(string)<br>      timezone        = optional(string, "UTC")<br>      vm_start        = optional(string)<br>      vm_stop         = optional(string)<br>    }))<br>  })</pre> | `null` | no |
 | <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | Instance type. | `string` | `"f1-micro"` | no |
 | <a name="input_labels"></a> [labels](#input\_labels) | Instance labels. | `map(string)` | `{}` | no |
@@ -170,9 +171,10 @@ Terraform will read the YAML files from the `configuration/consumer/GCE/config` 
 
 | Name | Description |
 |------|-------------|
-| <a name="output_external_ip"></a> [external\_ip](#output\_external\_ip) | Instance main interface external IP addresses. |
+| <a name="output_external_ips"></a> [external\_ips](#output\_external\_ips) | Instance external IP addresses. |
 | <a name="output_id"></a> [id](#output\_id) | Fully qualified instance id. |
 | <a name="output_instances_self_links"></a> [instances\_self\_links](#output\_instances\_self\_links) | List of self-links for compute instances |
-| <a name="output_internal_ip"></a> [internal\_ip](#output\_internal\_ip) | Instance main interface internal IP address. |
-| <a name="output_internal_ips"></a> [internal\_ips](#output\_internal\_ips) | Instance interfaces internal IP addresses. |
+| <a name="output_internal_ips"></a> [internal\_ips](#output\_internal\_ips) | Instance internal IP addresses. |
 | <a name="output_vm_instances"></a> [vm\_instances](#output\_vm\_instances) | Map of VM instance information |
+
+<!-- END_TF_DOCS -->

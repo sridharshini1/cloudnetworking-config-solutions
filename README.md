@@ -2,9 +2,10 @@
 
 ## Introduction
 
-This repository leverages pre-built Terraform templates to streamline the setup and management of Google Cloud's networking infrastructure. This project accelerates your access to managed services like AlloyDB, Cloud SQL and Memorystore for Redis Clusters while maintaining robust security boundaries between your on-premises resources and the cloud environment. By defining role-based stages, the solution ensures that only authorized users can modify specific network components, adhering to the principle of least privilege and enhancing overall security.
+This repository leverages pre-built Terraform templates to streamline the setup and management of Google Cloud's networking infrastructure. This project accelerates your access to managed services like AlloyDB, GKE, Vertex AI services, Cloud SQL and Memorystore for Redis Clusters while maintaining robust security boundaries between your on-premises resources and the cloud environment. By defining role-based stages, the solution ensures that only authorized users can modify specific network components, adhering to the principle of least privilege and enhancing overall security.
 
 ### Project Goals
+
 * Simplified setup
 * Enhanced security
 * Scalability
@@ -20,6 +21,16 @@ The project is structured into the following folders:
           ├── organization.tfvars
           ├── networking.tfvars
           ├── networking-manual.tfvars
+          ├── producer
+              ├── alloydb
+              ├── cloudsql
+              ├── gke
+              ├── vectorsearch
+              ├── vertex-ai-online-endpoints
+              └── mrc
+          ├── consumer
+              ├── cloudrun
+              └── gce
           └── security
               ├── alloydb.tfvars
               ├── cloudsql.tfvars
@@ -36,12 +47,14 @@ The project is structured into the following folders:
       └──modules
           ├── net-vpc
           └── psc_forwarding_rule
+          └── vector-search
+          └── vertex-ai-online-endpoints
   ```
 * `configuration`: This folder contains Terraform configuration files (*.tfvars) that hold variables used for multiple stages. These **.tfvars** files would include configurable variables such as project IDs, region or other values that you want to customize for your specific environment.
 
 * `execution`: This folder houses the main Terraform code, organized into stages:
 
-  *  `00-bootstrap`: Sets up foundational resources like service accounts and Terraform state storage.
+  * `00-bootstrap`: Sets up foundational resources like service accounts and Terraform state storage.
   * `01-organization`:  Manages organization-level policies for network resources.
   * `02-networking`: Manages VPCs, subnets, Cloud HA VPN and other core networking components like PSA, SCP, Cloud NAT.
   * `03-security`:  Configures firewalls and other security measures.

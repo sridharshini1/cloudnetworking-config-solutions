@@ -17,85 +17,168 @@ variable "bootstrap_project_id" {
   type        = string
   description = "Google Cloud Project ID which will be used to create the service account and Google Cloud storage buckets."
 }
+
 variable "folder_id" {
   type        = string
   description = "Google Cloud folder ID designating the parent folder for both the networking host project and the service project."
 }
+
 variable "network_hostproject_id" {
   type        = string
   description = "Google Cloud Project ID for the networking host project to be used to create networking and security resources."
 }
+
 variable "network_serviceproject_id" {
   type        = string
   description = "Google Cloud Project ID to be used to create Google Cloud resources like consumer and producer services."
 }
+
 variable "gcs_bucket_name" {
   type        = string
   description = "Name of the Google Cloud storage bucket."
   default     = "terraform-state"
 }
+
 variable "versioning" {
   type        = bool
   description = "The Goocle Cloud storage bucket versioning."
   default     = true
 }
+
 variable "gcs_bucket_location" {
   description = "Location of the Google Cloud storage bucket."
   type        = string
   default     = "EU"
 }
+
 variable "organization_sa_name" {
   type        = string
   description = "Name of the service account to create for organization stage."
-  default     = "organization-stage-sa"
+  default     = "organization-sa"
 }
-variable "organization_stage_administrator" {
+
+variable "organization_administrator" {
   type        = list(string)
   description = "List of Members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
+  default     = [""]
 }
+
 variable "networking_sa_name" {
   type        = string
   description = "Name of the service account to create for networking stage."
-  default     = "networking-stage-sa"
+  default     = "networking-sa"
 }
-variable "networking_stage_administrator" {
+
+variable "networking_administrator" {
   type        = list(string)
   description = "List of Members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
+  default     = [""]
 }
+
 variable "security_sa_name" {
   type        = string
   description = "Name of the service account to create for security stage."
-  default     = "security-stage-sa"
+  default     = "security-sa"
 }
-variable "security_stage_administrator" {
+
+variable "security_administrator" {
   type        = list(string)
   description = "List of Members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
+  default     = [""]
 }
-variable "producer_sa_name" {
+
+variable "producer_cloudsql_sa_name" {
   type        = string
-  description = "Name of the service account to create for producer stage."
-  default     = "producer-stage-sa"
+  description = "Name of the service account to create for CloudSQL's producer stage."
+  default     = "producer-cloudsql-sa"
 }
-variable "producer_stage_administrator" {
+
+variable "producer_cloudsql_administrator" {
   type        = list(string)
-  description = "List of Members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
+  description = "List of Cloud SQL administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
+  default     = [""]
 }
+
+variable "producer_alloydb_sa_name" {
+  type        = string
+  description = "Name of the service account to create for AlloyDB's producer stage."
+  default     = "producer-alloydb-sa"
+}
+
+variable "producer_alloydb_administrator" {
+  type        = list(string)
+  description = "List of AlloyDB administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
+  default     = [""]
+}
+
+variable "producer_mrc_sa_name" {
+  type        = string
+  description = "Name of the service account to create for MRC's producer stage."
+  default     = "producer-mrc-sa"
+}
+
+variable "producer_mrc_administrator" {
+  type        = list(string)
+  description = "List of MRC administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
+  default     = [""]
+}
+
+variable "producer_vertex_sa_name" {
+  type        = string
+  description = "Name of the service account to create for Vertex AI's producer stage."
+  default     = "producer-vertex-sa"
+}
+
+variable "producer_vertex_administrator" {
+  type        = list(string)
+  description = "List of Vertex AI administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
+  default     = [""]
+}
+
+variable "producer_gke_sa_name" {
+  type        = string
+  description = "Name of the service account to create for GKE's producer stage."
+  default     = "producer-gke-sa"
+}
+
+variable "producer_gke_administrator" {
+  type        = list(string)
+  description = "List of GKE administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
+  default     = [""]
+}
+
 variable "networking_manual_sa_name" {
   type        = string
   description = "Name of the service account to create for networking manual stage."
-  default     = "networking-manual-stage-sa"
-}
-variable "networking_manual_stage_administrator" {
-  type        = list(string)
-  description = "List of Members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
-}
-variable "consumer_sa_name" {
-  type        = string
-  description = "Name of the service account to create for consumer stage."
-  default     = "consumer-stage-sa"
-}
-variable "consumer_stage_administrator" {
-  type        = list(string)
-  description = "List of Members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
+  default     = "networking-manual-sa"
 }
 
+variable "networking_manual_administrator" {
+  type        = list(string)
+  description = "List of Members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
+  default     = [""]
+}
+
+variable "consumer_gce_sa_name" {
+  type        = string
+  description = "Name of the service account to create for GCE consumer stage."
+  default     = "consumer-gce-sa"
+}
+
+variable "consumer_gce_administrator" {
+  type        = list(string)
+  description = "List of GCE administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
+  default     = [""]
+}
+
+variable "consumer_cloudrun_sa_name" {
+  type        = string
+  description = "Name of the service account to create for Cloud Run consumer stage."
+  default     = "consumer-cloudrun-sa"
+}
+
+variable "consumer_cloudrun_administrator" {
+  type        = list(string)
+  description = "List of Cloud Run administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
+  default     = [""]
+}

@@ -13,20 +13,24 @@
 # limitations under the License.
 
 module "alloy_db" {
-  source                      = "GoogleCloudPlatform/alloy-db/google"
-  version                     = "~> 2.3.0"
-  for_each                    = { for alloydb in local.instance_list : alloydb.cluster_display_name => alloydb }
+  source   = "GoogleCloudPlatform/alloy-db/google"
+  version  = "~> 3.0"
+  for_each = { for alloydb in local.instance_list : alloydb.cluster_display_name => alloydb }
   project_id                  = each.value.project_id
   cluster_id                  = each.value.cluster_id
   cluster_display_name        = each.value.cluster_display_name
   cluster_location            = each.value.region
-  network_self_link           = each.value.network_id
-  allocated_ip_range          = each.value.allocated_ip_range
+  network_self_link           = local.alloydb_network_config[each.key].network_self_link
+  allocated_ip_range          = local.alloydb_network_config[each.key].allocated_ip_range
   database_version            = each.value.database_version
   cluster_labels              = each.value.cluster_labels
   cluster_initial_user        = each.value.cluster_initial_user
-  primary_instance            = each.value.primary_instance
   read_pool_instance          = each.value.read_pool_instance
+  primary_instance            = each.value.primary_instance
   automated_backup_policy     = each.value.automated_backup_policy
   cluster_encryption_key_name = each.value.cluster_encryption_key_name
+
+  # PSC configuration
+  psc_enabled                   = try(local.alloydb_network_config[each.key].psc_config.psc_enabled, false)
+  psc_allowed_consumer_projects = try(local.alloydb_network_config[each.key].psc_config.psc_allowed_consumer_projects, null)
 }

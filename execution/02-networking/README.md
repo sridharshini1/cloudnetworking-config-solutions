@@ -69,7 +69,7 @@ Key features of this configuration include:
 
 - `variables`.tf: Defines input variables for customizing the network configuration.
 
-**NOTE** : 
+**NOTE** :
 
 If you're creating Subnet secondary IP address range for Pods and Services for GKE cluster as a producer please refer to the official documentation for [Pods](https://cloud.google.com/kubernetes-engine/docs/concepts/alias-ips#cluster_sizing_secondary_range_pods) and [Services](https://cloud.google.com/kubernetes-engine/docs/concepts/alias-ips#cluster_sizing_secondary_range_pods).
 
@@ -188,16 +188,17 @@ terraform apply -var-file=../configuration/networking.tfvars
 
 | Name | Version |
 |------|---------|
-| <a name="provider_google"></a> [google](#provider\_google) | 5.44.1 |
+| <a name="provider_google"></a> [google](#provider\_google) | 6.14.0 |
 
 ## Modules
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_havpn"></a> [havpn](#module\_havpn) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-vpn-ha | v30.0.0 |
-| <a name="module_nat"></a> [nat](#module\_nat) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-cloudnat | v30.0.0 |
-| <a name="module_vlan_attachment_a"></a> [vlan\_attachment\_a](#module\_vlan\_attachment\_a) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-vlan-attachment | v34.1.0 |
-| <a name="module_vlan_attachment_b"></a> [vlan\_attachment\_b](#module\_vlan\_attachment\_b) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-vlan-attachment | v34.1.0 |
+| <a name="module_havpn"></a> [havpn](#module\_havpn) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-vpn-ha | v36.0.1 |
+| <a name="module_nat"></a> [nat](#module\_nat) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-cloudnat | v36.0.1 |
+| <a name="module_network_connectivity_center"></a> [network\_connectivity\_center](#module\_network\_connectivity\_center) | ../../modules/network-connectivity-center | n/a |
+| <a name="module_vlan_attachment_a"></a> [vlan\_attachment\_a](#module\_vlan\_attachment\_a) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-vlan-attachment | v36.0.1 |
+| <a name="module_vlan_attachment_b"></a> [vlan\_attachment\_b](#module\_vlan\_attachment\_b) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-vlan-attachment | v36.0.1 |
 | <a name="module_vpc_network"></a> [vpc\_network](#module\_vpc\_network) | ../../modules/net-vpc | n/a |
 
 ## Resources
@@ -207,7 +208,6 @@ terraform apply -var-file=../configuration/networking.tfvars
 | [google_compute_route.default](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_route) | resource |
 | [google_compute_router.interconnect-router](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_router) | resource |
 | [google_network_connectivity_service_connection_policy.policy](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/network_connectivity_service_connection_policy) | resource |
-| [google_compute_network.vpc_network](https://registry.terraform.io/providers/hashicorp/google/latest/docs/data-sources/compute_network) | data source |
 
 ## Inputs
 
@@ -228,13 +228,15 @@ terraform apply -var-file=../configuration/networking.tfvars
 | <a name="input_create_havpn"></a> [create\_havpn](#input\_create\_havpn) | Set to true to create a Cloud HA VPN. | `string` | `"false"` | no |
 | <a name="input_create_interconnect"></a> [create\_interconnect](#input\_create\_interconnect) | Set to true to create google cloud resources for setting up dedicated interconnect. | `string` | `"false"` | no |
 | <a name="input_create_nat"></a> [create\_nat](#input\_create\_nat) | Set to true to create a Cloud NAT. | `string` | `"true"` | no |
+| <a name="input_create_ncc"></a> [create\_ncc](#input\_create\_ncc) | Set to true to create NCC resources. | `string` | `"false"` | no |
 | <a name="input_create_network"></a> [create\_network](#input\_create\_network) | Variable to determine if a new network should be created or not. | `bool` | `true` | no |
 | <a name="input_create_scp_policy"></a> [create\_scp\_policy](#input\_create\_scp\_policy) | Boolean flat to create a service connection policy. Set to true to create a service connection policy | `bool` | `false` | no |
 | <a name="input_create_second_vc_router"></a> [create\_second\_vc\_router](#input\_create\_second\_vc\_router) | Select 'true' to create a separate router for this VLAN attachment, or 'false' to use the current router configuration. | `bool` | `false` | no |
 | <a name="input_create_subnetwork"></a> [create\_subnetwork](#input\_create\_subnetwork) | Variable to determine if a new sub network should be created or not. | `bool` | `true` | no |
 | <a name="input_delete_default_routes_on_create"></a> [delete\_default\_routes\_on\_create](#input\_delete\_default\_routes\_on\_create) | Set to true to delete the default routes at creation time. | `bool` | `true` | no |
-| <a name="input_deletion_policy"></a> [deletion\_policy](#input\_deletion\_policy) | The deletion policy for the service networking connection. Setting to ABANDON allows the resource to be abandoned rather than deleted. This will enable a successful terraform destroy when destroying CloudSQL instances. Use with care as it can lead to dangling resources. | `string` | `""` | no |
+| <a name="input_deletion_policy"></a> [deletion\_policy](#input\_deletion\_policy) | The deletion policy for the service networking connection. Setting to ABANDON allows the resource to be abandoned rather than deleted. This will enable a successful terraform destroy when destroying CloudSQL instances. Use with care as it can lead to dangling resources. | `string` | `null` | no |
 | <a name="input_destination_range"></a> [destination\_range](#input\_destination\_range) | The destination range of outgoing packets that this route applies to. Only IPv4 is supported. | `string` | `"0.0.0.0/0"` | no |
+| <a name="input_existing_vpc_spoke"></a> [existing\_vpc\_spoke](#input\_existing\_vpc\_spoke) | The key values pair for the existing VPC which could be in same project or in different project. | <pre>map(object({<br>    uri = string<br>  }))</pre> | `{}` | no |
 | <a name="input_export_custom_routes"></a> [export\_custom\_routes](#input\_export\_custom\_routes) | Whether to export the custom routes to the peer network. | `bool` | `true` | no |
 | <a name="input_firewall_policy_enforcement_order"></a> [firewall\_policy\_enforcement\_order](#input\_firewall\_policy\_enforcement\_order) | Order that Firewall Rules and Firewall Policies are evaluated. Can be either 'BEFORE\_CLASSIC\_FIREWALL' or 'AFTER\_CLASSIC\_FIREWALL'. | `string` | `"AFTER_CLASSIC_FIREWALL"` | no |
 | <a name="input_first_interconnect_name"></a> [first\_interconnect\_name](#input\_first\_interconnect\_name) | Name of the first interconnect object. This will be used to populate the URL of the underlying Interconnect object that this attachment's traffic will traverse through. | `string` | `""` | no |
@@ -250,13 +252,17 @@ terraform apply -var-file=../configuration/networking.tfvars
 | <a name="input_ic_router_bgp_asn"></a> [ic\_router\_bgp\_asn](#input\_ic\_router\_bgp\_asn) | Local BGP Autonomous System Number (ASN). Must be an RFC6996 private ASN, either 16-bit or 32-bit. The value will be fixed for this router resource. | `string` | `""` | no |
 | <a name="input_ic_router_name"></a> [ic\_router\_name](#input\_ic\_router\_name) | Name of the interconnect router. | `string` | `"interconnect-router"` | no |
 | <a name="input_import_custom_routes"></a> [import\_custom\_routes](#input\_import\_custom\_routes) | Whether to import the custom routes to the peer network. | `bool` | `true` | no |
+| <a name="input_instance_region"></a> [instance\_region](#input\_instance\_region) | The region where to deploy the Router Instance in | `string` | `"us-central1"` | no |
 | <a name="input_interconnect_project_id"></a> [interconnect\_project\_id](#input\_interconnect\_project\_id) | The ID of the project in which the resource(physical connection at colocation facilitity) belongs. | `string` | `""` | no |
 | <a name="input_nat_name"></a> [nat\_name](#input\_nat\_name) | Name of the Cloud NAT to be created. | `string` | `"internet-gateway"` | no |
+| <a name="input_ncc_hub_labels"></a> [ncc\_hub\_labels](#input\_ncc\_hub\_labels) | Labels to be attached to network connectivity center hub resource. | `map(string)` | `null` | no |
+| <a name="input_ncc_hub_name"></a> [ncc\_hub\_name](#input\_ncc\_hub\_name) | The Name of the NCC Hub | `string` | `"ncc-hub"` | no |
 | <a name="input_next_hop_gateway"></a> [next\_hop\_gateway](#input\_next\_hop\_gateway) | URL to a gateway that should handle matching packets. Currently, you can only specify the internet gateway, using a full or partial valid URL. | `string` | `"default-internet-gateway"` | no |
 | <a name="input_peer_gateways"></a> [peer\_gateways](#input\_peer\_gateways) | Configuration of the (external or GCP) peer gateway. | <pre>map(object({<br>    external = optional(object({<br>      redundancy_type = string<br>      interfaces      = list(string)<br>      description     = optional(string, "Terraform managed external VPN gateway")<br>    }))<br>    gcp = optional(string)<br>  }))</pre> | `{}` | no |
 | <a name="input_psa_range"></a> [psa\_range](#input\_psa\_range) | Variable to describe the CIDR range required by the PSA/Service Networking. | `string` | `"10.0.64.0/20"` | no |
 | <a name="input_psa_range_name"></a> [psa\_range\_name](#input\_psa\_range\_name) | Variable to describe the name of the CIDR range required by the PSA/Service Networking. | `string` | `"psarange"` | no |
 | <a name="input_router1_asn"></a> [router1\_asn](#input\_router1\_asn) | ASN number required for the router1. | `number` | `64513` | no |
+| <a name="input_router_appliance_vpc_name"></a> [router\_appliance\_vpc\_name](#input\_router\_appliance\_vpc\_name) | The VPC Name for the VPC Spoke | `string` | `"router-appliance-spoke"` | no |
 | <a name="input_scp_connection_limit"></a> [scp\_connection\_limit](#input\_scp\_connection\_limit) | Limit of the total number of connections to be allowed through the policy | `string` | `5` | no |
 | <a name="input_second_interconnect_name"></a> [second\_interconnect\_name](#input\_second\_interconnect\_name) | Name of the second interconnect object. This will be used to populate the URL of the underlying Interconnect object that this attachment's traffic will traverse through. | `string` | `""` | no |
 | <a name="input_second_va_asn"></a> [second\_va\_asn](#input\_second\_va\_asn) | (Required) Local BGP Autonomous System Number (ASN). Must be an RFC6996 private ASN, either 16-bit or 32-bit. The value will be fixed for this router resource. | `string` | `""` | no |
@@ -268,6 +274,7 @@ terraform apply -var-file=../configuration/networking.tfvars
 | <a name="input_service_class"></a> [service\_class](#input\_service\_class) | Allowed service class (static) | `string` | `"gcp-memorystore-redis"` | no |
 | <a name="input_shared_vpc_host"></a> [shared\_vpc\_host](#input\_shared\_vpc\_host) | Enable shared VPC for this project. | `bool` | `true` | no |
 | <a name="input_shared_vpc_service_projects"></a> [shared\_vpc\_service\_projects](#input\_shared\_vpc\_service\_projects) | Shared VPC service projects to register with this host. | `list(string)` | `[]` | no |
+| <a name="input_spoke_labels"></a> [spoke\_labels](#input\_spoke\_labels) | Labels to be attached to network connectivity center spoke resource. | `map(string)` | `null` | no |
 | <a name="input_subnets"></a> [subnets](#input\_subnets) | Subnet configuration. | <pre>list(object({<br>    name                  = string<br>    ip_cidr_range         = string<br>    region                = string<br>    description           = optional(string)<br>    enable_private_access = optional(bool, true)<br>    flow_logs_config = optional(object({<br>      aggregation_interval = optional(string)<br>      filter_expression    = optional(string)<br>      flow_sampling        = optional(number)<br>      metadata             = optional(string)<br>      # only if metadata == "CUSTOM_METADATA"<br>      metadata_fields = optional(list(string))<br>    }))<br>    ipv6 = optional(object({<br>      access_type = optional(string, "INTERNAL")<br>      # this field is marked for internal use in the API documentation<br>      # enable_private_access = optional(string)<br>    }))<br>    secondary_ip_ranges = optional(map(string))<br><br>    iam = optional(map(list(string)), {})<br>    iam_bindings = optional(map(object({<br>      role    = string<br>      members = list(string)<br>      condition = optional(object({<br>        expression  = string<br>        title       = string<br>        description = optional(string)<br>      }))<br>    })), {})<br>    iam_bindings_additive = optional(map(object({<br>      member = string<br>      role   = string<br>      condition = optional(object({<br>        expression  = string<br>        title       = string<br>        description = optional(string)<br>      }))<br>    })), {})<br>  }))</pre> | `[]` | no |
 | <a name="input_subnets_for_scp_policy"></a> [subnets\_for\_scp\_policy](#input\_subnets\_for\_scp\_policy) | List of subnet names to apply the SCP policy to. | `list(string)` | <pre>[<br>  ""<br>]</pre> | no |
 | <a name="input_tunnel_1_gateway_interface"></a> [tunnel\_1\_gateway\_interface](#input\_tunnel\_1\_gateway\_interface) | The interface ID of the VPN gateway with which this VPN tunnel is associated. | `number` | `0` | no |
@@ -275,16 +282,22 @@ terraform apply -var-file=../configuration/networking.tfvars
 | <a name="input_tunnel_2_gateway_interface"></a> [tunnel\_2\_gateway\_interface](#input\_tunnel\_2\_gateway\_interface) | The interface ID of the VPN gateway with which this VPN tunnel is associated. | `number` | `1` | no |
 | <a name="input_tunnel_2_router_bgp_session_range"></a> [tunnel\_2\_router\_bgp\_session\_range](#input\_tunnel\_2\_router\_bgp\_session\_range) | IP address and range of the interface. | `string` | `"169.254.2.2/30"` | no |
 | <a name="input_user_specified_ip_range"></a> [user\_specified\_ip\_range](#input\_user\_specified\_ip\_range) | User-specified list of individual IP ranges to advertise in custom mode. This range specifies google private api address. | `list(string)` | <pre>[<br>  "199.36.154.8/30"<br>]</pre> | no |
+| <a name="input_vpc_spoke1"></a> [vpc\_spoke1](#input\_vpc\_spoke1) | The key values for the VPC spoke. | `string` | `"vpc-spoke1"` | no |
+| <a name="input_vpc_spoke_vpc_name"></a> [vpc\_spoke\_vpc\_name](#input\_vpc\_spoke\_vpc\_name) | The VPC Name for the VPC Spoke | `string` | `"vpc-spoke"` | no |
+| <a name="input_vpn_region"></a> [vpn\_region](#input\_vpn\_region) | The region where to deploy the VPN | `string` | `"europe-west4"` | no |
+| <a name="input_vpn_spoke_local_vpc_name"></a> [vpn\_spoke\_local\_vpc\_name](#input\_vpn\_spoke\_local\_vpc\_name) | The name for the local VPC (GCP side) for the VPN Spoke | `string` | `"vpn-local-spoke"` | no |
+| <a name="input_vpn_spoke_remote_vpc_name"></a> [vpn\_spoke\_remote\_vpc\_name](#input\_vpn\_spoke\_remote\_vpc\_name) | The name for the remote VPC (fake on-orem) for the VPN Spoke | `string` | `"vpn-remote-spoke"` | no |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
 | <a name="output_name"></a> [name](#output\_name) | Name of the VPC network. |
+| <a name="output_network_connectivity_center"></a> [network\_connectivity\_center](#output\_network\_connectivity\_center) | Detailed information about resources created by network connectivity center. |
 | <a name="output_network_id"></a> [network\_id](#output\_network\_id) | Fully qualified network ID. |
 | <a name="output_service_connection_policy_details"></a> [service\_connection\_policy\_details](#output\_service\_connection\_policy\_details) | Detailed information about each service connection policy |
 | <a name="output_service_connection_policy_ids"></a> [service\_connection\_policy\_ids](#output\_service\_connection\_policy\_ids) | Map of service class to service connection policy IDs |
-| <a name="output_subnet_ids"></a> [subnet\_ids](#output\_subnet\_ids) | List of fully qualified subnetwork IDs. |
+| <a name="output_subnet_ids"></a> [subnet\_ids](#output\_subnet\_ids) | Map of subnet IDs keyed by name. |
 | <a name="output_subnet_self_links_for_scp_policy"></a> [subnet\_self\_links\_for\_scp\_policy](#output\_subnet\_self\_links\_for\_scp\_policy) | The self-links of the subnets where the SCP policy is applied. |
 | <a name="output_vpc_networks"></a> [vpc\_networks](#output\_vpc\_networks) | Complete details of the VPC network. |
 <!-- END_TF_DOCS -->

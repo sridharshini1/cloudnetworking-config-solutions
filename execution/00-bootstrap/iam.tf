@@ -16,12 +16,13 @@
 /********************************************
  Service Account used to run Organization Stage
 *********************************************/
+
 module "organization" {
   source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account?ref=v34.1.0"
   project_id = var.bootstrap_project_id
   name       = var.organization_sa_name
   iam = {
-    "roles/iam.serviceAccountTokenCreator" = var.organization_stage_administrator
+    "roles/iam.serviceAccountTokenCreator" = var.organization_administrator
   }
   iam_project_roles = {
     (var.network_hostproject_id) = [
@@ -39,15 +40,17 @@ module "organization" {
     ]
   }
 }
+
 /********************************************
  Service Account used to run Networking Stage
 *********************************************/
+
 module "networking" {
   source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account?ref=v31.1.0"
   project_id = var.bootstrap_project_id
   name       = var.networking_sa_name
   iam = {
-    "roles/iam.serviceAccountTokenCreator" = var.networking_stage_administrator
+    "roles/iam.serviceAccountTokenCreator" = var.networking_administrator
   }
   iam_folder_roles = {
     (var.folder_id) = [
@@ -68,15 +71,17 @@ module "networking" {
     ]
   }
 }
+
 /********************************************
  Service Account used to run Security Stage
 *********************************************/
+
 module "security" {
   source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account?ref=v31.1.0"
   project_id = var.bootstrap_project_id
   name       = var.security_sa_name
   iam = {
-    "roles/iam.serviceAccountTokenCreator" = var.security_stage_administrator
+    "roles/iam.serviceAccountTokenCreator" = var.security_administrator
   }
   iam_project_roles = {
     (var.network_hostproject_id) = [
@@ -89,40 +94,17 @@ module "security" {
     ]
   }
 }
+
 /********************************************
- Service Account used to run Producer Stage
+ Service Account used to run CloudSQL Producer Stage
 *********************************************/
-module "producer" {
+
+module "cloudsql_producer" {
   source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account?ref=v31.1.0"
   project_id = var.bootstrap_project_id
-  name       = var.producer_sa_name
+  name       = var.producer_cloudsql_sa_name
   iam = {
-    "roles/iam.serviceAccountTokenCreator" = var.producer_stage_administrator
-  }
-  iam_project_roles = {
-    (var.network_serviceproject_id) = [
-      "roles/cloudsql.admin",
-      "roles/alloydb.admin",
-      "roles/redis.admin",
-      "roles/aiplatform.admin",
-      "roles/container.admin"
-    ]
-  }
-  iam_storage_roles = {
-    (module.google_storage_bucket.name) = [
-      "roles/storage.objectAdmin"
-    ]
-  }
-}
-/****************************************************
- Service Account used to run Networking Manual Stage
-*****************************************************/
-module "networking_manual" {
-  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account?ref=v31.1.0"
-  project_id = var.bootstrap_project_id
-  name       = var.networking_manual_sa_name
-  iam = {
-    "roles/iam.serviceAccountTokenCreator" = var.networking_manual_stage_administrator
+    "roles/iam.serviceAccountTokenCreator" = var.producer_cloudsql_administrator
   }
   iam_project_roles = {
     (var.network_serviceproject_id) = [
@@ -135,15 +117,139 @@ module "networking_manual" {
     ]
   }
 }
+
 /********************************************
- Service Account used to run Consumer Stage
+ Service Account used to run AlloyDB Producer Stage
 *********************************************/
-module "consumer" {
+
+module "alloydb_producer" {
   source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account?ref=v31.1.0"
   project_id = var.bootstrap_project_id
-  name       = var.consumer_sa_name
+  name       = var.producer_alloydb_sa_name
   iam = {
-    "roles/iam.serviceAccountTokenCreator" = var.consumer_stage_administrator
+    "roles/iam.serviceAccountTokenCreator" = var.producer_alloydb_administrator
+  }
+  iam_project_roles = {
+    (var.network_serviceproject_id) = [
+      "roles/alloydb.admin"
+    ]
+  }
+  iam_storage_roles = {
+    (module.google_storage_bucket.name) = [
+      "roles/storage.objectAdmin"
+    ]
+  }
+}
+
+/********************************************
+ Service Account used to run MRC Producer Stage
+*********************************************/
+
+module "mrc_producer" {
+  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account?ref=v31.1.0"
+  project_id = var.bootstrap_project_id
+  name       = var.producer_mrc_sa_name
+  iam = {
+    "roles/iam.serviceAccountTokenCreator" = var.producer_mrc_administrator
+  }
+  iam_project_roles = {
+    (var.network_serviceproject_id) = [
+      "roles/redis.admin"
+    ]
+  }
+  iam_storage_roles = {
+    (module.google_storage_bucket.name) = [
+      "roles/storage.objectAdmin"
+    ]
+  }
+}
+
+/********************************************
+ Service Account used to run Vertex AI Producer Stages
+*********************************************/
+
+module "vertex_producer" {
+  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account?ref=v31.1.0"
+  project_id = var.bootstrap_project_id
+  name       = var.producer_vertex_sa_name
+  iam = {
+    "roles/iam.serviceAccountTokenCreator" = var.producer_vertex_administrator
+  }
+  iam_project_roles = {
+    (var.network_serviceproject_id) = [
+      "roles/aiplatform.admin"
+    ]
+  }
+  iam_storage_roles = {
+    (module.google_storage_bucket.name) = [
+      "roles/storage.objectAdmin"
+    ]
+  }
+}
+
+/********************************************
+ Service Account used to run GKE Producer Stage
+*********************************************/
+
+module "gke_producer" {
+  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account?ref=v31.1.0"
+  project_id = var.bootstrap_project_id
+  name       = var.producer_gke_sa_name
+  iam = {
+    "roles/iam.serviceAccountTokenCreator" = var.producer_gke_administrator
+  }
+  iam_project_roles = {
+    (var.network_serviceproject_id) = [
+      "roles/container.admin",
+      "roles/compute.instanceAdmin",
+      "roles/iam.serviceAccountAdmin",
+      "roles/iam.serviceAccountUser",
+      "roles/resourcemanager.projectIamAdmin",
+    ]
+  }
+  iam_storage_roles = {
+    (module.google_storage_bucket.name) = [
+      "roles/storage.objectAdmin"
+    ]
+  }
+}
+
+/****************************************************
+ Service Account used to run Networking Manual Stage
+*****************************************************/
+
+module "networking_manual" {
+  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account?ref=v31.1.0"
+  project_id = var.bootstrap_project_id
+  name       = var.networking_manual_sa_name
+  iam = {
+    "roles/iam.serviceAccountTokenCreator" = var.networking_manual_administrator
+  }
+  iam_project_roles = {
+    (var.network_hostproject_id) = [
+      "roles/compute.networkAdmin",
+    ]
+    (var.network_serviceproject_id) = [
+      "roles/cloudsql.viewer",
+    ]
+  }
+  iam_storage_roles = {
+    (module.google_storage_bucket.name) = [
+      "roles/storage.objectAdmin"
+    ]
+  }
+}
+
+/********************************************
+ Service Account used to run GCE Consumer Stage
+*********************************************/
+
+module "gce_consumer" {
+  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account?ref=v31.1.0"
+  project_id = var.bootstrap_project_id
+  name       = var.consumer_gce_sa_name
+  iam = {
+    "roles/iam.serviceAccountTokenCreator" = var.consumer_gce_administrator
   }
   iam_project_roles = {
     (var.network_hostproject_id) = [
@@ -151,6 +257,32 @@ module "consumer" {
     ]
     (var.network_serviceproject_id) = [
       "roles/compute.instanceAdmin.v1",
+      "roles/iam.serviceAccountUser",
+    ]
+  }
+  iam_storage_roles = {
+    (module.google_storage_bucket.name) = [
+      "roles/storage.objectAdmin"
+    ]
+  }
+}
+
+/********************************************
+ Service Account used to run Cloud Run Consumer Stage
+*********************************************/
+
+module "cloudrun_consumer" {
+  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account?ref=v31.1.0"
+  project_id = var.bootstrap_project_id
+  name       = var.consumer_cloudrun_sa_name
+  iam = {
+    "roles/iam.serviceAccountTokenCreator" = var.consumer_cloudrun_administrator
+  }
+  iam_project_roles = {
+    (var.network_hostproject_id) = [
+      "roles/compute.networkUser",
+    ]
+    (var.network_serviceproject_id) = [
       "roles/iam.serviceAccountUser",
       "roles/run.admin"
     ]
@@ -161,4 +293,3 @@ module "consumer" {
     ]
   }
 }
-
