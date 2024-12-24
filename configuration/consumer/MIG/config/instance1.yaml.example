@@ -1,0 +1,27 @@
+name: maximum-mig
+project_id: <project-id>
+location: <region> E.g. : us-central1
+target_size: 2
+vpc_name : <network-name> 
+subnetwork_name : <subnetwork-name>
+auto_healing_policies:
+  initial_delay_sec: 90
+health_check_config:
+  enable_logging: true
+  tcp:
+    port: 80
+autoscaler_config:
+  max_replicas: 5
+  min_replicas: 2
+  cooldown_period: 60
+  scaling_signals:
+    cpu_utilization:
+      target: 0.75
+      optimize_availability: true
+description: This is a maximum configuration for a managed instance group created using the CNCS repository.
+distribution_policy:
+  target_shape: even
+  zones:
+    - <zone-1> E.g. : us-central1-a
+    - <zone-2> E.g. : us-central1-b
+    - <zone-3> E.g. : us-central1-c

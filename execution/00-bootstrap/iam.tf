@@ -293,3 +293,30 @@ module "cloudrun_consumer" {
     ]
   }
 }
+
+/********************************************
+ Service Account used to run MIG Consumer Stage
+*********************************************/
+
+module "mig_consumer" {
+  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account?ref=v31.1.0"
+  project_id = var.bootstrap_project_id
+  name       = var.consumer_mig_sa_name
+  iam = {
+    "roles/iam.serviceAccountTokenCreator" = var.consumer_mig_administrator
+  }
+  iam_project_roles = {
+    (var.network_hostproject_id) = [
+      "roles/compute.networkUser",
+    ]
+    (var.network_serviceproject_id) = [
+      "roles/compute.instanceAdmin.v1",
+      "roles/iam.serviceAccountUser",
+    ]
+  }
+  iam_storage_roles = {
+    (module.google_storage_bucket.name) = [
+      "roles/storage.objectAdmin"
+    ]
+  }
+}

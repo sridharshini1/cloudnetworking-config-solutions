@@ -35,6 +35,7 @@ The project is structured into the following folders:
               ├── alloydb.tfvars
               ├── cloudsql.tfvars
               ├── gce.tfvars
+              ├── mig.tfvars
               └── mrc.tfvars
       ├──execution
           ├── 00-bootstrap
@@ -60,7 +61,7 @@ The project is structured into the following folders:
   * `03-security`:  Configures firewalls and other security measures.
   * `04-producer`: Implements producer services like AlloyDB, Memorystore for Redis clusters, and Cloud SQL.
   * `05-networking-manual`: Implements networking services like Private Service Connectivity.
-  * `06-consumer`: Implements consumer services like Google Compute Engine instances.
+  * `06-consumer`: Implements consumer services like Google Compute Engine instances, Cloud Run and Managed Instance Groups.
 
 * `modules`: contains reusable Terraform modules.
 

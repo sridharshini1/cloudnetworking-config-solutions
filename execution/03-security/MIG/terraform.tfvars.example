@@ -1,0 +1,30 @@
+# Project ID for the Google Cloud project
+project_id = "<project-id>"
+
+# Network name where the firewall rules will be applied
+network    = "projects/<project-id>/global/networks/<vpc-name>"
+
+# Ingress rules configuration
+ingress_rules = {
+  "fw-allow-health-checks" = {
+    deny               = false
+    description        = "Allow health checks"
+    destination_ranges = []
+    disabled           = false
+    enable_logging     = {
+      include_metadata = true
+    }
+    priority           = 1000
+    source_ranges      = [
+      "130.211.0.0/22",
+      "35.191.0.0/16"
+    ]
+    targets            = ["allow-health-checks"]
+    rules              = [
+      {
+        protocol = "tcp"
+        ports    = ["80"]
+      }
+    ]
+  }
+}

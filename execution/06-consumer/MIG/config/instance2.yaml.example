@@ -1,0 +1,10 @@
+name: minimal-mig
+project_id: <project-id>
+location: <region> E.g. : us-central1
+zone : <zone> E.g. : us-central1-a
+vpc_name : <network-name>
+subnetwork_name : <subnetwork-name>
+health_check_config:
+  enable_logging: true
+  tcp:
+    port: 80

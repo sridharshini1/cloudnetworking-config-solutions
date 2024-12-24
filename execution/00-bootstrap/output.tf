@@ -72,3 +72,8 @@ output "consumer_cloudrun_email" {
   description = "Cloud Run consumer stage service account IAM email."
   value       = module.cloudrun_consumer.iam_email
 }
+
+output "consumer_mig_email" {
+  description = "MIG consumer stage service account IAM email."
+  value       = module.mig_consumer.iam_email
+}

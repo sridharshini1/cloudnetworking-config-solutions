@@ -1,0 +1,27 @@
+name: maximum-mig
+project_id: project-id
+location: us-central1
+target_size: 2
+vpc_name : default
+subnetwork_name : default
+auto_healing_policies:
+  initial_delay_sec: 90
+health_check_config:
+  enable_logging: true
+  tcp:
+    port: 80
+autoscaler_config:
+  max_replicas: 5
+  min_replicas: 2
+  cooldown_period: 60
+  scaling_signals:
+    cpu_utilization:
+      target: 0.75
+      optimize_availability: true
+description: This is a maximum configuration for a managed instance group.
+distribution_policy:
+  target_shape: even
+  zones:
+    - us-central1-a
+    - us-central1-b
+    - us-central1-c

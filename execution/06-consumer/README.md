@@ -14,16 +14,18 @@ The stage is designed to be highly flexible. For GCE, it allows customizations s
 
     - **01-organization:** This stage handles the activation of required Google Cloud APIs.
     - **02-networking:** This stage handles the creation of networking resources such as VPCs, HA-VPNs etc.
-    - **03-security:** This stage handles the creation of key security components such firewall rules. For GCE, the folder to use is 03-security/GCE.
+    - **03-security:** This stage handles the creation of key security components such firewall rules. 
+            - For GCE, the folder to use is 03-security/GCE.
+            - For MIG, the folder to use is 03-security/MIG.
 
 - Enable the following APIs :
 
-    - [Compute Engine API](https://cloud.google.com/compute/docs/reference/rest/v1): Used for creating and managing GCE VMs.
+    - [Compute Engine API](https://cloud.google.com/compute/docs/reference/rest/v1): Used for creating and managing GCE VMs and MIGs.
     - [Cloud Run API](https://cloud.google.com/run/docs/reference/rest): Used for creating and managing cloud run jobs and cloud run services.
 
 - Permissions required :
 
-    - [Compute Admin role](https://cloud.google.com/compute/docs/access/iam#compute.admin) : Used to create and manage GCE VMs.
+    - [Compute Admin role](https://cloud.google.com/compute/docs/access/iam#compute.admin) : Used to create and manage GCE VMs and MIGs.
     - [Service Account User](https://cloud.google.com/compute/docs/access/iam#iam.serviceAccountUser) : Lets a principal attach a service account to a resource.
     - [Cloud Run Admin](https://cloud.google.com/run/docs/reference/iam/roles#run.admin) : User to create and manage cloud run jobs and cloud run services.
 
@@ -45,6 +47,8 @@ Configurations would be different for different consumer services as listed belo
 
 
     2.2. [Cloud Run Service README]((cloudnetworking-config-solution/execution/06-consumer/CloudRun/Service/README.md)).
+
+3. MIG : For configuration of an MIG, you can read more in the [MIG README]((cloudnetworking-config-solution/execution/06-consumer/MIG/README.md)).
 
 For every consumer, you can define .yaml files for the consumer configuration. With every .yaml file in the configs/ folder, our terraform module would create an instance. For an example, for GCE an example yaml files to create two instances are :
 

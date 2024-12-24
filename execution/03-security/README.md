@@ -8,7 +8,7 @@ This Terraform stage focuses on establishing essential security configurations f
 
 ### Enabled APIs:
 
-Based on the producer (such as CloudSQL, MRC or AlloyDB) or consumer service (such as GCE) that you use, you can enable their APIs in order to manage the setup :
+Based on the producer (such as CloudSQL, MRC or AlloyDB) or consumer service (such as GCE, CloudRun or MIGs) that you use, you can enable their APIs in order to manage the setup :
 
 - Compute Engine API
 - Cloud IAM API
@@ -34,6 +34,7 @@ The user or service account running Terraform should have sufficient IAM permiss
 2. MRC Firewall (03-security/MRC): Defines firewall rules to secure Memorystore Redis Cloud instances.
 3. CloudSQL Firewall (03-security/CloudSQL): Defines firewall rules to secure CloudSQL instances.
 4. GCE Firewall (03-security/GCE): Defines firewall rules for GCE instances, specifically focusing on SSH access.
+5. MIG Firewall (03-security/MIG) : Defines firewall rules for MIGs to allow health checks for the instance groups.
 
 ## Configuration
 
@@ -51,6 +52,7 @@ Ensure that you modify these values within each file to match your environment's
 - MRC : mrc.tfvars
 - CloudSQL : cloudsql.tfvars
 - AlloyDB : alloydb.tfvars
+- MIG : mig.tfvars
 
 ## Usage
 
