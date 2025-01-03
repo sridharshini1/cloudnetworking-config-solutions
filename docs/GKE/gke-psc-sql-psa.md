@@ -103,7 +103,7 @@ Prerequisites
 
 For the usage of this configuration solution, the following should be installed and properly configured: 
 
-1. **Terraform** : the modules are meant for use with Terraform 1.3+ and tested using Terraform 1.3+. Choose and install the preferred Terraform binary from [here](https://releases.hashicorp.com/terraform/).
+1. **Terraform** : the modules are meant for use with Terraform 1.9+ and tested using Terraform 1.9+. Choose and install the preferred Terraform binary from [here](https://releases.hashicorp.com/terraform/).
 
 2. **gcloud SDK** : install gcloud SDK from [here](https://cloud.google.com/sdk/docs/install) to authenticate to Google Cloud while running Terraform.
 
