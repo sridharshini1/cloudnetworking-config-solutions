@@ -79,7 +79,7 @@ func TestResourcesCount(t *testing.T) {
 	planStruct := terraform.InitAndPlan(t, terraformOptions)
 	resourceCount := terraform.GetResourceCount(t, planStruct)
 
-	if got, want := resourceCount.Add, 8; got != want {
+	if got, want := resourceCount.Add, 3; got != want {
 		t.Errorf("Test Resource Count Add = %v, want = %v", got, want)
 	}
 }

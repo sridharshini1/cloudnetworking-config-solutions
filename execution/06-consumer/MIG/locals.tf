@@ -27,38 +27,37 @@ locals {
       name        = mig.name
       project_id  = mig.project_id
       location    = mig.location
-      target_size = try(mig.target_size, null)
+      target_size = try(mig.target_size, var.target_size)
 
       # Extracting VPC and Subnetwork names from YAML
-      vpc_name        = try(mig.vpc_name)
-      subnetwork_name = try(mig.subnetwork_name)
-
-      auto_healing_policies = {
-        health_check      = try(mig.auto_healing_policies.health_check, null)
-        initial_delay_sec = try(mig.auto_healing_policies.initial_delay_sec, 30)
-      }
+      vpc_name        = mig.vpc_name
+      subnetwork_name = mig.subnetwork_name
 
       autoscaler_config = {
-        max_replicas    = try(mig.autoscaler_config.max_replicas, 3)
-        min_replicas    = try(mig.autoscaler_config.min_replicas, 1)
-        cooldown_period = try(mig.autoscaler_config.cooldown_period, null)
+        max_replicas    = try(mig.autoscaler_config.max_replicas, var.autoscaler_config.max_replicas)
+        min_replicas    = try(mig.autoscaler_config.min_replicas, var.autoscaler_config.min_replicas)
+        cooldown_period = try(mig.autoscaler_config.cooldown_period, var.autoscaler_config.cooldown_period)
         scaling_signals = {
           cpu_utilization = {
-            target                = try(mig.autoscaler_config.scaling_signals.cpu_utilization.target, 0.65)
-            optimize_availability = try(mig.autoscaler_config.scaling_signals.cpu_utilization.optimize_availability, false)
+            target                = try(mig.autoscaler_config.scaling_signals.cpu_utilization.target, var.autoscaler_config.scaling_signals.cpu_utilization.target)
+            optimize_availability = try(mig.autoscaler_config.scaling_signals.cpu_utilization.optimize_availability, var.autoscaler_config.scaling_signals.cpu_utilization.optimize_availability)
           }
         }
       }
 
-      health_check_config = {
-        enable_logging = try(mig.health_check_config.enable_logging, true)
-        tcp            = try(mig.health_check_config.tcp, null)   # TCP health check settings
-        http           = try(mig.health_check_config.http, null)  # HTTP health check settings
-        https          = try(mig.health_check_config.https, null) # HTTPS health check settings
-        http2          = try(mig.health_check_config.http2, null) # HTTP2 health check settings
-        grpc           = try(mig.health_check_config.grpc, null)  # gRPC health check settings
-        ssl            = try(mig.health_check_config.ssl, null)   # SSL health check settings
-      }
+      auto_healing_policies = try(mig.auto_healing_policies, var.auto_healing_policies)
+
+      health_check_config = (
+        try(mig.health_check_config, null) != null ? {
+          enable_logging = try(mig.health_check_config.enable_logging, false),
+          tcp            = try(mig.health_check_config.tcp, null),   # TCP health check settings
+          http           = try(mig.health_check_config.http, null),  # HTTP health check settings
+          https          = try(mig.health_check_config.https, null), # HTTPS health check settings
+          http2          = try(mig.health_check_config.http2, null), # HTTP2 health check settings
+          grpc           = try(mig.health_check_config.grpc, null),  # gRPC health check settings
+          ssl            = try(mig.health_check_config.ssl, null)    # SSL health check settings
+        } : null                                                     # Set to null if health_check_config is not provided
+      )
 
       description         = try(mig.description, "Terraform managed.")
       distribution_policy = try(mig.distribution_policy, null)

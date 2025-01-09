@@ -27,8 +27,7 @@ Ensure the following Google Cloud APIs are enabled in your project:
 
 The user or service account executing Terraform must have the following roles (or equivalent permissions):
 
-- Compute Admin (for managing VMs)
-- Instance Group Manager (for managing MIGs)
+- Compute Admin (for managing MIGs)
 - Service Account User (if using service accounts)
 
 ## Execution Steps
@@ -80,42 +79,9 @@ The user or service account executing Terraform must have the following roles (o
 
 ## Examples
 
-### Sample YAMLs
+### Sample YAML
 
-Here is a sample maximum yaml example : 
-
-```yaml
-name: maximum-mig
-project_id: <project-id>
-location: <region> E.g. : us-central1
-vpc_name : <network-name>
-subnetwork_name : <subnetwork-name>
-zone : <zone> E.g. : us-central1-a
-target_size: 2
-auto_healing_policies:
-  initial_delay_sec: 30
-health_check_config:
-  enable_logging: true
-  tcp:
-    port: 80
-autoscaler_config:
-  max_replicas: 5
-  min_replicas: 2
-  cooldown_period: 60
-  scaling_signals:
-    cpu_utilization:
-      target: 0.75
-      optimize_availability: true
-description: This is a maximum configuration for a managed instance group created using the CNCS repository
-distribution_policy:
-  target_shape: even
-  zones:
-    - <zone-1> E.g. : us-central1-a
-    - <zone-2> E.g. : us-central1-b
-    - <zone-3> E.g. : us-central1-c
-```
-
-Here is a sample minimum yaml example : 
+Here is a sample minimum-mig.yaml example : 
 
 ```yaml
 name: minimal-mig
@@ -129,6 +95,69 @@ health_check_config:
   tcp:
     port: 80
 ```
+
+Here is a sample maximum-mig.yaml example : 
+
+```yaml
+name: my-maximal-mig
+project_id: <your-project-id>
+location: <region> E.g. : us-central1
+zone : <zone> E.g. : us-central1-a
+target_size: 2
+vpc_name: <network-name>
+subnetwork_name: <subnetwork-name>
+description: Maximal configuration for MIG
+autoscaler_config:
+  max_replicas: 5
+  min_replicas: 2
+  cooldown_period: 60
+  mode: ON
+  scaling_signals:
+    cpu_utilization:
+      target: 0.65
+      optimize_availability: false
+    load_balancing_utilization:
+      target: 0.8
+  schedules:
+    - duration_sec: 300
+      name: daily-schedule
+      min_required_replicas: 2
+      cron_schedule: 0 0 * * *
+      timezone: America/Los_Angeles
+      description: Daily schedule
+      disabled: false
+
+distribution_policy:
+  target_shape: any
+  zones:
+    - us-central1-a
+    - us-central1-b
+
+# Optional fields for the instance template, if needed.
+instance_template:
+  name: my-instance-template
+  boot_disk:
+    initialize_params:
+      image: projects/debian-cloud/global/images/family/debian-11
+  
+tags:
+  - allow-health-checks
+
+update_policy:
+  minimal_action: REPLACE
+  type: PROACTIVE
+  max_surge:
+    fixed: 2
+  max_unavailable:
+    fixed: 1
+  min_ready_sec: 120
+  most_disruptive_action: RESTART
+  replacement_method: SUBSTITUTE
+wait_for_instances:
+  enabled: true
+  status: RUNNING
+```
+
 <!-- BEGIN_TF_DOCS -->
 
 ## Modules
@@ -145,7 +174,7 @@ health_check_config:
 |------|-------------|------|---------|:--------:|
 | <a name="input_addresses"></a> [addresses](#input\_addresses) | List of static IP addresses to assign to the instances. | `string` | `null` | no |
 | <a name="input_all_instances_config"></a> [all\_instances\_config](#input\_all\_instances\_config) | Metadata and labels set to all instances in the group. | <pre>object({<br>    labels   = optional(map(string))<br>    metadata = optional(map(string))<br>  })</pre> | `null` | no |
-| <a name="input_auto_healing_policies"></a> [auto\_healing\_policies](#input\_auto\_healing\_policies) | Auto-healing policies for this group. | <pre>object({<br>    health_check      = optional(string)<br>    initial_delay_sec = number<br>  })</pre> | <pre>{<br>  "health_check": null,<br>  "initial_delay_sec": 30<br>}</pre> | no |
+| <a name="input_auto_healing_policies"></a> [auto\_healing\_policies](#input\_auto\_healing\_policies) | Auto-healing policies for this group. | <pre>object({<br>    health_check      = optional(string)<br>    initial_delay_sec = number<br>  })</pre> | `null` | no |
 | <a name="input_autoscaler_config"></a> [autoscaler\_config](#input\_autoscaler\_config) | Optional autoscaler configuration. | <pre>object({<br>    max_replicas    = number<br>    min_replicas    = number<br>    cooldown_period = optional(number)<br>    mode            = optional(string) # OFF, ONLY_UP, ON<br>    scaling_control = optional(object({<br>      down = optional(object({<br>        max_replicas_fixed   = optional(number)<br>        max_replicas_percent = optional(number)<br>        time_window_sec      = optional(number)<br>      }))<br>      in = optional(object({<br>        max_replicas_fixed   = optional(number)<br>        max_replicas_percent = optional(number)<br>        time_window_sec      = optional(number)<br>      }))<br>    }), {})<br>    scaling_signals = optional(object({<br>      cpu_utilization = optional(object({<br>        target                = number<br>        optimize_availability = optional(bool)<br>      }))<br>      load_balancing_utilization = optional(object({<br>        target = number<br>      }))<br>      metrics = optional(list(object({<br>        name                       = string<br>        type                       = optional(string) # GAUGE, DELTA_PER_SECOND, DELTA_PER_MINUTE<br>        target_value               = optional(number)<br>        single_instance_assignment = optional(number)<br>        time_series_filter         = optional(string)<br>      })))<br>      schedules = optional(list(object({<br>        duration_sec          = number<br>        name                  = string<br>        min_required_replicas = number<br>        cron_schedule         = string<br>        description           = optional(bool)<br>        timezone              = optional(string)<br>        disabled              = optional(bool)<br>      })))<br>    }), {})<br>  })</pre> | <pre>{<br>  "cooldown_period": null,<br>  "max_replicas": 3,<br>  "min_replicas": 1,<br>  "scaling_signals": {<br>    "cpu_utilization": {<br>      "optimize_availability": false,<br>      "target": 0.65<br>    }<br>  }<br>}</pre> | no |
 | <a name="input_config_folder_path"></a> [config\_folder\_path](#input\_config\_folder\_path) | Location of YAML files holding GCE configuration values. | `string` | `"../../../configuration/consumer/MIG/config"` | no |
 | <a name="input_create_nat"></a> [create\_nat](#input\_create\_nat) | True or False to create NAT for template network interface. | `bool` | `true` | no |
@@ -153,7 +182,7 @@ health_check_config:
 | <a name="input_default_version_name"></a> [default\_version\_name](#input\_default\_version\_name) | Name used for the default version. | `string` | `"default"` | no |
 | <a name="input_description"></a> [description](#input\_description) | Optional description used for all resources managed by this module. | `string` | `"Terraform managed."` | no |
 | <a name="input_distribution_policy"></a> [distribution\_policy](#input\_distribution\_policy) | DIstribution policy for regional MIG. | <pre>object({<br>    target_shape = optional(string)<br>    zones        = optional(list(string))<br>  })</pre> | `null` | no |
-| <a name="input_health_check_config"></a> [health\_check\_config](#input\_health\_check\_config) | Optional auto-created health check configuration, use the output self-link to set it in the auto healing policy. Refer to examples for usage. | <pre>object({<br>    check_interval_sec  = optional(number)<br>    description         = optional(string, "Terraform managed.")<br>    enable_logging      = optional(bool, false)<br>    healthy_threshold   = optional(number)<br>    timeout_sec         = optional(number)<br>    unhealthy_threshold = optional(number)<br>    grpc = optional(object({<br>      port               = optional(number)<br>      port_name          = optional(string)<br>      port_specification = optional(string) # USE_FIXED_PORT USE_NAMED_PORT USE_SERVING_PORT<br>      service_name       = optional(string)<br>    }))<br>    http = optional(object({<br>      host               = optional(string)<br>      port               = optional(number)<br>      port_name          = optional(string)<br>      port_specification = optional(string) # USE_FIXED_PORT USE_NAMED_PORT USE_SERVING_PORT<br>      proxy_header       = optional(string)<br>      request_path       = optional(string)<br>      response           = optional(string)<br>    }))<br>    http2 = optional(object({<br>      host               = optional(string)<br>      port               = optional(number)<br>      port_name          = optional(string)<br>      port_specification = optional(string) # USE_FIXED_PORT USE_NAMED_PORT USE_SERVING_PORT<br>      proxy_header       = optional(string)<br>      request_path       = optional(string)<br>      response           = optional(string)<br>    }))<br>    https = optional(object({<br>      host               = optional(string)<br>      port               = optional(number)<br>      port_name          = optional(string)<br>      port_specification = optional(string) # USE_FIXED_PORT USE_NAMED_PORT USE_SERVING_PORT<br>      proxy_header       = optional(string)<br>      request_path       = optional(string)<br>      response           = optional(string)<br>    }))<br>    tcp = optional(object({<br>      port               = optional(number) # This will be overridden in the default<br>      port_name          = optional(string)<br>      port_specification = optional(string) # USE_FIXED_PORT USE_NAMED_PORT USE_SERVING_PORT<br>      proxy_header       = optional(string)<br>      request            = optional(string)<br>      response           = optional(string)<br>    }))<br>    ssl = optional(object({<br>      port               = optional(number)<br>      port_name          = optional(string)<br>      port_specification = optional(string) # USE_FIXED_PORT USE_NAMED_PORT USE_SERVING_PORT<br>      proxy_header       = optional(string)<br>      request            = optional(string)<br>      response           = optional(string)<br>    }))<br>  })</pre> | <pre>{<br>  "check_interval_sec": null,<br>  "description": "Terraform managed.",<br>  "enable_logging": true,<br>  "grpc": null,<br>  "healthy_threshold": null,<br>  "http": null,<br>  "http2": null,<br>  "https": null,<br>  "ssl": null,<br>  "tcp": {<br>    "port": 80,<br>    "port_name": null,<br>    "port_specification": null,<br>    "proxy_header": null,<br>    "request": null,<br>    "response": null<br>  },<br>  "timeout_sec": 90,<br>  "unhealthy_threshold": null<br>}</pre> | no |
+| <a name="input_health_check_config"></a> [health\_check\_config](#input\_health\_check\_config) | Optional auto-created health check configuration. | <pre>object({<br>    check_interval_sec  = optional(number)<br>    description         = optional(string, "Terraform managed.")<br>    enable_logging      = optional(bool, false)<br>    healthy_threshold   = optional(number)<br>    timeout_sec         = optional(number)<br>    unhealthy_threshold = optional(number)<br>    grpc = optional(object({<br>      port               = optional(number)<br>      port_name          = optional(string)<br>      port_specification = optional(string) # USE_FIXED_PORT USE_NAMED_PORT USE_SERVING_PORT<br>      service_name       = optional(string)<br>    }))<br>    http = optional(object({<br>      host               = optional(string)<br>      port               = optional(number)<br>      port_name          = optional(string)<br>      port_specification = optional(string) # USE_FIXED_PORT USE_NAMED_PORT USE_SERVING_PORT<br>      proxy_header       = optional(string)<br>      request_path       = optional(string)<br>      response           = optional(string)<br>    }))<br>    http2 = optional(object({<br>      host               = optional(string)<br>      port               = optional(number)<br>      port_name          = optional(string)<br>      port_specification = optional(string) # USE_FIXED_PORT USE_NAMED_PORT USE_SERVING_PORT<br>      proxy_header       = optional(string)<br>      request_path       = optional(string)<br>      response           = optional(string)<br>    }))<br>    https = optional(object({<br>      host               = optional(string)<br>      port               = optional(number)<br>      port_name          = optional(string)<br>      port_specification = optional(string) # USE_FIXED_PORT USE_NAMED_PORT USE_SERVING_PORT<br>      proxy_header       = optional(string)<br>      request_path       = optional(string)<br>      response           = optional(string)<br>    }))<br>    tcp = optional(object({<br>      port               = optional(number) # This will be overridden in the default<br>      port_name          = optional(string)<br>      port_specification = optional(string) # USE_FIXED_PORT USE_NAMED_PORT USE_SERVING_PORT<br>      proxy_header       = optional(string)<br>      request            = optional(string)<br>      response           = optional(string)<br>    }))<br>    ssl = optional(object({<br>      port               = optional(number)<br>      port_name          = optional(string)<br>      port_specification = optional(string) # USE_FIXED_PORT USE_NAMED_PORT USE_SERVING_PORT<br>      proxy_header       = optional(string)<br>      request            = optional(string)<br>      response           = optional(string)<br>    }))<br>  })</pre> | `null` | no |
 | <a name="input_metadata"></a> [metadata](#input\_metadata) | Metadata of the instances being created as a part of the MIG | `string` | `"#!/bin/bash\n\n# Update and install Apache2 & PHP\nsudo apt-get update\nsudo apt-get install -y apache2\nsudo apt-get install -y php libapache2-mod-php\nsudo a2enmod php\n\n# Restart Apache2 to apply changes\nsudo systemctl restart apache2\n\n# Create the PHP file\ncat << EOL > /var/www/html/hostname.php\n<!DOCTYPE html>\n<html>\n<body>\n\n<p>Hostname: <?php echo gethostname(); ?></p>\n\n</body>\n</html>\nEOL\n\n# Start Apache2 service\nsudo service apache2 start\n\n# Enable Apache2 to start on boot\nsudo update-rc.d apache2 enable\n"` | no |
 | <a name="input_mig_image"></a> [mig\_image](#input\_mig\_image) | Image for the MIG instance. | `string` | `"projects/debian-cloud/global/images/family/debian-11"` | no |
 | <a name="input_mig_template_name"></a> [mig\_template\_name](#input\_mig\_template\_name) | Name for the MIG instance template. | `string` | `"mig-template"` | no |
@@ -176,7 +205,6 @@ health_check_config:
 | <a name="output_autoscaler"></a> [autoscaler](#output\_autoscaler) | Auto-created autoscaler resource. |
 | <a name="output_autoscaler_config"></a> [autoscaler\_config](#output\_autoscaler\_config) | Configuration details of the autoscaler. |
 | <a name="output_group_manager"></a> [group\_manager](#output\_group\_manager) | Instance group resource. |
-| <a name="output_health_check"></a> [health\_check](#output\_health\_check) | Auto-created health-check resource. |
 | <a name="output_id"></a> [id](#output\_id) | Fully qualified group manager id. |
 | <a name="output_instance_template"></a> [instance\_template](#output\_instance\_template) | The self-link of the instance template used for the MIG. |
 

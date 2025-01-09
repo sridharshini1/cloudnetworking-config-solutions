@@ -76,10 +76,7 @@ variable "auto_healing_policies" {
     initial_delay_sec = number
   })
 
-  default = {
-    health_check      = null
-    initial_delay_sec = 30
-  }
+  default = null
 }
 
 variable "autoscaler_config" {
@@ -163,7 +160,7 @@ variable "distribution_policy" {
 }
 
 variable "health_check_config" {
-  description = "Optional auto-created health check configuration, use the output self-link to set it in the auto healing policy. Refer to examples for usage."
+  description = "Optional auto-created health check configuration."
   type = object({
     check_interval_sec  = optional(number)
     description         = optional(string, "Terraform managed.")
@@ -221,39 +218,7 @@ variable "health_check_config" {
       response           = optional(string)
     }))
   })
-  default = {
-    check_interval_sec  = null
-    description         = "Terraform managed."
-    enable_logging      = true
-    healthy_threshold   = null
-    timeout_sec         = 90
-    unhealthy_threshold = null
-    grpc                = null
-    http                = null
-    http2               = null
-    https               = null
-    tcp = {
-      port               = 80 # Default TCP port set to 80
-      port_name          = null
-      port_specification = null
-      proxy_header       = null
-      request            = null
-      response           = null
-    }
-    ssl = null
-  }
-
-  validation {
-    condition = (
-      (try(var.health_check_config.grpc, null) == null ? 0 : 1) +
-      (try(var.health_check_config.http, null) == null ? 0 : 1) +
-      (try(var.health_check_config.http2, null) == null ? 0 : 1) +
-      (try(var.health_check_config.https, null) == null ? 0 : 1) +
-      (try(var.health_check_config.tcp, null) == null ? 0 : 1) +
-      (try(var.health_check_config.ssl, null) == null ? 0 : 1) <= 1
-    )
-    error_message = "Only one health check type can be configured at a time."
-  }
+  default = null # Set default to null
 }
 
 variable "named_ports" {

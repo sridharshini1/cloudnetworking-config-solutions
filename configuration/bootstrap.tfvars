@@ -17,3 +17,4 @@ networking_manual_administrator = ["user:user-example@example.com"]
 
 consumer_gce_administrator      = ["user:user-example@example.com"]
 consumer_cloudrun_administrator = ["user:user-example@example.com"]
+consumer_mig_administrator      = ["user:mig-user-example@example.com"]

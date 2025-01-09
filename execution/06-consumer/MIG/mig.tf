@@ -20,29 +20,14 @@ module "mig" {
   location   = each.value.location
   name       = each.value.name
 
-  target_size       = try(each.value.target_size, var.target_size)
+  target_size       = each.value.target_size
   instance_template = module.mig-template[each.key].template.self_link
 
-  auto_healing_policies = {
-    health_check      = try(each.value.auto_healing_policies.health_check, var.auto_healing_policies.health_check)
-    initial_delay_sec = try(each.value.auto_healing_policies.initial_delay_sec, var.auto_healing_policies.initial_delay_sec)
-  }
+  # Handle auto_healing_policies
+  auto_healing_policies = each.value.auto_healing_policies
 
-  health_check_config = {
-    enable_logging = try(each.value.health_check_config.enable_logging, var.health_check_config.enable_logging)
-
-    # Check if TCP is defined and use it if available
-    tcp = try(each.value.health_check_config.tcp, var.health_check_config.tcp)
-
-    # If TCP is not defined, fall back to HTTP
-    http = try(each.value.health_check_config.http, var.health_check_config.http)
-
-    # Handle HTTPS, HTTP2, gRPC, and SSL if needed
-    https = try(each.value.health_check_config.https, var.health_check_config.https)
-    http2 = try(each.value.health_check_config.http2, var.health_check_config.http2)
-    grpc  = try(each.value.health_check_config.grpc, var.health_check_config.grpc)
-    ssl   = try(each.value.health_check_config.ssl, var.health_check_config.ssl)
-  }
+  # Health check config handling
+  health_check_config = each.value.health_check_config
 
   autoscaler_config = {
     max_replicas    = try(each.value.autoscaler_config.max_replicas, var.autoscaler_config.max_replicas)
