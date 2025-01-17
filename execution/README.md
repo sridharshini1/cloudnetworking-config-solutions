@@ -17,6 +17,7 @@ The deployment is divided into seven logically isolated stages, each handled by 
     **Bootstrap Output (Example):**
     ```
    + consumer_mig_email      = "serviceAccount:consumer-mig-sa@<project-id>.iam.gserviceaccount.com"
+   + consumer_lb_email       = "serviceAccount:consumer-lb-sa@<project-id>.iam.gserviceaccount.com"
    + consumer_cloudrun_email = "serviceAccount:consumer-cloudrun-sa@<project-id>.iam.gserviceaccount.com"
    + consumer_gce_email      = "serviceAccount:consumer-gce-sa@<project-id>.iam.gserviceaccount.com"
    + networking_email        = "serviceAccount:networking-sa@<project-id>.iam.gserviceaccount.com"
@@ -95,6 +96,10 @@ The deployment is divided into seven logically isolated stages, each handled by 
 7. **06-consumer:**
    - Deploys GCP-managed consumer services.
    - Includes Google Compute Engine (GCE) instances, Managed Instance Groups (MIG) and Cloud Run.
+
+8. **07-consumer-load-balancing:**
+   - Deploys GCP-managed Load Balancers.
+   - Supports backends such as Managed Instance Groups.
 
 ## Logical Isolation and Permissions
 
