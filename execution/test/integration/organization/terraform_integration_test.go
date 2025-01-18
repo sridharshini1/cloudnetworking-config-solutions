@@ -99,8 +99,6 @@ func TestEnableAPI(t *testing.T) {
 		t.Errorf("Unable to convert the got list of APIs %v", err)
 		return
 	}
-	t.Logf("The format of the want api list is  %v\n", wantAPIList)
-	t.Logf("The format of the got api list is  %v\n", gotAPIList)
 	if !cmp.Equal(gotAPIList, wantAPIList, cmpopts.SortSlices(compare.Less[string])) {
 		t.Errorf("Test list of enabled APIs Mismatch = %v, want = %v", gotAPIList, wantAPIList)
 	}
