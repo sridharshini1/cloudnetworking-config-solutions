@@ -30,7 +30,7 @@ import (
 var (
 	projectID              = os.Getenv("TF_VAR_project_id")
 	terraformDirectoryPath = "../../../01-organization"
-	apisList               = []string{"aiplatform.googleapis.com", "alloydb.googleapis.com", "compute.googleapis.com", "container.googleapis.com", "iam.googleapis.com", "run.googleapis.com", "servicenetworking.googleapis.com", "sqladmin.googleapis.com"}
+	apisList               = []string{"aiplatform.googleapis.com", "alloydb.googleapis.com", "compute.googleapis.com", "container.googleapis.com", "iam.googleapis.com", "run.googleapis.com", "servicenetworking.googleapis.com", "sqladmin.googleapis.com", "redis.googleapis.com"}
 	tfVars                 = map[string]any{
 		"activate_api_identities": map[string]any{
 			projectID: map[string]any{
@@ -86,9 +86,22 @@ func TestEnableAPI(t *testing.T) {
 	if err != nil {
 		t.Errorf("Cannot encode to JSON %v", err)
 	}
-	wantAPIList := string(wantList)
+	var wantAPIList []string
+	err = json.Unmarshal(wantList, &wantAPIList)
+	if err != nil {
+		t.Errorf("Unable to convert wantList to slice: %v", err)
+		return
+	}
 	got = gjson.Get(result.String(), enabledAPIPath).String()
-	if !cmp.Equal(got, wantAPIList, cmpopts.SortSlices(compare.Less[string])) {
-		t.Errorf("Test list of enabled APIs Mismatch = %v, want = %v", got, wantAPIList)
+	var gotAPIList []string
+	err = json.Unmarshal([]byte(got), &gotAPIList)
+	if err != nil {
+		t.Errorf("Unable to convert the got list of APIs %v", err)
+		return
+	}
+	t.Logf("The format of the want api list is  %v\n", wantAPIList)
+	t.Logf("The format of the got api list is  %v\n", gotAPIList)
+	if !cmp.Equal(gotAPIList, wantAPIList, cmpopts.SortSlices(compare.Less[string])) {
+		t.Errorf("Test list of enabled APIs Mismatch = %v, want = %v", gotAPIList, wantAPIList)
 	}
 }
