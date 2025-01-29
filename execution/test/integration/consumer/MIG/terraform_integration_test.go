@@ -50,22 +50,6 @@ var (
 	firewallRuleName = "fw-allow-health-check"
 )
 
-// AutoHealingPolicies struct to match the YAML structure
-type AutoHealingPolicies struct {
-	InitialDelaySec int `yaml:"initial_delay_sec"`
-}
-
-// HealthCheckConfig struct to match the YAML structure
-type HealthCheckConfig struct {
-	EnableLogging bool      `yaml:"enable_logging"`
-	TCP           TCPConfig `yaml:"tcp"`
-}
-
-// TCPConfig struct for health check TCP settings
-type TCPConfig struct {
-	Port int `yaml:"port"`
-}
-
 // AutoscalerConfig struct to match the YAML structure
 type AutoscalerConfig struct {
 	MaxReplicas int `yaml:"max_replicas"`
@@ -78,18 +62,21 @@ var (
 
 // MIGConfig struct to match the new YAML structure
 type MIGConfig struct {
-	Name                string              `yaml:"name"`
-	ProjectID           string              `yaml:"project_id"`
-	Location            string              `yaml:"location"`
-	Zone                string              `yaml:"zone"`
-	VPCName             string              `yaml:"vpc_name"`
-	SubnetworkName      string              `yaml:"subnetwork_name"`
-	TargetSize          int                 `yaml:"target_size"`
-	AutoHealingPolicies AutoHealingPolicies `yaml:"auto_healing_policies"`
-	HealthCheckConfig   HealthCheckConfig   `yaml:"health_check_config"`
-	AutoscalerConfig    AutoscalerConfig    `yaml:"autoscaler_config"`
+	Name             string           `yaml:"name"`
+	ProjectID        string           `yaml:"project_id"`
+	Location         string           `yaml:"location"`
+	Zone             string           `yaml:"zone"`
+	VPCName          string           `yaml:"vpc_name"`
+	SubnetworkName   string           `yaml:"subnetwork_name"`
+	TargetSize       int              `yaml:"target_size"`
+	AutoscalerConfig AutoscalerConfig `yaml:"autoscaler_config"`
 }
 
+/*
+TestMIGs tests the creation and configuration of Managed Instance Groups (MIGs) in Google Cloud Platform
+using Terraform. It verifies that the resources are correctly provisioned, checks the status of VM instances,
+and ensures that configurations such as instance group names, zones, and autoscaler settings match expected values.
+*/
 func TestMIGs(t *testing.T) {
 	createConfigYAML(t) // Use the updated createConfigYAML for MIG
 
@@ -143,12 +130,11 @@ func TestMIGs(t *testing.T) {
 			statusJSON := gjson.Parse(statusOutput)
 
 			// Access elements using array indexing where needed
-			status := statusJSON.Get("0.instanceStatus").String()                            // Accessing first element of array for instanceStatus
-			healthState := statusJSON.Get("0.instanceHealth.0.detailedHealthState").String() // Indexing into instanceHealth array
+			status := statusJSON.Get("0.instanceStatus").String() // Accessing first element of array for instanceStatus
 			instanceURL := gjson.Get(statusOutput, "0.instance").String()
 
-			if status == "RUNNING" && healthState == "HEALTHY" {
-				t.Logf("Instance group '%s' is stable (Status: '%s', Health State: '%s'). Proceeding with assertions...", instanceName, status, healthState)
+			if status == "RUNNING" {
+				t.Logf("Instance group '%s' is stable (Status: '%s'). Proceeding with assertions...", instanceName, status)
 
 				gcloudOutput := shell.RunCommandAndGetOutput(t, shell.Command{
 					Command: "gcloud",
@@ -213,7 +199,7 @@ func TestMIGs(t *testing.T) {
 				break // Exit retry loop if successful
 			}
 
-			t.Logf("Instance group '%s' not yet stable (Status: '%s', Health State: '%s'). Retrying...", instanceName, status, healthState)
+			t.Logf("Instance group '%s' not yet stable (Status: '%s'). Retrying...", instanceName, status)
 			time.Sleep(retryInterval)
 		}
 	}
@@ -232,15 +218,6 @@ func createConfigYAML(t *testing.T) {
 		VPCName:        vpcName,
 		SubnetworkName: subnetName,
 		TargetSize:     1, // setting it to minimal for testing
-		AutoHealingPolicies: AutoHealingPolicies{
-			InitialDelaySec: 30,
-		},
-		HealthCheckConfig: HealthCheckConfig{
-			EnableLogging: true,
-			TCP: TCPConfig{
-				Port: 80,
-			},
-		},
 		AutoscalerConfig: AutoscalerConfig{
 			MaxReplicas: 3,
 			MinReplicas: 1,
@@ -269,6 +246,11 @@ func createConfigYAML(t *testing.T) {
 	}
 }
 
+/*
+extractZoneFromInstanceURL extracts the zone from a given instance URL in Google Cloud Platform.
+It parses the URL, splits the path, and searches for the "zones" segment to retrieve the corresponding zone value.
+If the zone cannot be extracted, it logs an error and fails the test.
+*/
 func extractZoneFromInstanceURL(instanceURL string, t *testing.T) string {
 	u, err := url.Parse(instanceURL)
 	if err != nil {

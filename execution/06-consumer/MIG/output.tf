@@ -22,11 +22,6 @@ output "group_manager" {
   value       = { for k, v in module.mig : k => v.group_manager }
 }
 
-output "health_check" {
-  description = "Auto-created health-check resource."
-  value       = { for k, v in module.mig : k => v.health_check }
-}
-
 output "id" {
   description = "Fully qualified group manager id."
   value       = { for k, v in module.mig : k => v.id }
