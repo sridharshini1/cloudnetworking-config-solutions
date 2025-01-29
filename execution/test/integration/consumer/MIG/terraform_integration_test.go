@@ -122,7 +122,7 @@ func TestMIGs(t *testing.T) {
 		for i := 0; i < maxRetries; i++ {
 			statusOutput := shell.RunCommandAndGetOutput(t, shell.Command{
 				Command: "gcloud",
-				Args:    []string{"compute", "instance-groups", "managed", "list-instances", instanceName, "--region", region, "--format=json"},
+				Args:    []string{"compute", "instance-groups", "managed", "list-instances", instanceName, "--region", region, "--project=" + projectID, "--format=json"},
 			})
 
 			t.Logf("Status Output: %s", statusOutput)
@@ -138,7 +138,7 @@ func TestMIGs(t *testing.T) {
 
 				gcloudOutput := shell.RunCommandAndGetOutput(t, shell.Command{
 					Command: "gcloud",
-					Args:    []string{"compute", "instance-groups", "managed", "describe", instanceName, "--region", region, "--format=json"},
+					Args:    []string{"compute", "instance-groups", "managed", "describe", instanceName, "--region", region, "--project=" + projectID, "--format=json"},
 				})
 
 				yamlFilePath := filepath.Join(configFolderPath, yaml_file_name)
