@@ -32,7 +32,7 @@ var (
 	projectID              = os.Getenv("TF_VAR_project_id")
 	uniqueID               = rand.Int()
 	network                = fmt.Sprintf("test-vpc-security-%d", uniqueID)
-	firewallRuleName       = "fw-allow-health-check"
+	firewallRuleName       = fmt.Sprintf("mig-fw-allow-health-check-%d", uniqueID)
 )
 
 func TestMIGFirewallRuleProperties(t *testing.T) {
