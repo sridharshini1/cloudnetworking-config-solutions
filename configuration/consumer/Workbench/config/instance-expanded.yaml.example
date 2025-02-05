@@ -1,0 +1,54 @@
+name: example-workbench-instance
+project_id: your-project-id
+location: your-zone # Example: us-central1-a (zone)
+
+# --- GCE Instance Setup ---
+gce_setup:
+  machine_type: your-machine-type # Example: n1-standard-4
+  service_account: "your-service-account@your-project-id.iam.gserviceaccount.com" # Example: Custom Service Account
+  disable_public_ip: true          # Explicitly disable public IP
+  disable_proxy_access: true       # Explicitly enable proxy access
+  network_tags: ["your-network-tag1", "your-network-tag2"] # Custom network tags
+  metadata:                        # Add custom metadata
+    startup-script: |
+      #!/bin/bash
+      echo "Example Startup Script" > /tmp/startup.txt
+    custom-key: your-custom-value
+
+  vm_image: # Specify VM image details
+    project: your-image-project # Example: deeplearning-platform-release
+    family: your-image-family   # Example: workbench-instances
+    # name: "your-specific-image-name" # Uncomment if using a specific image name
+
+  boot_disk_type: your-boot-disk-type # Example: PD_SSD
+  boot_disk_size_gb: your-boot-disk-size # Boot disk size in GB
+
+  data_disks: # Data disk configuration
+    - disk_size_gb: your-data-disk-size # Data disk size in GB
+      disk_type: your-data-disk-type    # Example: PD_SSD
+      disk_encryption: "your-encryption-type" # Example: CMEK
+
+  network_interfaces: # Network interface configuration
+    - network: projects/your-project-id/global/networks/your-network
+      subnet: projects/your-project-id/regions/your-region/subnetworks/your-subnet
+      nic_type: your-nic-type          # Example: GVNIC
+      internal_ip_only: true           # Internal IP only
+
+  accelerator_configs:                # Add GPUs
+    - type: "your-gpu-type"           # Example: NVIDIA_TESLA_T4
+      core_count: your-core-count     # Example: 1
+
+  install_gpu_driver: true            # Install GPU driver
+  custom_gpu_driver_path: "gs://your-bucket/your-gpu-driver" # Custom GPU driver path
+
+  instance_owners:                    # Specify instance owners
+     - "your-email@example.com"
+
+  shielded_instance_config:           # Shielded VM features
+    enable_secure_boot: true
+    enable_vtpm: true
+    enable_integity_monitoring: true
+
+  labels: # Custom labels
+    environment: your-environment
+    team: your-team

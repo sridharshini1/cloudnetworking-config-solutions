@@ -12,7 +12,8 @@ This directory serves as a centralized repository for all Terraform configuratio
     - MRC (mrc.tfvars)
     - Cloud SQL (sql.tfvars)
     - GCE (gce.tfvars)
-- 04-producer stage
+    - Workbench (workbench.tfvars)
+  - 04-producer stage
     - AlloyDB
       - alloydb.tfvars
       - config
@@ -56,6 +57,10 @@ This directory serves as a centralized repository for all Terraform configuratio
       - cloudrunservice.tfvars
       - config
           - instance.yaml.example
+  - Workbench
+    - config
+      - instance-lite.yaml.example
+      - instance-expanded.yaml.example
 - 07-consumer-load-balancing stage
   - Application
     - External

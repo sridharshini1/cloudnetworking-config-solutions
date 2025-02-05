@@ -30,13 +30,16 @@ The project is structured into the following folders:
               └── mrc
           ├── consumer
               ├── cloudrun
-              └── gce
-          └── security
+              ├── gce
+              ├── mig
+              └── workbench
+          ├──security
               ├── alloydb.tfvars
               ├── cloudsql.tfvars
               ├── gce.tfvars
               ├── mig.tfvars
-              └── mrc.tfvars
+              ├── mrc.tfvars
+              └── workbench.tfvars
       ├──execution
           ├── 00-bootstrap
           ├── 01-organization

@@ -195,6 +195,18 @@ variable "consumer_mig_administrator" {
   default     = [""]
 }
 
+variable "consumer_workbench_sa_name" {
+  type        = string
+  description = "Name of the service account to create for Workbench consumer stage."
+  default     = "consumer-workbench-sa"
+}
+
+variable "consumer_workbench_administrator" {
+  type        = list(string)
+  description = "List of Workbench administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
+  default     = [""]
+}
+
 variable "consumer_lb_sa_name" {
   type        = string
   description = "Name of the service account to create for LB consumer stage."

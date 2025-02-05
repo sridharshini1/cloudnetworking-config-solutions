@@ -52,6 +52,7 @@ This minimal example includes only the essential fields required to execute the 
   consumer_gce_administrator          = ["user:gce-user-example@example.com"]
   consumer_cloudrun_administrator     = ["user:cloudrun-user-example@example.com"]
   consumer_mig_administrator          = ["user:mig-user-example@example.com"]  
+  consumer_workbench_administrator    = ["user:workbench-user-example@example.com"]
   consumer_lb_administrator           = ["user:lb-user-example@example.com"]
   ```
 
@@ -95,6 +96,8 @@ This minimal example includes only the essential fields required to execute the 
 | <a name="input_consumer_cloudrun_sa_name"></a> [consumer\_cloudrun\_sa\_name](#input\_consumer\_cloudrun\_sa\_name) | Name of the service account to create for Cloud Run consumer stage. | `string` | `"consumer-cloudrun-sa"` | no |
 | <a name="input_consumer_gce_administrator"></a> [consumer\_gce\_administrator](#input\_consumer\_gce\_administrator) | List of GCE administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com) | `list(string)` | <pre>[<br>  ""<br>]</pre> | no |
 | <a name="input_consumer_gce_sa_name"></a> [consumer\_gce\_sa\_name](#input\_consumer\_gce\_sa\_name) | Name of the service account to create for GCE consumer stage. | `string` | `"consumer-gce-sa"` | no |
+| <a name="input_consumer_workbench_administrator"></a> [consumer\_workbench\_administrator](#input\_consumer\_workbench\_administrator) | List of Workbench administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com) | `list(string)` | <pre>[<br>  ""<br>]</pre> | no |
+| <a name="input_consumer_workbench_sa_name"></a> [consumer\_workbench\_sa\_name](#input\_consumer\_workbench\_sa\_name) | Name of the service account to create for Workbench consumer stage. | `string` | `"consumer-workbench-sa"` | no |
 | <a name="input_consumer_lb_administrator"></a> [consumer\_lb\_administrator](#input\_consumer\_lb\_administrator) | List of LB administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com) | `list(string)` | <pre>[<br>  ""<br>]</pre> | no |
 | <a name="input_consumer_lb_sa_name"></a> [consumer\_lb\_sa\_name](#input\_consumer\_lb\_sa\_name) | Name of the service account to create for LB consumer stage. | `string` | `"consumer-lb-sa"` | no |
 | <a name="input_consumer_mig_administrator"></a> [consumer\_mig\_administrator](#input\_consumer\_mig\_administrator) | List of MIG administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com) | `list(string)` | <pre>[<br>  ""<br>]</pre> | no |

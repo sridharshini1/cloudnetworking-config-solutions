@@ -1,0 +1,7 @@
+name: <workbench-instance-name> # Replace with the desired Workbench instance name
+project_id: <project-id>        # Replace with your GCP project ID
+location: <zone>                # Replace with the desired zone (e.g., us-central1-a)
+gce_setup:
+  network_interfaces:
+    - network: <network-path>   # Replace with the full path to the network (e.g., projects/<project-id>/global/networks/<network-name>)
+      subnet: <subnet-path>     # Replace with the full path to the subnet (e.g., projects/<project-id>/regions/<region>/subnetworks/<subnet-name>)

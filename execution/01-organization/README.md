@@ -51,7 +51,7 @@ Carefully review the plan to ensure it aligns with your intended configuration.
 
 To get you started, we've included sample `terraform.tfvars` configuration files that you can adapt for your organization's specific needs. Remember, the **.tfvars** file requires a map of objects, each with a unique key string. If you use the same key string more than once, the last value assigned to that key will overwrite any previous values.
 
-  ```
+  ```hcl
   activate_api_identities = {
     "project-01" = {
       project_id = "your-project-id",
@@ -65,6 +65,7 @@ To get you started, we've included sample `terraform.tfvars` configuration files
         "aiplatform.googleapis.com",
         "container.googleapis.com",
         "run.googleapis.com",
+        "notebooks.googleapis.com", 
       ],
     },
   }

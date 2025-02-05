@@ -1,5 +1,4 @@
-
-# Copyright 2024 Google LLC
+# Copyright 2024-25 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -321,6 +320,32 @@ module "mig_consumer" {
   }
 }
 
+/********************************************
+ Service Account used to run Workbench Consumer Stage
+*********************************************/
+
+module "workbench_consumer" {
+  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account?ref=v31.1.0"
+  project_id = var.bootstrap_project_id
+  name       = var.consumer_workbench_sa_name
+  iam = {
+    "roles/iam.serviceAccountTokenCreator" = var.consumer_workbench_administrator
+  }
+  iam_project_roles = {
+    (var.network_hostproject_id) = [
+      "roles/compute.networkUser",
+    ]
+    (var.network_serviceproject_id) = [
+      "roles/iam.serviceAccountUser", // Allow impersonation of the service account
+      "roles/notebooks.admin",        // Grant access to Notebooks resources
+    ]
+  }
+  iam_storage_roles = {
+    (module.google_storage_bucket.name) = [
+      "roles/storage.objectAdmin"
+    ]
+  }
+}
 
 /********************************************
  Service Account used to run Consumer Load Balancing Stage

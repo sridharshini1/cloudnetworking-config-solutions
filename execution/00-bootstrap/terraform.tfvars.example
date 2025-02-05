@@ -18,4 +18,5 @@ producer_connectivity_administrator = ["user:connectivity-user-example@example.c
 consumer_gce_administrator          = ["user:gce-user-example@example.com"]
 consumer_cloudrun_administrator     = ["user:cloudrun-user-example@example.com"]
 consumer_mig_administrator          = ["user:mig-user-example@example.com"]
+consumer_workbench_administrator    = ["user:workbench-user-example@example.com"]
 consumer_lb_administrator           = ["user:lb-user-example@example.com"]
