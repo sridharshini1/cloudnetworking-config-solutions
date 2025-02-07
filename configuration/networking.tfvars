@@ -13,9 +13,6 @@ subnets = [
   }
 ]
 
-psa_range_name = "" # Use a name for the PSA range
-psa_range      = "" # Use a CIDR range for the PSA
-
 # Configuration for setting up a Shared VPC Host project, enabling centralized network management and resource sharing across multiple projects.
 shared_vpc_host = false
 
