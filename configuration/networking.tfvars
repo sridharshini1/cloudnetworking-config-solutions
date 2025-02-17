@@ -12,6 +12,9 @@ subnets = [
   }
 ]
 
+# shared VPC host
+shared_vpc_host = false
+
 # PSC/Service Connecitvity Variables
 
 create_scp_policy      = ""   # Use true or false
