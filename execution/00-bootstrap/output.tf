@@ -77,3 +77,8 @@ output "consumer_mig_email" {
   description = "MIG consumer stage service account IAM email."
   value       = module.mig_consumer.iam_email
 }
+
+output "consumer_lb_email" {
+  description = "Consumer Load Balancing stage service account IAM email."
+  value       = module.consumer_load_balancing.iam_email
+}

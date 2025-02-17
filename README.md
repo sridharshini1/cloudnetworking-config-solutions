@@ -44,7 +44,8 @@ The project is structured into the following folders:
           ├── 03-security
           ├── 04-producer
           ├── 05-networking-manual
-          └── 06-consumer
+          ├── 06-consumer
+          └── 07-consumer-load-balancing
       └──modules
           ├── net-vpc
           └── psc_forwarding_rule
@@ -62,6 +63,7 @@ The project is structured into the following folders:
   * `04-producer`: Implements producer services like AlloyDB, Memorystore for Redis clusters, and Cloud SQL.
   * `05-networking-manual`: Implements networking services like Private Service Connectivity.
   * `06-consumer`: Implements consumer services like Google Compute Engine instances, Cloud Run and Managed Instance Groups.
+  * `07-consumer-load-balancing`: Implements load balancing services.
 
 * `modules`: contains reusable Terraform modules.
 

@@ -52,6 +52,7 @@ This minimal example includes only the essential fields required to execute the 
   consumer_gce_administrator      = ["user:gce-user-example@example.com"]
   consumer_cloudrun_administrator = ["user:cloudrun-user-example@example.com"]
   consumer_mig_administrator      = ["user:mig-user-example@example.com"]  
+  consumer_lb_administrator       = ["user:lb-user-example@example.com"]
   ```
 
 ## Important Considerations:
@@ -73,6 +74,7 @@ This minimal example includes only the essential fields required to execute the 
 | <a name="module_alloydb_producer"></a> [alloydb\_producer](#module\_alloydb\_producer) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account | v31.1.0 |
 | <a name="module_cloudrun_consumer"></a> [cloudrun\_consumer](#module\_cloudrun\_consumer) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account | v31.1.0 |
 | <a name="module_cloudsql_producer"></a> [cloudsql\_producer](#module\_cloudsql\_producer) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account | v31.1.0 |
+| <a name="module_consumer_load_balancing"></a> [consumer\_load\_balancing](#module\_consumer\_load\_balancing) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account | v31.1.0 |
 | <a name="module_gce_consumer"></a> [gce\_consumer](#module\_gce\_consumer) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account | v31.1.0 |
 | <a name="module_gke_producer"></a> [gke\_producer](#module\_gke\_producer) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account | v31.1.0 |
 | <a name="module_google_storage_bucket"></a> [google\_storage\_bucket](#module\_google\_storage\_bucket) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/gcs | v31.1.0 |
@@ -84,7 +86,6 @@ This minimal example includes only the essential fields required to execute the 
 | <a name="module_security"></a> [security](#module\_security) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account | v31.1.0 |
 | <a name="module_vertex_producer"></a> [vertex\_producer](#module\_vertex\_producer) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account | v31.1.0 |
 
-
 ## Inputs
 
 | Name | Description | Type | Default | Required |
@@ -94,6 +95,8 @@ This minimal example includes only the essential fields required to execute the 
 | <a name="input_consumer_cloudrun_sa_name"></a> [consumer\_cloudrun\_sa\_name](#input\_consumer\_cloudrun\_sa\_name) | Name of the service account to create for Cloud Run consumer stage. | `string` | `"consumer-cloudrun-sa"` | no |
 | <a name="input_consumer_gce_administrator"></a> [consumer\_gce\_administrator](#input\_consumer\_gce\_administrator) | List of GCE administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com) | `list(string)` | <pre>[<br>  ""<br>]</pre> | no |
 | <a name="input_consumer_gce_sa_name"></a> [consumer\_gce\_sa\_name](#input\_consumer\_gce\_sa\_name) | Name of the service account to create for GCE consumer stage. | `string` | `"consumer-gce-sa"` | no |
+| <a name="input_consumer_lb_administrator"></a> [consumer\_lb\_administrator](#input\_consumer\_lb\_administrator) | List of LB administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com) | `list(string)` | <pre>[<br>  ""<br>]</pre> | no |
+| <a name="input_consumer_lb_sa_name"></a> [consumer\_lb\_sa\_name](#input\_consumer\_lb\_sa\_name) | Name of the service account to create for LB consumer stage. | `string` | `"consumer-lb-sa"` | no |
 | <a name="input_consumer_mig_administrator"></a> [consumer\_mig\_administrator](#input\_consumer\_mig\_administrator) | List of MIG administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com) | `list(string)` | <pre>[<br>  ""<br>]</pre> | no |
 | <a name="input_consumer_mig_sa_name"></a> [consumer\_mig\_sa\_name](#input\_consumer\_mig\_sa\_name) | Name of the service account to create for MIG consumer stage. | `string` | `"consumer-mig-sa"` | no |
 | <a name="input_folder_id"></a> [folder\_id](#input\_folder\_id) | Google Cloud folder ID designating the parent folder for both the networking host project and the service project. | `string` | n/a | yes |
@@ -127,7 +130,7 @@ This minimal example includes only the essential fields required to execute the 
 |------|-------------|
 | <a name="output_consumer_cloudrun_email"></a> [consumer\_cloudrun\_email](#output\_consumer\_cloudrun\_email) | Cloud Run consumer stage service account IAM email. |
 | <a name="output_consumer_gce_email"></a> [consumer\_gce\_email](#output\_consumer\_gce\_email) | GCE consumer stage service account IAM email. |
-| <a name="output_consumer_mig_email"></a> [consumer\_mig\_email](#output\_consumer\_mig\_email) | MIG consumer stage service account IAM email. |
+| <a name="output_consumer_mig_email"></a> [consumer\_mig\_email](#output\_consumer\_mig\_email) | Consumer Load Balancing stage service account IAM email. |
 | <a name="output_networking_email"></a> [networking\_email](#output\_networking\_email) | Networking stage service account IAM email. |
 | <a name="output_networking_manual_email"></a> [networking\_manual\_email](#output\_networking\_manual\_email) | Networking manual stage service account IAM email. |
 | <a name="output_organization_email"></a> [organization\_email](#output\_organization\_email) | Organization stage service account IAM email. |
@@ -138,4 +141,5 @@ This minimal example includes only the essential fields required to execute the 
 | <a name="output_producer_vertex_email"></a> [producer\_vertex\_email](#output\_producer\_vertex\_email) | Vertex producer stage service account IAM email. |
 | <a name="output_security_email"></a> [security\_email](#output\_security\_email) | Security stage service account IAM email. |
 | <a name="output_storage_bucket_name"></a> [storage\_bucket\_name](#output\_storage\_bucket\_name) | Google Cloud storage bucket name. |
+
 <!-- END_TF_DOCS -->

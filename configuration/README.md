@@ -56,6 +56,13 @@ This directory serves as a centralized repository for all Terraform configuratio
       - cloudrunservice.tfvars
       - config
           - instance.yaml.example
+- 07-consumer-load-balancing stage
+  - Application
+    - External
+      - external-application.tfvars
+      - config
+        - instance1.yaml.example
+        - instance2.yaml.example
 
 
 # Usage
@@ -238,7 +245,11 @@ psc_endpoints = [
 
 ## 06-consumer
 
-Consumer specific configuration examples can be found under the `/config` folder of that specific consumer. Such as for GCE, the example would be in the folder `configuration/consumer/GCE/config/instance.yaml.example`.
+Consumer specific configuration examples can be found under the `/config` folder of that specific consumer. Such as for GCE, the example would be in the folder `configuration/consumer/GCE/config/`.
+
+## 07-consumer-load-balancing
+
+Consumer load balancing specific configuration examples can be found under the `/config` folder of that specific load balancer. Such as for Application External Load Balancer, the example would be in the folder `configuration/consumer-load-balancing/Application/External/config/`.
 
 ## Considerations
 
