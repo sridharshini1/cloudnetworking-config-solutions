@@ -1,24 +1,26 @@
-# Create an AlloyDB Instance with Secure Private Connectivity Through Private Service Access (PSA) Accessed Using Google Compute Engine
+# Create an AlloyDB Instance with secure private connectivity through Private Service Access (PSA) accessed using Google Compute Engine
 
 **On this page**
 
-  1. [Objectives](#objectives)
+  1. Objectives
 
-  2. [Architecture](#architecture)
+  2. Architecture
 
-  3. [Request flow](#request-flow)
+  3. Request flow
 
-  4. [Architecture Components](#architecture-components)
+  4. Architecture Components
 
-  5. [Deploy the solution](#deploy-the-solution)
+  5. Deploy the solution
 
-  6. [Prerequisites](#prerequisites)
+  6. Prerequisites
 
-  7. [Deploy through “terraform-cli”](#deploy-through-terraform-cli)
+  7. Deploy with "single click"
 
-  8. [Optional : Delete the deployment](#optional-delete-the-deployment)
+  8. Deploy through “terraform-cli”
 
-  9. [Submit feedback](#submit-feedback)
+  9. Optional: Delete the deployment
+
+  10. Submit feedback
 
 ---
 
@@ -48,7 +50,7 @@ It covers two scenarios:
 
 * **Scenario 2: Connectivity with Cloud HA VPN:** Ideal for connecting your AlloyDB cluster to on-premises or other cloud networks using Google Cloud High Availability Virtual Private Network (HA VPN).
 
-  <img src="./images/image2.png" alt="with-ha-vpn" width="400"/>
+  <img src="./images/image2.png" alt="With-ha-vpn" width="400"/>
 
 
 ### Request flow
@@ -75,8 +77,8 @@ Customer Service Project 1 is attached to the Customer Host Project. This attach
 
 * **Customer Service Project 1** uses the PSA VPC\_Peering range for the AlloyDB instance.
 
-The diagram describes the working components of the google cloud involved when using the Cloud HA VPN to establish communication with an on premise environment or other VPC network running in another GCP project.
-The solution template helps in automating the creation, configuration of HA VPN tunnels, gateways, compute routers etc resources and helps in establishing communication of VPC network with another network which could be running in google cloud or outside of google cloud.
+The diagram describes the working components of the google cloud involved when using the Cloud HA VPN to establish communication with an on premises environment or other VPC network running in another GCP project.
+The solution template automates the creation and configuration of HA VPN tunnels, gateways, compute routers, and other resources. This template also assists in establishing communication between a VPC network and another network, whether that network is in Google Cloud or external.
 
 ## **Deploy the solution**
 
@@ -86,10 +88,33 @@ This section guides you through the process of deploying the solution.
 
 To use this configuration solution, ensure the following are installed:
 
-1. **Terraform** : modules are for use with Terraform 1.8+ and tested using Terraform 1.8+. Choose and install the preferred Terraform binary from [here](https://releases.hashicorp.com/terraform/).
+1. **Terraform** : modules are for use with Terraform version 1.8 or later and tested using Terraform version 1.8 or later. Choose and install the preferred Terraform binary from [here](https://releases.hashicorp.com/terraform/).
 2. **gcloud SDK** : install gcloud SDK from [here](https://cloud.google.com/sdk/docs/install) to authenticate to Google Cloud while running Terraform.
 
-####
+### Deploy with "single click"
+
+1. Click on Open in Google Cloud Shell button below.
+
+    <a href="https://ssh.cloud.google.com/cloudshell/editor?shellonly=true&cloudshell_git_repo=https://github.com/GoogleCloudPlatform/cloudnetworking-config-solutions.git&cloudshell_open_in_editor=configuration/organization.tfvars&cloudshell_open_in_editor=configuration/networking.tfvars&cloudshell_open_in_editor=configuration/producer/AlloyDB/alloydb.tfvars&cloudshell_open_in_editor=configuration/producer/AlloyDB/config/instance-psa.yaml.example&cloudshell_tutorial=docs/AlloyDB/alloydbinstance-using-psa-accessed-from-gce.md" target="_new">
+        <img alt="Open in Cloud Shell" src="https://gstatic.com/cloudssh/images/open-btn.svg">
+    </a>
+
+2. Run the prerequisites script to enable APIs and set Cloud Build permissions.
+    ```
+    sh docs/AlloyDB/helper-script/prereq.sh
+    ```
+
+3. Update the configuration files that gets loaded in the Cloud shell editor and run the cloud build job to create resources
+
+    ```
+    gcloud builds submit . --config docs/AlloyDB/build/cloudbuild.yaml
+    ```
+
+4. [Optional] Run the Cloud Build Job to destroy resources
+
+    ```
+    gcloud builds submit . --config docs/AlloyDB/build/cloudbuild-destroy.yaml
+    ```
 
 ### Deploy through terraform-cli
 
@@ -242,7 +267,7 @@ To use this configuration solution, ensure the following are installed:
    Once the deployment is complete, navigate to the AlloyDB section in the Google Cloud Console to confirm that your cluster has been successfully created.
 5. **Connect to Your Google Compute Instance & AlloyDB Instance:**
    * **Compute Instance**
-     * You can login into your compute instance , refer [link](https://cloud.google.com/compute/docs/connect/standard-ssh)
+     * You can login to your compute instance , refer [link](https://cloud.google.com/compute/docs/connect/standard-ssh)
 
         ```
         gcloud compute ssh --project=<your-project-id> --zone=us-central1-a CNCS-GCE
@@ -261,7 +286,7 @@ To use this configuration solution, ensure the following are installed:
 * `IP_ADDRESS` \- Is the private IP address of your Alloydb instance
 * `USERNAME`   \- default value `postgres` .
 
-## **Optional-Delete the deployment**
+## **Optional: Delete the deployment**
 
 1. In Cloud Shell or in your terminal, make sure that the current working directory is $HOME/cloudshell\_open/\<Folder-name\>/execution. If it isn't, go to that directory.
 2. Remove the resources that were provisioned by the solution guide:
@@ -283,5 +308,3 @@ To submit feedback, do the following:
 * If you're looking for assistance with streamlining network configuration automation for a comparable use case, feel free to submit an issue on the [GitHub repository](https://github.com/GoogleCloudPlatform/cloudnetworking-config-solutions/issues).
 * For unmodified Terraform code, create issues in the [GitHub repository](https://github.com/GoogleCloudPlatform/cloudnetworking-config-solutions/issues). GitHub issues are reviewed on a best-effort basis and are not intended for general use questions.
 * For issues with the products that are used in the solution, contact [Cloud Customer Care](https://cloud.google.com/support-hub).
-
-##
