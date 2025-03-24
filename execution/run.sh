@@ -23,7 +23,7 @@ GREEN='\033[0;32m'
 NC='\033[0m'
 
 # Define valid stages to be accepted by the -s flag
-valid_stages="all organization networking security/alloydb security/mrc security/cloudsql security/gce security/mig producer/alloydb producer/mrc producer/cloudsql producer/gke producer/vectorsearch producer/onlineendpoint networking-manual consumer/gce consumer/cloudrun/job consumer/cloudrun/service consumer/mig"
+valid_stages="all organization networking security/alloydb security/mrc security/cloudsql security/gce security/mig producer/alloydb producer/mrc producer/cloudsql producer/gke producer/vectorsearch producer/onlineendpoint networking-manual consumer/gce consumer/cloudrun/job consumer/cloudrun/service consumer/mig load-balancing/application/external"
 
 # Define valid Terraform commands to be accepted by the -tf or --tfcommand flag
 valid_tf_commands="init apply apply-auto-approve destroy destroy-auto-approve init-apply init-apply-auto-approve"
@@ -48,6 +48,7 @@ stage_path_map=(
     "consumer/cloudrun/job=06-consumer/CloudRun/Job"
     "consumer/cloudrun/service=06-consumer/CloudRun/Service"
     "consumer/mig=06-consumer/MIG"
+    "load-balancing/application/external=07-consumer-load-balancing/Application/External"
 )
 
 # Define tfvars to stage path mapping (excluding "all")
@@ -70,6 +71,7 @@ stagewise_tfvar_path_map=(
     "06-consumer/CloudRun/Job=../../../../configuration/consumer/CloudRun/Job/cloudrunjob.tfvars"
     "06-consumer/CloudRun/Service=../../../../configuration/consumer/CloudRun/Service/cloudrunservice.tfvars"
     "06-consumer/MIG=../../../configuration/consumer/MIG/mig.tfvars"
+    "07-consumer-load-balancing/Application/External=../../../../configuration/consumer-load-balancing/Application/External/external-application-lb.tfvars"
 )
 
 security_config_map=(
@@ -101,6 +103,7 @@ stage_wise_description_map=(
   "consumer/cloudrun/job=Executes 06-consumer/CloudRun/Job, manages Cloud Run jobs."
   "consumer/cloudrun/service=Executes 06-consumer/CloudRun/Service, manages Cloud Run services."
   "consumer/mig=Executes 06-consumer/MIG stage, manages MIG instances."
+  "load-balancing/application/external=Executes 07-consumer-load-balancing/Application/External stage, manages external application load balancers."
   )
 
 # Define tfcommand to description mapping.
