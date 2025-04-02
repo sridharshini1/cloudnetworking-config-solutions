@@ -31,36 +31,56 @@ var tfVars = map[string]interface{}{
 	"psc_endpoints": []interface{}{}, // This will be populated dynamically based on env vars
 }
 
-// initTfVars initializes the tfVars map with project and endpoint data from environment variables
+// initTfVars initializes the tfVars map with project and endpoint data
 func initTfVars() {
-	// Directly define project IDs within the function
-	projectID := "your-project-id"
-	producerProjectID := "your-project-id"
+	const (
+		EndpointProjectID         = "endpoint-project-id"
+		ProducerInstanceProjectID = "producer-instance-project-id"
+	)
 
 	endpoints := []map[string]interface{}{
 		{
-			"producer_instance_name":       "sql",
+			"endpoint_project_id":          EndpointProjectID,
+			"producer_instance_project_id": ProducerInstanceProjectID,
 			"subnetwork_name":              "default",
 			"network_name":                 "default",
 			"ip_address_literal":           "10.128.0.5",
-			"endpoint_project_id":          projectID,
-			"producer_instance_project_id": producerProjectID,
+			"region":                       "us-central1",
+			"producer_cloudsql": map[string]interface{}{
+				"instance_name": "sql",
+			},
 		},
 		{
-			"producer_instance_name":       "sql-1",
+			"endpoint_project_id":          EndpointProjectID,
+			"producer_instance_project_id": ProducerInstanceProjectID,
 			"subnetwork_name":              "default",
 			"network_name":                 "default",
 			"ip_address_literal":           nil,
-			"endpoint_project_id":          projectID,
-			"producer_instance_project_id": producerProjectID,
+			"region":                       "us-central1",
+			"producer_cloudsql": map[string]interface{}{
+				"instance_name": "sql-1",
+			},
 		},
 		{
-			"target":                       "projects/xxx-tp/regions/xx-central1/serviceAttachments/gkedpm-xxx",
+			"endpoint_project_id":          EndpointProjectID,
+			"producer_instance_project_id": ProducerInstanceProjectID,
 			"subnetwork_name":              "subnetwork",
 			"network_name":                 "network",
 			"ip_address_literal":           nil,
-			"endpoint_project_id":          projectID,
-			"producer_instance_project_id": producerProjectID,
+			"region":                       "us-central1",
+			"target":                       "projects/xxx-tp/regions/xx-central1/serviceAttachments/gkedpm-xxx",
+		},
+		{
+			"endpoint_project_id":          EndpointProjectID,
+			"producer_instance_project_id": ProducerInstanceProjectID,
+			"subnetwork_name":              "alloydb-subnet-1",
+			"network_name":                 "alloydb-vpc",
+			"ip_address_literal":           nil,
+			"region":                       "us-central1",
+			"producer_alloydb": map[string]interface{}{
+				"instance_name": "alloydb-id",
+				"cluster_id":    "alloydb-cid",
+			},
 		},
 	}
 
@@ -85,7 +105,7 @@ func TestInitAndValidate(t *testing.T) {
 	}
 }
 
-func TestPlanFailsWithoutValidResources(t *testing.T) {
+func TestPlanFailsWithoutInputVariables(t *testing.T) {
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		TerraformDir: terraformDirectoryPath,
 		Reconfigure:  true,
@@ -94,12 +114,8 @@ func TestPlanFailsWithoutValidResources(t *testing.T) {
 		NoColor:      true,
 	})
 
-	_, err := terraform.InitAndPlanE(t, terraformOptions)
-	if err == nil {
-		t.Errorf("Expected Terraform plan to fail due to missing variables, but it succeeded")
-	}
-
-	planExitCode := terraform.InitAndPlanWithExitCode(t, terraformOptions)
+	// Run terraform plan with the -detailed-exitcode flag
+	planExitCode := terraform.PlanExitCode(t, terraformOptions)
 
 	want := 1
 	if got := planExitCode; got != want {
