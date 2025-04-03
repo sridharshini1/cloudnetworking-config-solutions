@@ -28,8 +28,8 @@ import (
 
 // Constants for the Terraform directory path and plan file path.
 const (
-	terraformDirectoryPath = "../../../05-networking-manual/" // Replace with the actual path to your Terraform code directory
-	planFilePath           = "./plan"                         // Path where Terraform will save the execution plan
+	terraformDirectoryPath = "../../../05-producer-connectivity/" // Replace with the actual path to your Terraform code directory
+	planFilePath           = "./plan"                             // Path where Terraform will save the execution plan
 )
 
 // Define the names of the producer CloudSQL and AlloyDB instances to be tested with their Service Attachments

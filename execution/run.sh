@@ -23,7 +23,7 @@ GREEN='\033[0;32m'
 NC='\033[0m'
 
 # Define valid stages to be accepted by the -s flag
-valid_stages="all organization networking security/alloydb security/mrc security/cloudsql security/gce security/mig producer/alloydb producer/mrc producer/cloudsql producer/gke producer/vectorsearch producer/onlineendpoint networking-manual consumer/gce consumer/cloudrun/job consumer/cloudrun/service consumer/mig load-balancing/application/external"
+valid_stages="all organization networking security/alloydb security/mrc security/cloudsql security/gce security/mig producer/alloydb producer/mrc producer/cloudsql producer/gke producer/vectorsearch producer/onlineendpoint producer-connectivity consumer/gce consumer/cloudrun/job consumer/cloudrun/service consumer/mig load-balancing/application/external"
 
 # Define valid Terraform commands to be accepted by the -tf or --tfcommand flag
 valid_tf_commands="init apply apply-auto-approve destroy destroy-auto-approve init-apply init-apply-auto-approve"
@@ -43,7 +43,7 @@ stage_path_map=(
     "producer/gke=04-producer/GKE"
     "producer/vectorsearch=04-producer/VectorSearch"
     "producer/onlineendpoint=04-producer/Vertex-AI-Online-Endpoints"
-    "networking-manual=05-networking-manual"
+    "producer-connectivity=05-producer-connectivity"
     "consumer/gce=06-consumer/GCE"
     "consumer/cloudrun/job=06-consumer/CloudRun/Job"
     "consumer/cloudrun/service=06-consumer/CloudRun/Service"
@@ -66,7 +66,7 @@ stagewise_tfvar_path_map=(
     "04-producer/GKE=../../../configuration/producer/GKE/gke.tfvars"
     "04-producer/VectorSearch=../../../configuration/producer/VectorSearch/vectorsearch.tfvars"
     "04-producer/Vertex-AI-Online-Endpoints=../../../configuration/producer/Vertex-AI-Online-Endpoints/vertex-ai-online-endpoints.tfvars"
-    "05-networking-manual=../../configuration/networking-manual.tfvars"
+    "05-producer-connectivity=../../configuration/producer-connectivity.tfvars"
     "06-consumer/GCE=../../../configuration/consumer/GCE/gce.tfvars"
     "06-consumer/CloudRun/Job=../../../../configuration/consumer/CloudRun/Job/cloudrunjob.tfvars"
     "06-consumer/CloudRun/Service=../../../../configuration/consumer/CloudRun/Service/cloudrunservice.tfvars"
@@ -98,7 +98,7 @@ stage_wise_description_map=(
   "producer/gke=Executes 04-producer/GKE stage, manages GKE clusters."
   "producer/vectorsearch=Executes 04-producer/VectorSearch stage, manages Vector Search instances."
   "producer/onlineendpoint=Executes 04-producer/Vertex-AI-Online-Endpoints stage, manages Online endpoints."
-  "networking-manual=Executes 05-networking-manual stage, manages PSC for supported services."
+  "producer-connectivity=Executes 05-producer-connectivity stage, manages PSC for supported services."
   "consumer/gce=Executes 06-consumer/GCE stage, manages GCE instance."
   "consumer/cloudrun/job=Executes 06-consumer/CloudRun/Job, manages Cloud Run jobs."
   "consumer/cloudrun/service=Executes 06-consumer/CloudRun/Service, manages Cloud Run services."

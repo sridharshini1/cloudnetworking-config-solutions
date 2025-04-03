@@ -215,15 +215,15 @@ module "gke_producer" {
 }
 
 /****************************************************
- Service Account used to run Networking Manual Stage
+ Service Account used to run Producer Connectivity Stage
 *****************************************************/
 
-module "networking_manual" {
+module "producer_connectivity" {
   source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account?ref=v31.1.0"
   project_id = var.bootstrap_project_id
-  name       = var.networking_manual_sa_name
+  name       = var.producer_connectivity_sa_name
   iam = {
-    "roles/iam.serviceAccountTokenCreator" = var.networking_manual_administrator
+    "roles/iam.serviceAccountTokenCreator" = var.producer_connectivity_administrator
   }
   iam_project_roles = {
     (var.network_hostproject_id) = [

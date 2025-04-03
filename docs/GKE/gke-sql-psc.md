@@ -48,7 +48,7 @@ We'll provide clear instructions and code examples to ensure a smooth and succes
 * Networking stage : Creating a Virtual Private Cloud (VPC) for your GKE cluster. Defining subnets for your nodes and services.  
 * Security stage : Create firewall rules for your Cloud SQL instance
 * Producer stage : Provisioning your GKE cluster with desired configurations (e.g., machine type, node pools, autoscaling), Provisioning your CloudSQL instance with desired configurations
-* Networking Manual : Provisioning reserved IP addresses and forwarding rules for Cloud SQL communication
+* Producer Connectivity : Provisioning reserved IP addresses and forwarding rules for Cloud SQL communication
 * Consumer stage : **skipped**  
 
 Throughout each stage, we'll provide guidance on recommended variables and configurations to tailor the deployment to your specific needs.
@@ -118,15 +118,15 @@ Bootstrap stage (configuration/bootstrap.tfvars) :
 * Add the following project IDs and user IDs/groups in the tfvars.
 
 ```c
-bootstrap_project_id                  = "your-project-id"
-network_hostproject_id                = "your-project-id"
-network_serviceproject_id             = "your-project-id"
-organization_stage_administrator      = ["user:user-example@example.com"]
-networking_stage_administrator        = ["user:user-example@example.com"]
-security_stage_administrator          = ["user:user-example@example.com"]
-producer_stage_administrator          = ["user:user-example@example.com"]
-networking_manual_stage_administrator = ["user:user-example@example.com"]
-consumer_stage_administrator          = ["user:user-example@example.com"]
+bootstrap_project_id                      = "your-project-id"
+network_hostproject_id                    = "your-project-id"
+network_serviceproject_id                 = "your-project-id"
+organization_stage_administrator          = ["user:user-example@example.com"]
+networking_stage_administrator            = ["user:user-example@example.com"]
+security_stage_administrator              = ["user:user-example@example.com"]
+producer_stage_administrator              = ["user:user-example@example.com"]
+producer_connectivity_stage_administrator = ["user:user-example@example.com"]
+consumer_stage_administrator              = ["user:user-example@example.com"]
 ```
 
 Organisation Stage (configuration/organisation.tfvars) : 
@@ -249,7 +249,7 @@ network_config:
       psc_allowed_consumer_projects : ["your-allowed-consumer-project-id"]
 ```
 
-Networking Manual Stage(configuration/networking-manual.tfvars) : 
+Producer Connectivty Stage(configuration/producer-connectivity.tfvars) : 
 
 * You will need to create configuration for PSC connectivity for Cloud SQL instance.
 * Use the same project ID as used above for the creation of the CloudSQL PSC instance.
@@ -258,13 +258,17 @@ Networking Manual Stage(configuration/networking-manual.tfvars) :
 ```c
 psc_endpoints = [
   {
-    endpoint_project_id          = "your-project-id"
-    producer_instance_project_id = "your-project-id"
-    producer_instance_name       = "CNCS_CloudSQL_instance"
-    subnetwork_name              = "CNCS_VPC_Subnet_1"
-    network_name                 = "CNCS_VPC"
-    ip_address_literal           = ""
+    endpoint_project_id          = "your-endpoint-project-id"
+    producer_instance_project_id = "your-producer-instance-project-id"
+    subnetwork_name              = "subnetwork-1"
+    network_name                 = "network-1"
+    ip_address_literal           = "10.128.0.26"
+    region                       = "us-central1"
+    producer_cloudsql = {
+      instance_name = "psc-instance-name"
+    }
   },
+]
 ```
 
 3. Now, navigate to the execution/ directory and run this command to run the automatic deployment using run.sh : 

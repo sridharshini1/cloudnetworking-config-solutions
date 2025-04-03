@@ -175,15 +175,15 @@ For the usage of this configuration solution, the following should be installed
      * Update configuration/bootstrap.tfvars **\-** update the google cloud project IDs and the user IDs/groups in the tfvars.
 
         ```
-        bootstrap_project_id                  = "your-project-id"
-        network_hostproject_id                = "your-project-id"
-        network_serviceproject_id             = "your-project-id"
-        organization_stage_administrator      = ["user:user-example@example.com"]
-        networking_stage_administrator        = ["user:user-example@example.com"]
-        security_stage_administrator          = ["user:user-example@example.com"]
-        producer_stage_administrator          = ["user:user-example@example.com"]
-        networking_manual_stage_administrator = ["user:user-example@example.com"]
-        consumer_stage_administrator          = ["user:user-example@example.com"]
+        bootstrap_project_id                      = "your-project-id"
+        network_hostproject_id                    = "your-project-id"
+        network_serviceproject_id                 = "your-project-id"
+        organization_stage_administrator          = ["user:user-example@example.com"]
+        networking_stage_administrator            = ["user:user-example@example.com"]
+        security_stage_administrator              = ["user:user-example@example.com"]
+        producer_stage_administrator              = ["user:user-example@example.com"]
+        producer_connectivity_stage_administrator = ["user:user-example@example.com"]
+        consumer_stage_administrator              = ["user:user-example@example.com"]
         ```
 
    * **01-organisation stage**
@@ -295,21 +295,23 @@ For the usage of this configuration solution, the following should be installed
       psc_allowed_consumer_projects: ["<project-number>"] # Include the list of allowed consumer projects here
       ```
 
-      **05-Networking-manual Stage:**
+      **05-producer-connectivity Stage:**
 
 
       ```
       psc_endpoints = [
-      {
-          cluster                      = ""        # AlloyDB cluster ID
-          instance_name                = ""        # AlloyDB instance ID
-          region                       = ""        # AlloyDB region
-          subnetwork_name              = "default" # AlloyDB subnet name
-          network_name                 = "default" # AlloyDB VPC name
-          ip_address_literal           = null      # Use null or "" (auto-allocation)
-          endpoint_project_id          = ""        # endpoint project ID
-          producer_instance_project_id = ""        # producer instance project ID
-        },
+        {
+          endpoint_project_id          = "your-endpoint-project-id"
+          producer_instance_project_id = "your-producer-instance-project-id"
+          subnetwork_name              = "subnetwork-2"
+          network_name                 = "network-2"
+          ip_address_literal           = "10.128.0.27"
+          region                       = "" # Example: us-central2
+          producer_alloydb = {
+            instance_name = "your-alloydb-instance-name"
+            cluster_id    = "your-cluster-id"
+          }
+        }
       ]
       ```
 

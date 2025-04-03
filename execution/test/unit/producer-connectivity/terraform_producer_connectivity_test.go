@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	terraformDirectoryPath = "../../../05-networking-manual/"
+	terraformDirectoryPath = "../../../05-producer-connectivity/"
 	planFilePath           = "terraform.tfplan"
 )
 
