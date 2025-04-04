@@ -17,7 +17,6 @@ output "instances_self_links" {
   value       = [for instance in module.vm : instance.self_link] # Correctly access the module output
 }
 
-
 output "external_ips" {
   description = "Instance external IP addresses."
   value = { for instance in module.vm :

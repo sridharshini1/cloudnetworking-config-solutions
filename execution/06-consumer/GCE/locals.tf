@@ -41,7 +41,6 @@ locals {
       shielded_config             = try(instance.shielded_config, var.shielded_config)
       snapshot_schedules          = try(instance.snapshot_schedules, var.snapshot_schedules)
       tag_bindings                = try(instance.tag_bindings, var.tag_bindings)
-      tag_bindings_firewall       = try(instance.tag_bindings_firewall, var.tag_bindings_firewall)
 
       # Service Account
       service_account = {

@@ -14,7 +14,7 @@
 
 module "vm" {
   for_each = local.instance_map
-  source   = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/compute-vm"
+  source   = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/compute-vm?ref=v38.1.0"
 
   # Basic VM Configuration
   name             = each.value.name
@@ -62,7 +62,5 @@ module "vm" {
   shielded_config             = each.value.shielded_config
   snapshot_schedules          = each.value.snapshot_schedules
   tag_bindings                = each.value.tag_bindings
-  tag_bindings_firewall       = each.value.tag_bindings_firewall
   service_account             = each.value.service_account
-
 }
