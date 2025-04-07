@@ -250,7 +250,7 @@ spokes:
 ```
 ## Usage
 
-**NOTE** : run the terraform commands with the `-var-file` referencing the networking.tfvars present under the /configuration folder.
+**NOTE** : run the terraform commands with the `-var-file` referencing the networking stage present under the /configuration folder.
 
 ## Outputs
 

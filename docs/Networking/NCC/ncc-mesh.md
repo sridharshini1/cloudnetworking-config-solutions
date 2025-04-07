@@ -1,5 +1,5 @@
 # Network Connectivity Center with Mesh Topology
-### Mesh Topology with VPC as spokes
+## Mesh Topology with VPC as spokes
 
 **On this page**
 
@@ -106,43 +106,48 @@ To use this configuration solution, ensure the following are installed:
         }
         ```
 
-   * **02-networking stage**
-     * Update configuration/networking.tfvars \- update the Google Cloud Project ID and the parameters for additional resources such as VPC, subnet, NAT, create_NCC flag as outlined below and based on your requriements.
+  * **02-networking stage**
+    * Update `configuration/networking/ncc/config` – update the Google Cloud Project ID and parameters for additional resources such as VPC, subnet, and NAT as outlined based on your requirements.
+    * Rename the provided `.yaml.example` file in this directory to `.yaml`.
+    * Choose an implementation file (`.yaml`) of your choice to customize the NCC mesh configuration.
 
-        ```
-        project_id  = "your-project-id",
-        region      = "us-central1"
+      ```yaml
+      hubs:
+       - name: <hub_name>
+        project_id: <hub_project_id>
+        description: "Example NCC Hub"
+        labels:
+          env: prod
+        export_psc: true
+        policy_mode: PRESET
+        preset_topology: MESH
+        auto_accept_projects:
+          - <hub_project_id>
+          - <secondary_project_id>
+        create_new_hub: false
+        existing_hub_uri: "projects/<hub_project_id>/locations/global/hubs/<hub_name>" # Reuse an existing hub by setting `create_new_hub: false`
+        group_name: default
+        group_decription: "Auto-accept group"
+        spoke_labels:
+          team: network
 
-        ## VPC input variables
-        network_name = "CNCS_VPC"
-        subnets = [
-          {
-            ip_cidr_range = "10.0.0.0/24"
-            name          = "CNCS_VPC_Subnet_1"
-            region        = "us-central1-a"
-          }
-        ]
-        psa_range_name    = range1
-        psa_range         = "10.0.64.0/20"
-
-        ## PSC/Service Connectivity Variables
-        create_scp_policy  = false
-
-        ## Cloud Nat input variables
-        create_nat = true
-        ## Cloud HA VPN input variables
-        create_havpn = false
-
-        ## NCC input variables
-        create_ncc = true
-        ```
+      spokes:
+       - type: linked_vpc_network
+        name: spoke1
+        project_id: <spoke1_project_id>
+        uri: projects/<spoke1_project_id>/global/networks/<vpc1_name>
+        description: "VPC Spoke 1"
+        labels:
+          env: prod
+      # Add more spokes by appending additional entries under the `spokes` section. Each spoke can be associated with the hub as needed.
+      ```
 3. **Execute the terraform script**
    You can now deploy the stages individually using **run.sh** or you can deploy all the stages automatically using the run.sh file. Navigate to the execution/ directory and run this command to run the automatic deployment using **run.sh .**
 
     ```
-    ./run.sh -s networking -t init-apply-auto-approve
+    ./run.sh -s all -t init-apply-auto-approve
     or
-    ./run.sh --stage networking --tfcommand init-apply-auto-approve
+    ./run.sh --stage all --tfcommand init-apply-auto-approve
     ```
 
 4. **Verify NCC resource creation:**
@@ -150,7 +155,7 @@ To use this configuration solution, ensure the following are installed:
 
    Your network connectivity center hub and spoke are now ready to serve different producers and consumers.
 
-## **Optional-Delete the deployment**
+## Optional-Delete the deployment
 
 1. In Cloud Shell or in your terminal, make sure that the current working directory is $HOME/cloudshell\_open/\<Folder-name\>/execution. If it isn't, go to that directory.
 2. Remove the resources that were provisioned by the solution guide:
@@ -163,7 +168,7 @@ Terraform displays a list of the resources that will be destroyed.
 
 3. When you're prompted to perform the actions, enter yes.
 
-## **Submit feedback**
+## Submit feedback
 
 To troubleshoot errors, check Terraform's logs and output.
 
