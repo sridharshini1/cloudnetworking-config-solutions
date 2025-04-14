@@ -1,5 +1,5 @@
 
-# Copyright 2024 Google LLC
+# Copyright 2024-2025 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -76,6 +76,11 @@ output "consumer_cloudrun_email" {
 output "consumer_mig_email" {
   description = "MIG consumer stage service account IAM email."
   value       = module.mig_consumer.iam_email
+}
+
+output "consumer_appeng_email" {
+  description = "App engine consumer stage service account IAM email."
+  value       = module.appeng_consumer.iam_email
 }
 
 output "consumer_lb_email" {

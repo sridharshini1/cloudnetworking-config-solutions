@@ -1,5 +1,5 @@
 
-# Copyright 2024 Google LLC
+# Copyright 2024-2025 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -336,6 +336,39 @@ module "consumer_load_balancing" {
   iam_project_roles = {
     (var.network_hostproject_id) = [
       "roles/compute.loadBalancerAdmin"
+    ]
+  }
+  iam_storage_roles = {
+    (module.google_storage_bucket.name) = [
+      "roles/storage.objectAdmin"
+    ]
+  }
+}
+
+/********************************************
+ Service Account used to run App Engine Consumer Stage
+*********************************************/
+
+module "appeng_consumer" {
+  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account?ref=v31.1.0"
+  project_id = var.bootstrap_project_id
+  name       = var.consumer_appengine_sa_name
+  iam = {
+    "roles/iam.serviceAccountTokenCreator" = var.consumer_appengine_administrator
+  }
+  iam_project_roles = {
+    (var.network_hostproject_id) = [
+      "roles/compute.networkUser",
+    ]
+    (var.network_serviceproject_id) = [
+      "roles/compute.instanceAdmin.v1",
+      "roles/iam.serviceAccountUser",
+      "roles/appengine.appAdmin",       // App Engine Admin
+      "roles/cloudbuild.builds.editor", // Cloud Build Editor
+      "roles/artifactregistry.writer",  // Artifact Registry Writer
+      "roles/compute.networkViewer",    // Compute Engine Network Viewer
+      "roles/storage.objectViewer",     // Storage Object Viewer
+      "roles/vpcaccess.user",           // VPC access connector User
     ]
   }
   iam_storage_roles = {

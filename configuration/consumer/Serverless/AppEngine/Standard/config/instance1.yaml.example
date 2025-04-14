@@ -1,0 +1,30 @@
+# configuration/consumer/AppEngine/StandardAppEngine/config/instance1.yaml
+# This example considers the app engine application is already configured and also the required vpc connector is not required
+project_id: <project_id>  # REPLACE with your actual project ID
+service: service-one      # Service name
+version_id: v1            # Version ID
+runtime: python39         # Runtime environment
+
+# --- Deployment (using a ZIP file) ---
+deployment:
+  files:
+    name: <filename>                                             # File name of the file eg. app.yaml
+    source_url: "https://storage.googleapis.com/<remaining url>" # Public url of the code file hosted in the cloud storage bucket
+
+# --- Entrypoint (for Python/Flask with Gunicorn) ---
+entrypoint:
+  shell: "python main.py"
+
+# --- Instance Class (override module default) ---
+instance_class: B2
+
+# --- Manual Scaling ---
+manual_scaling:
+  instances: 3
+
+handlers:
+  - url_regex: "/.*"
+    script:
+      script_path: "auto"
+
+delete_service_on_destroy: true

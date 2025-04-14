@@ -11,6 +11,10 @@ activate_api_identities = {
       # "aiplatform.googleapis.com",
       # "container.googleapis.com",
       # "run.googleapis.com",
+      # "appengine.googleapis.com",
+      # "cloudbuild.googleapis.com",
+      # "cloudresourcemanager.googleapis.com",
+      # "artifactregistry.googleapis.com",
     ],
   },
 }

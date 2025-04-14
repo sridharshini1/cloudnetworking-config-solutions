@@ -195,6 +195,18 @@ variable "consumer_mig_administrator" {
   default     = [""]
 }
 
+variable "consumer_appengine_sa_name" {
+  type        = string
+  description = "Name of the service account to create for App Engine consumer stage."
+  default     = "consumer-mig-sa"
+}
+
+variable "consumer_appengine_administrator" {
+  type        = list(string)
+  description = "List of App Engine administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
+  default     = [""]
+}
+
 variable "consumer_lb_sa_name" {
   type        = string
   description = "Name of the service account to create for LB consumer stage."
