@@ -1,0 +1,92 @@
+# configuration/consumer/AppEngine/StandardAppEngine/config/instance1.yaml
+
+project_id: test-project1 # REPLACE with your actual project ID
+service: service-one      # Service name
+version_id: v1           # Version ID
+runtime: python39       # Runtime environment
+
+# --- Deployment (using a ZIP file) ---
+deployment:
+  files:
+    name: <file-name>
+    source_url: <file-source-url>  #should be in the format "https://storage.googleapis.com/bucket/file"
+
+# --- Entrypoint (for Python/Flask with Gunicorn) ---
+entrypoint:
+  shell: "python main.py"
+
+# --- Instance Class (override module default) ---
+instance_class: F2
+
+# --- Automatic Scaling ---
+automatic_scaling:
+  max_concurrent_requests: 80
+  min_idle_instances: 1
+  max_idle_instances: 5
+  max_pending_latency: "5s"  # Example: Override default
+  min_pending_latency: "1s" # Example: Override default
+  standard_scheduler_settings:  # Demonstrate nested settings
+    target_cpu_utilization: 0.7
+    target_throughput_utilization: 0.6
+    min_instances: 1
+    max_instances: 10
+
+# --- Environment Variables ---
+env_variables:
+  VAR1: "value1-service1"
+  VAR2: "another-value"
+
+# --- Handlers (URL Routing) ---
+handlers:
+  - url_regex: "/static"
+    static_files:
+      path: static
+      upload_path_regex: "static/.*"
+      http_headers:          # Example HTTP headers
+        X-Custom-Header: "Service1-Static"
+      mime_type: "text/css" # Example MIME type
+      expiration: "1000s"       # Example expiration
+  - url_regex: "/.*"
+    script:
+      script_path: "auto"
+
+create_split_traffic: true
+# --- Split traffic ---
+split_traffic:
+    shard_by: IP
+    allocations:
+        v1: "1.0" #All traffic to v1
+
+# --- App Engine Application-Level Settings (Applied to the whole App Engine application) ---
+create_app_engine_application: true
+app_engine_application:
+  location_id: us-central1  # REPLACE with your desired region.  REQUIRED.
+  # auth_domain: example.com     # Optional.
+  # database_type: CLOUD_DATASTORE_COMPATIBILITY  # Optional.
+  serving_status: SERVING # Optional
+
+  feature_settings:             # Optional App Engine feature settings.
+    split_health_checks: true
+
+# --- Dispatch Rules (Optional) ---
+create_dispatch_rules: true 
+dispatch_rules:
+  - domain: "*.<project-id>.appspot.com"  # REPLACE with your project ID.
+    path: "/*"
+    service: "service-one"  # Route all traffic to this service.
+
+create_network_settings: true 
+
+# --- Domain Mappings (Optional) ---
+# domain_mappings:
+#   - domain_name: "www.example.com"  # REPLACE with a domain you own.
+#     ssl_settings:
+#       ssl_management_type: AUTOMATIC
+#       # certificate_id: "your-certificate-id"  # Only needed for MANUAL management.
+
+# --- Firewall Rules (Optional) ---
+firewall_rules:
+  - source_range: "*"  # ALLOW ALL for testing.  Restrict in production!
+    action: ALLOW
+
+noop_on_destroy: true

@@ -20,23 +20,20 @@ output "application_url" {
 output "service_urls" {
   value = {
     for service_name, service_config in var.services :
-    service_name => "https://${service_config.version_id}-dot-${service_name}-dot-${try(google_app_engine_application.app[0].default_hostname, "")}" # Corrected
+    service_name => var.create_app_engine_application ? "https://${service_config.version_id}-dot-${service_name}-dot-${google_app_engine_application.app[0].default_hostname}" : "https://${service_config.version_id}-dot-${service_name}-dot-${var.project_id}.appspot.com"
   }
   description = "A map of service names to their URLs."
 }
 
-output "domain_mapping_resource_records" {
-  value       = google_app_engine_domain_mapping.mapping
-  description = "all domain mapping resource records"
-}
-
-
-output "vpc_connector_name" {
-  value       = local.create_connector ? google_vpc_access_connector.connector[0].name : ""
-  description = "The name of the created VPC Access Connector (if created)."
-}
-
-output "vpc_connector_self_link" {
-  value       = local.create_connector ? google_vpc_access_connector.connector[0].self_link : ""
-  description = "The self-link of the created VPC Access Connector (if created)."
+output "app_engine_standard" {
+  description = "The configuration details for the standard app engine instances deployed."
+  value = {
+    for service_name, service_config in google_app_engine_standard_app_version.standard :
+    service_name => {
+      "id" : service_config.id,
+      "project" : service_config.project,
+      "version_id" : service_config.version_id,
+      "runtime" : service_config.runtime,
+    }
+  }
 }
