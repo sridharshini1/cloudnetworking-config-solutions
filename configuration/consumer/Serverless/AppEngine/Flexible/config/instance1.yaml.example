@@ -1,0 +1,40 @@
+# configuration/consumer/AppEngine/FlexibleAppEngine/config/instance1.yaml
+
+project_id: <project-id> # REPLACE with your project ID
+service: test-service1
+runtime: "python" # Or another supported runtime
+
+flexible_runtime_settings: # Configure flexible runtime settings
+ operating_system: "ubuntu22" 
+ runtime_version: "3.12"
+
+instance_class: F4_1G
+
+network:
+  name: <network-name> # Or your VPC network name
+  subnetwork: <subnet-name> #REPLACE
+
+version_id: "v1"
+
+automatic_scaling:
+  cool_down_period: "120s"
+  max_concurrent_requests: 50
+  max_total_instances: 10
+  min_total_instances: 2
+
+  cpu_utilization:
+    target_utilization: 0.6
+    aggregation_window_length: "60s"
+
+entrypoint:
+  shell: "pip3 install gunicorn flask && gunicorn -b :8080 main:app" # Example for Python/Gunicorn
+
+deployment:
+  zip: # Alternative deployment method
+    source_url: "https://storage.googleapis.com/<bucket-name>/deploy_app.zip"
+
+liveness_check:
+  path: "/live"              # provide valid path for liveness check
+
+readiness_check:
+  path: "/ready"               # provide valid path for readiness check
