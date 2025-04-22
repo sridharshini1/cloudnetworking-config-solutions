@@ -16,6 +16,7 @@ activate_api_identities = {
       # "cloudresourcemanager.googleapis.com",
       # "artifactregistry.googleapis.com",
       # "notebooks.googleapis.com",
+      # "vpcaccess.googleapis.com",
     ],
   },
 }

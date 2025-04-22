@@ -78,6 +78,11 @@ output "consumer_mig_email" {
   value       = module.mig_consumer.iam_email
 }
 
+output "consumer_vpc_access_connector_email" {
+  description = "VPC Access Connector consumer stage service account IAM email."
+  value       = module.consumer_vpc_access_connector.iam_email
+}
+
 output "consumer_appeng_email" {
   description = "App engine consumer stage service account IAM email."
   value       = module.appeng_consumer.iam_email

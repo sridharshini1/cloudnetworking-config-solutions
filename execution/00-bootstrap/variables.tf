@@ -1,5 +1,5 @@
 
-# Copyright 2024 Google LLC
+# Copyright 2024-2025 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -193,6 +193,17 @@ variable "consumer_mig_administrator" {
   type        = list(string)
   description = "List of MIG administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
   default     = [""]
+}
+
+variable "consumer_vpc_connector_sa_name" {
+  description = "Name of the service account to create for VPC Access Connector consumer stage."
+  type        = string
+  default     = "consumer-vpcaccess-sa"
+}
+
+variable "consumer_vpc_connector_administrator" {
+  description = "List of VPC conector administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
+  type        = list(string)
 }
 
 variable "consumer_appengine_sa_name" {
