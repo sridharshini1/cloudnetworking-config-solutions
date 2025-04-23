@@ -48,6 +48,12 @@ The project is structured into the following folders:
               ├── mig.tfvars
               ├── mrc.tfvars
               └── workbench.tfvars
+          └──consumer-load-balancing
+              ├── application load balancers
+                ├── external
+              ├── network load balancers
+                ├── passthrough
+                    └── external
       ├──execution
           ├── 00-bootstrap
           ├── 01-organization
@@ -74,7 +80,7 @@ The project is structured into the following folders:
   * `04-producer`: Implements producer services like AlloyDB, Memorystore for Redis clusters, and Cloud SQL.
   * `05-producer-connectivity`: Implements networking services like Private Service Connectivity.
   * `06-consumer`: Implements consumer services like Google Compute Engine instances, Cloud Run, Workbench, AppEngine and Managed Instance Groups.
-  * `07-consumer-load-balancing`: Implements load balancing services.
+  * `07-consumer-load-balancing`: Implements load balancing services. As a part of Load Balancing, the following Load Balancers are presently supported : External Application Load Balancer, External Network Passthrough Load Balancer.
 
 * `modules`: contains reusable Terraform modules.
 
