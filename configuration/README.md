@@ -12,6 +12,9 @@ This directory serves as a centralized repository for all Terraform configuratio
     - MRC (mrc.tfvars)
     - Cloud SQL (sql.tfvars)
     - GCE (gce.tfvars)
+    - Compute-SSL-Certs
+      - Google-Managed
+        - google_managed_ssl.tfvars
     - Workbench (workbench.tfvars)
 - 04-producer stage
     - AlloyDB

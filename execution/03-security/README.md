@@ -37,6 +37,7 @@ The user or service account running Terraform should have sufficient IAM permiss
 4. GCE Firewall (03-security/GCE): Defines firewall rules for GCE instances, specifically focusing on SSH access.
 5. MIG Firewall (03-security/MIG) : Defines firewall rules for MIGs to allow health checks for the instance groups.
 6. Workbench Firewall (03-security/Workbench): Configures firewall rules for Workbench instances, ensuring secure SSH access and enabling access to necessary resources.
+7. Google Managed Compute SSL Certificates (03-security/Compute-SSL-Certs/Google-Managed) : Configures Google Managed Compute SSL Certificates which can be used with Load Balancing for secure communication.
 
 ## Configuration
 
