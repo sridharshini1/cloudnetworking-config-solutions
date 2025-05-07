@@ -1,6 +1,6 @@
 ## Introduction
 
-The bootstrap stage is the first and most crucial step in setting up your Google Cloud infrastructure using Terraform. It lays the groundwork for subsequent stages (01-organization, 02-networking, 03-security, 04-producer, 05-networking-manual, 06-consumer) by provisioning essential resources and establishing security best practices. This stage focuses on creating the following:
+The bootstrap stage is the first and most crucial step in setting up your Google Cloud infrastructure using Terraform. It lays the groundwork for subsequent stages (01-organization, 02-networking, 03-security, 04-producer, 05-producer-connectivity, 06-consumer) by provisioning essential resources and establishing security best practices. This stage focuses on creating the following:
   * **Impersonating Service Accounts:** This stage generates service accounts for each subsequent stage, allowing them to impersonate roles with the necessary permissions for their respective tasks. This approach enhances security by granting only the required privileges to each stage.
   * **Terraform State Bucket:** A Google Cloud Storage bucket is created to store the Terraform state files. This centralizes state management, making it easier to track changes and collaborate on infrastructure updates.
 
@@ -38,21 +38,22 @@ This minimal example includes only the essential fields required to execute the 
   network_hostproject_id                = ""
   network_serviceproject_id             = "" // <service(producer/consumer)-project-id>
 
-  organization_administrator      = ["user:organization-user-example@example.com"]
-  networking_administrator        = ["user:networking-user-example@example.com"]
-  security_administrator          = ["user:security-user-example@example.com"]
+  organization_administrator          = ["user:organization-user-example@example.com"]
+  networking_administrator            = ["user:networking-user-example@example.com"]
+  security_administrator              = ["user:security-user-example@example.com"]
 
-  producer_cloudsql_administrator = ["user:cloudsql-user-example@example.com"]
-  producer_gke_administrator      = ["user:gke-user-example@example.com"]
-  producer_alloydb_administrator  = ["user:alloydb-user-example@example.com"]
-  producer_vertex_administrator   = ["user:vertex-user-example@example.com"]
-  producer_mrc_administrator      = ["user:mrc-user-example@example.com"]
-  networking_manual_administrator = ["user:networking-user-example@example.com"]
+  producer_cloudsql_administrator     = ["user:cloudsql-user-example@example.com"]
+  producer_gke_administrator          = ["user:gke-user-example@example.com"]
+  producer_alloydb_administrator      = ["user:alloydb-user-example@example.com"]
+  producer_vertex_administrator       = ["user:vertex-user-example@example.com"]
+  producer_mrc_administrator          = ["user:mrc-user-example@example.com"]
+  producer_connectivity_administrator = ["user:connectivity-user-example@example.com"]
 
-  consumer_gce_administrator      = ["user:gce-user-example@example.com"]
-  consumer_cloudrun_administrator = ["user:cloudrun-user-example@example.com"]
-  consumer_mig_administrator      = ["user:mig-user-example@example.com"]  
-  consumer_lb_administrator       = ["user:lb-user-example@example.com"]
+  consumer_gce_administrator          = ["user:gce-user-example@example.com"]
+  consumer_cloudrun_administrator     = ["user:cloudrun-user-example@example.com"]
+  consumer_mig_administrator          = ["user:mig-user-example@example.com"]  
+  consumer_workbench_administrator    = ["user:workbench-user-example@example.com"]
+  consumer_lb_administrator           = ["user:lb-user-example@example.com"]
   ```
 
 ## Important Considerations:
@@ -81,7 +82,7 @@ This minimal example includes only the essential fields required to execute the 
 | <a name="module_mig_consumer"></a> [mig\_consumer](#module\_mig\_consumer) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account | v31.1.0 |
 | <a name="module_mrc_producer"></a> [mrc\_producer](#module\_mrc\_producer) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account | v31.1.0 |
 | <a name="module_networking"></a> [networking](#module\_networking) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account | v31.1.0 |
-| <a name="module_networking_manual"></a> [networking\_manual](#module\_networking\_manual) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account | v31.1.0 |
+| <a name="module_producer_connectivity"></a> [producer\_connectivity](#module\_producer\_connectivity) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account | v31.1.0 |
 | <a name="module_organization"></a> [organization](#module\_organization) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account | v34.1.0 |
 | <a name="module_security"></a> [security](#module\_security) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account | v31.1.0 |
 | <a name="module_vertex_producer"></a> [vertex\_producer](#module\_vertex\_producer) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account | v31.1.0 |
@@ -95,6 +96,8 @@ This minimal example includes only the essential fields required to execute the 
 | <a name="input_consumer_cloudrun_sa_name"></a> [consumer\_cloudrun\_sa\_name](#input\_consumer\_cloudrun\_sa\_name) | Name of the service account to create for Cloud Run consumer stage. | `string` | `"consumer-cloudrun-sa"` | no |
 | <a name="input_consumer_gce_administrator"></a> [consumer\_gce\_administrator](#input\_consumer\_gce\_administrator) | List of GCE administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com) | `list(string)` | <pre>[<br>  ""<br>]</pre> | no |
 | <a name="input_consumer_gce_sa_name"></a> [consumer\_gce\_sa\_name](#input\_consumer\_gce\_sa\_name) | Name of the service account to create for GCE consumer stage. | `string` | `"consumer-gce-sa"` | no |
+| <a name="input_consumer_workbench_administrator"></a> [consumer\_workbench\_administrator](#input\_consumer\_workbench\_administrator) | List of Workbench administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com) | `list(string)` | <pre>[<br>  ""<br>]</pre> | no |
+| <a name="input_consumer_workbench_sa_name"></a> [consumer\_workbench\_sa\_name](#input\_consumer\_workbench\_sa\_name) | Name of the service account to create for Workbench consumer stage. | `string` | `"consumer-workbench-sa"` | no |
 | <a name="input_consumer_lb_administrator"></a> [consumer\_lb\_administrator](#input\_consumer\_lb\_administrator) | List of LB administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com) | `list(string)` | <pre>[<br>  ""<br>]</pre> | no |
 | <a name="input_consumer_lb_sa_name"></a> [consumer\_lb\_sa\_name](#input\_consumer\_lb\_sa\_name) | Name of the service account to create for LB consumer stage. | `string` | `"consumer-lb-sa"` | no |
 | <a name="input_consumer_mig_administrator"></a> [consumer\_mig\_administrator](#input\_consumer\_mig\_administrator) | List of MIG administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com) | `list(string)` | <pre>[<br>  ""<br>]</pre> | no |
@@ -105,8 +108,8 @@ This minimal example includes only the essential fields required to execute the 
 | <a name="input_network_hostproject_id"></a> [network\_hostproject\_id](#input\_network\_hostproject\_id) | Google Cloud Project ID for the networking host project to be used to create networking and security resources. | `string` | n/a | yes |
 | <a name="input_network_serviceproject_id"></a> [network\_serviceproject\_id](#input\_network\_serviceproject\_id) | Google Cloud Project ID to be used to create Google Cloud resources like consumer and producer services. | `string` | n/a | yes |
 | <a name="input_networking_administrator"></a> [networking\_administrator](#input\_networking\_administrator) | List of Members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com) | `list(string)` | <pre>[<br>  ""<br>]</pre> | no |
-| <a name="input_networking_manual_administrator"></a> [networking\_manual\_administrator](#input\_networking\_manual\_administrator) | List of Members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com) | `list(string)` | <pre>[<br>  ""<br>]</pre> | no |
-| <a name="input_networking_manual_sa_name"></a> [networking\_manual\_sa\_name](#input\_networking\_manual\_sa\_name) | Name of the service account to create for networking manual stage. | `string` | `"networking-manual-sa"` | no |
+| <a name="input_producer_connectivity_administrator"></a> [producer\_connectivity\_administrator](#input\_producer\_connectivity\_administrator) | List of Members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com) | `list(string)` | <pre>[<br>  ""<br>]</pre> | no |
+| <a name="input_producer_connectivity_sa_name"></a> [producer\_connectivity\_sa\_name](#input\_producer\_connectivity\_sa\_name) | Name of the service account to create for producer connectivity stage. | `string` | `"producer-connectivity-sa"` | no |
 | <a name="input_networking_sa_name"></a> [networking\_sa\_name](#input\_networking\_sa\_name) | Name of the service account to create for networking stage. | `string` | `"networking-sa"` | no |
 | <a name="input_organization_administrator"></a> [organization\_administrator](#input\_organization\_administrator) | List of Members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com) | `list(string)` | <pre>[<br>  ""<br>]</pre> | no |
 | <a name="input_organization_sa_name"></a> [organization\_sa\_name](#input\_organization\_sa\_name) | Name of the service account to create for organization stage. | `string` | `"organization-sa"` | no |
@@ -132,7 +135,7 @@ This minimal example includes only the essential fields required to execute the 
 | <a name="output_consumer_gce_email"></a> [consumer\_gce\_email](#output\_consumer\_gce\_email) | GCE consumer stage service account IAM email. |
 | <a name="output_consumer_mig_email"></a> [consumer\_mig\_email](#output\_consumer\_mig\_email) | Consumer Load Balancing stage service account IAM email. |
 | <a name="output_networking_email"></a> [networking\_email](#output\_networking\_email) | Networking stage service account IAM email. |
-| <a name="output_networking_manual_email"></a> [networking\_manual\_email](#output\_networking\_manual\_email) | Networking manual stage service account IAM email. |
+| <a name="output_producer_connectivity_email"></a> [producer\_connectivity\_email](#output\_producer\_connectivity\_email) | Producer Connectivity stage service account IAM email. |
 | <a name="output_organization_email"></a> [organization\_email](#output\_organization\_email) | Organization stage service account IAM email. |
 | <a name="output_producer_alloydb_email"></a> [producer\_alloydb\_email](#output\_producer\_alloydb\_email) | AlloyDB producer stage service account IAM email. |
 | <a name="output_producer_cloudsql_email"></a> [producer\_cloudsql\_email](#output\_producer\_cloudsql\_email) | CloudSQL producer stage service account IAM email. |

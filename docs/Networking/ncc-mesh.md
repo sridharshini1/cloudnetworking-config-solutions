@@ -73,21 +73,21 @@ To use this configuration solution, ensure the following are installed:
      * Update configuration/bootstrap.tfvars **\-** update the google cloud project IDs and the user IDs/groups in the tfvars.
 
         ```
-            folder_id                       = "<your-project-id>"
-            bootstrap_project_id            = "<your-project-id>"
-            network_hostproject_id          = "<your-project-id>"
-            network_serviceproject_id       = "<your-project-id>"
-            organization_administrator      = ["user:user-example@example.com"]
-            networking_administrator        = ["user:user-example@example.com"]
-            security_administrator          = ["user:user-example@example.com"]
-            producer_cloudsql_administrator = ["user:user-example@example.com"]
-            producer_gke_administrator      = ["user:user-example@example.com"]
-            producer_alloydb_administrator  = ["user:user-example@example.com"]
-            producer_vertex_administrator   = ["user:user-example@example.com"]
-            producer_mrc_administrator      = ["user:user-example@example.com"]
-            networking_manual_administrator = ["user:user-example@example.com"]
-            consumer_gce_administrator      = ["user:user-example@example.com"]
-            consumer_cloudrun_administrator = ["user:user-example@example.com"]
+            folder_id                           = "<your-project-id>"
+            bootstrap_project_id                = "<your-project-id>"
+            network_hostproject_id              = "<your-project-id>"
+            network_serviceproject_id           = "<your-project-id>"
+            organization_administrator          = ["user:user-example@example.com"]
+            networking_administrator            = ["user:user-example@example.com"]
+            security_administrator              = ["user:user-example@example.com"]
+            producer_cloudsql_administrator     = ["user:user-example@example.com"]
+            producer_gke_administrator          = ["user:user-example@example.com"]
+            producer_alloydb_administrator      = ["user:user-example@example.com"]
+            producer_vertex_administrator       = ["user:user-example@example.com"]
+            producer_mrc_administrator          = ["user:user-example@example.com"]
+            producer_connectivity_administrator = ["user:user-example@example.com"]
+            consumer_gce_administrator          = ["user:user-example@example.com"]
+            consumer_cloudrun_administrator     = ["user:user-example@example.com"]
         ```
 
    * **01-organisation stage**

@@ -20,7 +20,7 @@ The project is structured into the following folders:
           ├── bootstrap.tfvars
           ├── organization.tfvars
           ├── networking.tfvars
-          ├── networking-manual.tfvars
+          ├── producer-connectivity.tfvars
           ├── producer
               ├── alloydb
               ├── cloudsql
@@ -30,20 +30,23 @@ The project is structured into the following folders:
               └── mrc
           ├── consumer
               ├── cloudrun
-              └── gce
-          └── security
+              ├── gce
+              ├── mig
+              └── workbench
+          ├──security
               ├── alloydb.tfvars
               ├── cloudsql.tfvars
               ├── gce.tfvars
               ├── mig.tfvars
-              └── mrc.tfvars
+              ├── mrc.tfvars
+              └── workbench.tfvars
       ├──execution
           ├── 00-bootstrap
           ├── 01-organization
           ├── 02-networking
           ├── 03-security
           ├── 04-producer
-          ├── 05-networking-manual
+          ├── 05-producer-connectivity
           ├── 06-consumer
           └── 07-consumer-load-balancing
       └──modules
@@ -61,7 +64,7 @@ The project is structured into the following folders:
   * `02-networking`: Manages VPCs, subnets, Cloud HA VPN and other core networking components like PSA, SCP, Cloud NAT.
   * `03-security`:  Configures firewalls and other security measures.
   * `04-producer`: Implements producer services like AlloyDB, Memorystore for Redis clusters, and Cloud SQL.
-  * `05-networking-manual`: Implements networking services like Private Service Connectivity.
+  * `05-producer-connectivity`: Implements networking services like Private Service Connectivity.
   * `06-consumer`: Implements consumer services like Google Compute Engine instances, Cloud Run and Managed Instance Groups.
   * `07-consumer-load-balancing`: Implements load balancing services.
 

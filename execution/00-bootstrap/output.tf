@@ -58,9 +58,9 @@ output "producer_gke_email" {
   value       = module.gke_producer.iam_email
 }
 
-output "networking_manual_email" {
-  description = "Networking manual stage service account IAM email."
-  value       = module.networking_manual.iam_email
+output "producer_connectivity_email" {
+  description = "Producer Connectivity stage service account IAM email."
+  value       = module.producer_connectivity.iam_email
 }
 
 output "consumer_gce_email" {
@@ -81,6 +81,11 @@ output "consumer_mig_email" {
 output "consumer_appeng_email" {
   description = "App engine consumer stage service account IAM email."
   value       = module.appeng_consumer.iam_email
+}
+
+output "consumer_workbench_email" {
+  description = "Workbench consumer stage service account IAM email."
+  value       = module.workbench_consumer.iam_email
 }
 
 output "consumer_lb_email" {

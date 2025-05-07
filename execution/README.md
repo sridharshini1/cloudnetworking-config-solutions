@@ -20,8 +20,9 @@ The deployment is divided into seven logically isolated stages, each handled by 
    + consumer_lb_email       = "serviceAccount:consumer-lb-sa@<project-id>.iam.gserviceaccount.com"
    + consumer_cloudrun_email = "serviceAccount:consumer-cloudrun-sa@<project-id>.iam.gserviceaccount.com"
    + consumer_gce_email      = "serviceAccount:consumer-gce-sa@<project-id>.iam.gserviceaccount.com"
+   + consumer_workbench_email = "serviceAccount:consumer-workbench-sa@<project-id>.iam.gserviceaccount.com"
    + networking_email        = "serviceAccount:networking-sa@<project-id>.iam.gserviceaccount.com"
-   + networking_manual_email = "serviceAccount:networking-manual-sa@<project-id>.iam.gserviceaccount.com"
+   + producer_connectivity_email = "serviceAccount:producer-connectivity-sa@<project-id>.iam.gserviceaccount.com"
    + organization_email      = "serviceAccount:organization-sa@<project-id>.iam.gserviceaccount.com"
    + producer_alloydb_email  = "serviceAccount:producer-alloydb-sa@<project-id>.iam.gserviceaccount.com"
    + producer_cloudsql_email = "serviceAccount:producer-cloudsql-sa@<project-id>.iam.gserviceaccount.com"
@@ -87,7 +88,7 @@ The deployment is divided into seven logically isolated stages, each handled by 
    - Deploys GCP-managed producer services.
    - Includes AlloyDB, Cloud SQL, Memorystore Redis clusters, GKE, Vertex AI Vector Search, Vertex AI Online Prediction Endpoint.
 
-6. **05-networking-manual:**
+6. **05-producer-connectivity:**
    - This stage establishes Private Service Connect (PSC) for secure, private communication between your consumer project and the producer services created in the "04-producer" stage.
    - **Internal IP Addresses:** Reserved within specific subnets in your consumer project. These addresses act as private endpoints for the PSC connection, providing a secure and stable way to access your producer services.
    - **Forwarding Rules:** Created to direct traffic destined for the reserved internal IP addresses to your producer services through the PSC connection. This ensures seamless communication without exposing your services to the public internet.
@@ -95,7 +96,7 @@ The deployment is divided into seven logically isolated stages, each handled by 
 
 7. **06-consumer:**
    - Deploys GCP-managed consumer services.
-   - Includes Google Compute Engine (GCE) instances, Managed Instance Groups (MIG) and Cloud Run.
+      - Includes Google Compute Engine (GCE) instances, Managed Instance Groups (MIG), Cloud Run, and Workbench.
 
 8. **07-consumer-load-balancing:**
    - Deploys GCP-managed Load Balancers.

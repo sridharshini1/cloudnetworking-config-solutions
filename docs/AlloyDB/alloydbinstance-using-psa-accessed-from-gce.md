@@ -128,15 +128,15 @@ To use this configuration solution, ensure the following are installed:
      * Update configuration/bootstrap.tfvars **\-** update the google cloud project IDs and the user IDs/groups in the tfvars.
 
         ```
-        bootstrap_project_id                  = "your-project-id"
-        network_hostproject_id                = "your-project-id"
-        network_serviceproject_id             = "your-project-id"
-        organization_stage_administrator      = ["user:user-example@example.com"]
-        networking_stage_administrator        = ["user:user-example@example.com"]
-        security_stage_administrator          = ["user:user-example@example.com"]
-        producer_stage_administrator          = ["user:user-example@example.com"]
-        networking_manual_stage_administrator = ["user:user-example@example.com"]
-        consumer_stage_administrator          = ["user:user-example@example.com"]
+        bootstrap_project_id                      = "your-project-id"
+        network_hostproject_id                    = "your-project-id"
+        network_serviceproject_id                 = "your-project-id"
+        organization_stage_administrator          = ["user:user-example@example.com"]
+        networking_stage_administrator            = ["user:user-example@example.com"]
+        security_stage_administrator              = ["user:user-example@example.com"]
+        producer_stage_administrator              = ["user:user-example@example.com"]
+        producer_connectivity_stage_administrator = ["user:user-example@example.com"]
+        consumer_stage_administrator              = ["user:user-example@example.com"]
         ```
 
    * **01-organisation stage**

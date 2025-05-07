@@ -94,15 +94,15 @@ For the usage of this configuration solution, the following should be installed
      * Update configuration/bootstrap.tfvars **\-** update the google cloud project IDs and the user IDs/groups in the tfvars.
 
         ```
-        bootstrap_project_id                  = "your-project-id"
-        network_hostproject_id                = "your-project-id"
-        network_serviceproject_id             = "your-project-id"
-        organization_stage_administrator      = ["user:user-example@example.com"]
-        networking_stage_administrator        = ["user:user-example@example.com"]
-        security_stage_administrator          = ["user:user-example@example.com"]
-        producer_stage_administrator          = ["user:user-example@example.com"]
-        networking_manual_stage_administrator = ["user:user-example@example.com"]
-        consumer_stage_administrator          = ["user:user-example@example.com"]
+        bootstrap_project_id                      = "your-project-id"
+        network_hostproject_id                    = "your-project-id"
+        network_serviceproject_id                 = "your-project-id"
+        organization_stage_administrator          = ["user:user-example@example.com"]
+        networking_stage_administrator            = ["user:user-example@example.com"]
+        security_stage_administrator              = ["user:user-example@example.com"]
+        producer_stage_administrator              = ["user:user-example@example.com"]
+        producer_connectivity_stage_administrator = ["user:user-example@example.com"]
+        consumer_stage_administrator              = ["user:user-example@example.com"]
         ```
 
    * **01-organisation stage**
@@ -200,18 +200,21 @@ For the usage of this configuration solution, the following should be installed
               psc_allowed_consumer_projects : ["your-allowed-consumer-project-id"]
         ```
 
-    * **05-networking-manual stage**
-      * Update the configuration/networking-manual.tfvars file, you can refer following snippet for reference
+    * **05-producer-connectivity stage**
+      * Update the configuration/producer-connectivity.tfvars file, you can refer following snippet for reference
 
           ```
           psc_endpoints = [
             {
-              endpoint_project_id          = "your-project-id"
-              producer_instance_project_id = "cloudsql"
-              producer_instance_name       = "sql-1"
-              subnetwork_name              = "CNCS_VPC_Subnet_1"
-              network_name                 = "CNCS_VPC"
-              ip_address_literal           = "10.128.0.50"
+              endpoint_project_id          = "your-endpoint-project-id"
+              producer_instance_project_id = "your-producer-instance-project-id"
+              subnetwork_name              = "subnetwork-1"
+              network_name                 = "network-1"
+              ip_address_literal           = "10.128.0.26"
+              region                       = "us-central1"
+              producer_cloudsql = {
+                instance_name = "psc-instance-name"
+              }
             },
           ]
           ```

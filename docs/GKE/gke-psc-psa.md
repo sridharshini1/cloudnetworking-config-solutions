@@ -69,7 +69,7 @@ We'll provide clear instructions and code examples to ensure a smooth and succes
 * Networking stage : Creating a Virtual Private Cloud (VPC) for your Google Kubernetes Engine cluster. Defining subnets for your nodes and services.  
 * Security stage : **skipped**  
 * Producer stage : Provisioning your Google Kubernetes Engine cluster with desired configurations (e.g., machine type, node pools, autoscaling)
-* Networking Manual : **skipped**  
+* Producer Connectivity : **skipped**  
 * Consumer stage : **skipped**  
 
 Throughout each stage, we'll provide guidance on recommended variables and configurations to tailor the deployment to your specific needs.
@@ -141,15 +141,15 @@ Here’s a guide to configure tfvars for each stage and then use run.sh to autom
     * Add the following project IDs and user IDs/groups in the tfvars.
 
     ```c
-    bootstrap_project_id                  = "your-project-id"
-    network_hostproject_id                = "your-project-id"
-    network_serviceproject_id             = "your-project-id"
-    organization_stage_administrator      = ["user:user-example@example.com"]
-    networking_stage_administrator        = ["user:user-example@example.com"]
-    security_stage_administrator          = ["user:user-example@example.com"]
-    producer_stage_administrator          = ["user:user-example@example.com"]
-    networking_manual_stage_administrator = ["user:user-example@example.com"]
-    consumer_stage_administrator          = ["user:user-example@example.com"]
+    bootstrap_project_id                      = "your-project-id"
+    network_hostproject_id                    = "your-project-id"
+    network_serviceproject_id                 = "your-project-id"
+    organization_stage_administrator          = ["user:user-example@example.com"]
+    networking_stage_administrator            = ["user:user-example@example.com"]
+    security_stage_administrator              = ["user:user-example@example.com"]
+    producer_stage_administrator              = ["user:user-example@example.com"]
+    producer_connectivity_stage_administrator = ["user:user-example@example.com"]
+    consumer_stage_administrator              = ["user:user-example@example.com"]
     ```
 
     Organisation Stage (configuration/organisation.tfvars) : 

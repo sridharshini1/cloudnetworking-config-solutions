@@ -1,6 +1,6 @@
 activate_api_identities = {
   "project-01" = {
-    project_id = "",
+    project_id = "your-project-id",
     activate_apis = [
       # "servicenetworking.googleapis.com",
       # "alloydb.googleapis.com",
@@ -15,6 +15,7 @@ activate_api_identities = {
       # "cloudbuild.googleapis.com",
       # "cloudresourcemanager.googleapis.com",
       # "artifactregistry.googleapis.com",
+      # "notebooks.googleapis.com",
     ],
   },
 }

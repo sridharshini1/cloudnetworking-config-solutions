@@ -12,7 +12,8 @@ This directory serves as a centralized repository for all Terraform configuratio
     - MRC (mrc.tfvars)
     - Cloud SQL (sql.tfvars)
     - GCE (gce.tfvars)
-- 04-producer stage
+    - Workbench (workbench.tfvars)
+  - 04-producer stage
     - AlloyDB
       - alloydb.tfvars
       - config
@@ -37,7 +38,7 @@ This directory serves as a centralized repository for all Terraform configuratio
       - vertex-ai-online-endpoints.tfvars
       - config
         - endpoint.yaml.example
-- 05-networking-manual stage (networking-manual.tfvars)
+- 05-producer-connectivity stage (producer-connectivity.tfvars)
 - 06-consumer stage
   - GCE
         - gce.tfvars
@@ -56,6 +57,10 @@ This directory serves as a centralized repository for all Terraform configuratio
       - cloudrunservice.tfvars
       - config
           - instance.yaml.example
+  - Workbench
+    - config
+      - instance-lite.yaml.example
+      - instance-expanded.yaml.example
 - 07-consumer-load-balancing stage
   - Application
     - External
@@ -106,15 +111,15 @@ This would run the terraform plan based on the values for the variables declared
 **Example usage**
 
 ```
-bootstrap_project_id                  = "test-bootstrap-project"
-network_hostproject_id                = "host-project-id"
-network_serviceproject_id             = "consumer-project-id"
-organization_stage_administrator      = ["example@example.com"]
-networking_stage_administrator        = ["example@example.com"]
-security_stage_administrator          = ["example@example.com"]
-producer_stage_administrator          = ["example@example.com"]
-networking_manual_stage_administrator = ["example@example.com"]
-consumer_stage_administrator          = ["example@example.com"]
+bootstrap_project_id                      = "test-bootstrap-project"
+network_hostproject_id                    = "host-project-id"
+network_serviceproject_id                 = "consumer-project-id"
+organization_stage_administrator          = ["example@example.com"]
+networking_stage_administrator            = ["example@example.com"]
+security_stage_administrator              = ["example@example.com"]
+producer_stage_administrator              = ["example@example.com"]
+producer_connectivity_stage_administrator = ["example@example.com"]
+consumer_stage_administrator              = ["example@example.com"]
 ```
 
 ## 01-organization
@@ -211,37 +216,73 @@ egress_rules = {
 
 Producer specific configuration examples can be found under the `/config` folder of that specific producer. Such as for AlloyDB, the example would be in the folder `configuration/producer/AlloyDB/config/instance.yaml.example`.
 
-## 05-networking-manual (networking-manual.tfvars)
+## 05-producer-connectivity (producer-connectivity.tfvars)
 
-Defined using `psc_endpoints` which is a list of PSC endpoint configurations consisting of:
+The `producer-connectivity.tfvars` file defines configurations for Private Service Connect (PSC) endpoints. These endpoints enable connectivity between consumer and producer services, such as Cloud SQL, AlloyDB, or other targets.
 
-1. `endpoint_project_id` : Consumer project ID (where the forwarding rule is created).
+### Key Variables
 
-2. `producer_instance_project_id` : Project where the producer service such as Cloud SQL is created.
+1. `endpoint_project_id`: Consumer project ID where the forwarding rule is created.
+2. `producer_instance_project_id`: Project where the producer service (e.g., Cloud SQL, AlloyDB) is created.
+3. `subnetwork_name`: Name of the subnetwork within the VPC network from which the internal IP address for the PSC connection will be allocated.
+4. `network_name`: VPC network hosting the subnetwork mentioned above.
+5. `ip_address_literal`: **(Optional)** Specific internal IP address for the PSC connection. Leave null for automatic allocation.
+6. `region`: Region where the PSC endpoint is created.
+7. `producer_cloudsql`: **(Optional)** Configuration for Cloud SQL instances. Includes:
+   - `instance_name`: Name of the Cloud SQL instance.
+8. `producer_alloydb`: **(Optional)** Configuration for AlloyDB instances. Includes:
+   - `instance_name`: Name of the AlloyDB instance.
+   - `cluster_id`: ID of the AlloyDB cluster.
+9. `target`: **(Optional)** Service attachment URL for other targets.
 
-2. `producer_instance_name` : Name of the producer service instance.
+### Example Usage
 
-3. `subnetwork_name` : this variable names the specific subnetwork within your Virtual Private Cloud (VPC) network from which the internal IP address for the PSC connection will be allocated.
-
-4. `network_name` : VPC network for the forwarding rule which hosts the subnetwork mentioned above.
-
-5. `ip_address_literal` : **(Optional)** Specific internal IP, or leave null for automatic allocation.
-
-**Example Usage**
-
-```
+```hcl
 psc_endpoints = [
+  // Configuration for a PSC endpoint with a CloudSQL instance
   {
-    endpoint_project_id          = "endpoint-project-id"
-    producer_instance_project_id = "instance-project-id"
-    producer_instance_name       = "sql-1"
+    endpoint_project_id          = "your-endpoint-project-id"
+    producer_instance_project_id = "your-producer-instance-project-id"
     subnetwork_name              = "subnetwork-1"
     network_name                 = "network-1"
-    ip_address_literal           = "10.128.0.50"
+    ip_address_literal           = "10.128.0.26"
+    region                       = "us-central1"
+    producer_cloudsql = {
+      instance_name = "psc-instance-name"
+    }
   },
-  # Add more endpoint objects as needed
+  // Configuration for a PSC endpoint with an AlloyDB instance
+  {
+    endpoint_project_id          = "your-endpoint-project-id"
+    producer_instance_project_id = "your-producer-instance-project-id"
+    subnetwork_name              = "subnetwork-2"
+    network_name                 = "network-2"
+    ip_address_literal           = "10.128.0.27"
+    region                       = "us-central2"
+    producer_alloydb = {
+      instance_name = "your-alloydb-instance-name"
+      cluster_id    = "your-cluster-id"
+    }
+  },
+  // Configuration for a PSC endpoint with a target
+  {
+    endpoint_project_id          = "your-endpoint-project-id"
+    producer_instance_project_id = "your-producer-instance-project-id"
+    subnetwork_name              = "subnetwork-3"
+    network_name                 = "network-3"
+    ip_address_literal           = "10.0.0.10"
+    region                       = "us-central1"
+    target                       = "projects/your-project-id/regions/us-central1/serviceAttachments/your-service-attachment-id"
+  }
 ]
 ```
+
+### Notes
+
+- **Cloud SQL Configuration**: Use the `producer_cloudsql` block to specify the Cloud SQL instance name.
+- **AlloyDB Configuration**: Use the `producer_alloydb` block to specify the AlloyDB instance name and cluster ID.
+- **Target Configuration**: Use the `target` field to specify the service attachment URL for other targets.
+- Ensure that the `region` field is specified for all PSC endpoints to avoid deployment issues.
 
 ## 06-consumer
 

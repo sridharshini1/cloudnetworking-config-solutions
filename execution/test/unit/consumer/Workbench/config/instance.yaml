@@ -1,0 +1,19 @@
+name: workbench-instance-1
+project_id: <your-project-id>
+location: us-central1-a
+gce_setup:
+  machine_type: n1-standard-1
+  disable_public_ip: true
+  data_disks:
+    - disk_size_gb: 100
+      disk_type: PD_SSD
+  network_interfaces:
+    - network: projects/<project-id>/global/networks/<network-name>
+      subnet: projects/<project-id>/regions/<region>/subnetworks/<subnet-name>
+      nic_type: GVNIC
+  labels:
+    owner: admin
+  accelerator_configs: []
+  vm_image:
+    project: deeplearning-platform-release
+    family: pytorch-latest-gpu

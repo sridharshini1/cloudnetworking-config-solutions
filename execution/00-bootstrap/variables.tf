@@ -147,13 +147,13 @@ variable "producer_gke_administrator" {
   default     = [""]
 }
 
-variable "networking_manual_sa_name" {
+variable "producer_connectivity_sa_name" {
   type        = string
-  description = "Name of the service account to create for networking manual stage."
-  default     = "networking-manual-sa"
+  description = "Name of the service account to create for producer connectivity stage."
+  default     = "producer_connectivity_sa"
 }
 
-variable "networking_manual_administrator" {
+variable "producer_connectivity_administrator" {
   type        = list(string)
   description = "List of Members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
   default     = [""]
@@ -204,6 +204,17 @@ variable "consumer_appengine_sa_name" {
 variable "consumer_appengine_administrator" {
   type        = list(string)
   description = "List of App Engine administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
+}
+
+variable "consumer_workbench_sa_name" {
+  type        = string
+  description = "Name of the service account to create for Workbench consumer stage."
+  default     = "consumer-workbench-sa"
+}
+
+variable "consumer_workbench_administrator" {
+  type        = list(string)
+  description = "List of Workbench administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
   default     = [""]
 }
 

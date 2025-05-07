@@ -11,16 +11,16 @@ This stage establishes a Private Service Connect (PSC) connection between your c
 
 ## How It Works
 
-This configuration is designed for flexibility. You can define multiple producer services within your `networking-manual.tfvars` file in the `configuration/` folder.
+This configuration is designed for flexibility. You can define multiple producer services within your `producer-connectivity.tfvars` file in the `configuration/` folder.
 
 **Key Points:**
 
-* **`google_compute_address`:**  This resource will create a new internal IP address if `ip_address_literal` is specified for a `psc_endpoint` in your `networking-manual.tfvars` file. If no address is provided, it will automatically reserve an address.
+* **`google_compute_address`:**  This resource will create a new internal IP address if `ip_address_literal` is specified for a `psc_endpoint` in your `producer-connectivity.tfvars` file. If no address is provided, it will automatically reserve an address.
 * **`google_compute_forwarding_rule`:**  This resource sets up the forwarding rule, connecting the internal IP (or the automatically created one) to the `psc_service_attachment_link` of your producer service.
 
 ## Configuration
 
-This stage uses a modularized approach. The `psc-forwarding-rules.tf` file in the root directory orchestrates the creation of multiple forwarding rules based on the configuration provided in the `networking-manual.tfvars` file in the `configuration/` folder.
+This stage uses a modularized approach. The `psc-forwarding-rules.tf` file in the root directory orchestrates the creation of multiple forwarding rules based on the configuration provided in the `producer-connectivity.tfvars` file in the `configuration/` folder.
 
 While running this stage, please carefully note the following details:
 
@@ -40,7 +40,7 @@ While running this stage, please carefully note the following details:
 - **Regions:** Ensure your producer service, subnetwork, and service attachment all reside within the same GCP region.
 - **IP Addresses:** Verify the specified `ip_address_literal` values are available and not already in use.
 
-## Example configuration/networking-manual.tfvars
+## Example configuration/producer-connectivity.tfvars
 
 Example 1: Connecting to a Cloud SQL instance
 
@@ -103,20 +103,20 @@ psc_endpoints = [
 
 ## Usage
 
-**NOTE** : run the terraform commands with the -var-file referencing the `networking-manual.tfvars` present under the `/configuration` folder. 
+**NOTE** : run the terraform commands with the -var-file referencing the `producer-connectivity.tfvars` present under the `/configuration` folder. 
 
 Example :
 
 1. **Initialize**: Run `terraform init`.
-2. **Plan**: Run terraform plan -var-file=../../configuration/networking-manual.tfvars to review the planned changes.
+2. **Plan**: Run terraform plan -var-file=../../configuration/producer-connectivity.tfvars to review the planned changes.
 
 ```
-terraform plan -var-file=../../configuration/networking-manual.tfvars
+terraform plan -var-file=../../configuration/producer-connectivity.tfvars
 ```
-3. **Apply**: If the plan looks good, run terraform apply -var-file=../../configuration/networking-manual.tfvars to create or update the resources.
+3. **Apply**: If the plan looks good, run terraform apply -var-file=../../configuration/producer-connectivity.tfvars to create or update the resources.
 
 ```
-terraform apply -var-file=../../configuration/networking-manual.tfvars
+terraform apply -var-file=../../configuration/producer-connectivity.tfvars
 ```
 
 <!-- BEGIN_TF_DOCS -->

@@ -1,0 +1,35 @@
+name: workbench-instance-name
+project_id: project-id
+location: us-central1-a
+region: us-central1
+gce_setup:
+  machine_type: n1-standard-4
+  disable_public_ip: true
+  accelerator_configs:
+  - type: NVIDIA_TESLA_T4
+    core_count: 1
+  tags:
+  - deeplearning-vm
+  - notebook-instance
+  labels:
+    purpose: workbench-demo-1
+  data_disks:
+  - disk_size_gb: 200
+    disk_type: PD_SSD
+  vm_image:
+    project: cloud-notebooks-managed
+    family: workbench-instances
+  network_interfaces:
+  - network: projects/<project_id>/global/networks/<network_name>
+    subnet: projects/<project_id>/regions/<region>/subnetworks/<subnet_name>
+    nic_type: GVNIC
+    internal_ip_only: true
+  metadata:
+    framework: TensorFlow:2.17
+    notebooks-api: PROD
+    shutdown-script: /opt/deeplearning/bin/shutdown_script.sh
+    startup-script: |
+      #!/bin/bash
+      pip install --upgrade pip
+      pip install google-cloud-bigquery
+  disable_proxy_access: true

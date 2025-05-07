@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2024-2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,8 +30,19 @@ import (
 var (
 	projectID              = os.Getenv("TF_VAR_project_id")
 	terraformDirectoryPath = "../../../01-organization"
-	apisList               = []string{"aiplatform.googleapis.com", "alloydb.googleapis.com", "compute.googleapis.com", "container.googleapis.com", "iam.googleapis.com", "run.googleapis.com", "servicenetworking.googleapis.com", "sqladmin.googleapis.com", "redis.googleapis.com"}
-	tfVars                 = map[string]any{
+	apisList               = []string{
+		"aiplatform.googleapis.com",
+		"notebooks.googleapis.com",
+		"alloydb.googleapis.com",
+		"compute.googleapis.com",
+		"container.googleapis.com",
+		"iam.googleapis.com",
+		"run.googleapis.com",
+		"servicenetworking.googleapis.com",
+		"sqladmin.googleapis.com",
+		"redis.googleapis.com",
+	}
+	tfVars = map[string]any{
 		"activate_api_identities": map[string]any{
 			projectID: map[string]any{
 				"project_id":    projectID,

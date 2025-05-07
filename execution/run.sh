@@ -23,7 +23,7 @@ GREEN='\033[0;32m'
 NC='\033[0m'
 
 # Define valid stages to be accepted by the -s flag
-valid_stages="all organization networking security/alloydb security/mrc security/cloudsql security/gce security/mig producer/alloydb producer/mrc producer/cloudsql producer/gke producer/vectorsearch producer/onlineendpoint networking-manual consumer/gce consumer/cloudrun/job consumer/cloudrun/service consumer/mig load-balancing/application/external"
+valid_stages="all organization networking security/alloydb security/mrc security/cloudsql security/gce security/mig security/workbench producer/alloydb producer/mrc producer/cloudsql producer/gke producer/vectorsearch producer/onlineendpoint producer-connectivity consumer/gce consumer/cloudrun/job consumer/cloudrun/service consumer/mig consumer/workbench load-balancing/application/external"
 
 # Define valid Terraform commands to be accepted by the -tf or --tfcommand flag
 valid_tf_commands="init apply apply-auto-approve destroy destroy-auto-approve init-apply init-apply-auto-approve"
@@ -37,18 +37,21 @@ stage_path_map=(
     "security/cloudsql=03-security/CloudSQL"
     "security/gce=03-security/GCE"
     "security/mig=03-security/MIG"
+    "security/workbench=03-security/Workbench"
     "producer/alloydb=04-producer/AlloyDB"
     "producer/mrc=04-producer/MRC"
     "producer/cloudsql=04-producer/CloudSQL"
     "producer/gke=04-producer/GKE"
     "producer/vectorsearch=04-producer/VectorSearch"
     "producer/onlineendpoint=04-producer/Vertex-AI-Online-Endpoints"
-    "networking-manual=05-networking-manual"
+    "producer-connectivity=05-producer-connectivity"
     "consumer/gce=06-consumer/GCE"
     "consumer/cloudrun/job=06-consumer/CloudRun/Job"
     "consumer/cloudrun/service=06-consumer/CloudRun/Service"
     "consumer/mig=06-consumer/MIG"
+    "consumer/workbench=06-consumer/Workbench"
     "load-balancing/application/external=07-consumer-load-balancing/Application/External"
+
 )
 
 # Define tfvars to stage path mapping (excluding "all")
@@ -60,17 +63,19 @@ stagewise_tfvar_path_map=(
     "03-security/CloudSQL=../../../configuration/security/cloudsql.tfvars"
     "03-security/GCE=../../../configuration/security/gce.tfvars"
     "03-security/MIG=../../../configuration/security/mig.tfvars"
+    "03-security/Workbench=../../../configuration/security/workbench.tfvars"
     "04-producer/AlloyDB=../../../configuration/producer/AlloyDB/alloydb.tfvars"
     "04-producer/MRC=../../../configuration/producer/MRC/mrc.tfvars"
     "04-producer/CloudSQL=../../../configuration/producer/CloudSQL/cloudsql.tfvars"
     "04-producer/GKE=../../../configuration/producer/GKE/gke.tfvars"
     "04-producer/VectorSearch=../../../configuration/producer/VectorSearch/vectorsearch.tfvars"
     "04-producer/Vertex-AI-Online-Endpoints=../../../configuration/producer/Vertex-AI-Online-Endpoints/vertex-ai-online-endpoints.tfvars"
-    "05-networking-manual=../../configuration/networking-manual.tfvars"
+    "05-producer-connectivity=../../configuration/producer-connectivity.tfvars"
     "06-consumer/GCE=../../../configuration/consumer/GCE/gce.tfvars"
     "06-consumer/CloudRun/Job=../../../../configuration/consumer/CloudRun/Job/cloudrunjob.tfvars"
     "06-consumer/CloudRun/Service=../../../../configuration/consumer/CloudRun/Service/cloudrunservice.tfvars"
     "06-consumer/MIG=../../../configuration/consumer/MIG/mig.tfvars"
+    "06-consumer/Workbench=../../../configuration/consumer/Workbench/workbench.tfvars"
     "07-consumer-load-balancing/Application/External=../../../../configuration/consumer-load-balancing/Application/External/external-application-lb.tfvars"
 )
 
@@ -80,6 +85,7 @@ security_config_map=(
     "03-security/CloudSQL=../configuration/producer/CloudSQL/config"
     "03-security/AlloyDB=../configuration/producer/AlloyDB/config"
     "03-security/MIG=../configuration/consumer/MIG/config"
+    "03-security/Workbench=../configuration/consumer/Workbench/config"
 )
 
 # Define stage to description mapping (excluding "all")
@@ -92,17 +98,19 @@ stage_wise_description_map=(
   "security/cloudsql=Executes 03-security/CloudSQL stage, manages CloudSQL firewall rules."
   "security/gce=Executes 03-security/GCE stage, manages GCE firewall rules."
   "security/mig=Executes 03-security/MIG stage, manages MIG firewall rules."
+  "security/workbench=Executes 03-security/Workbench stage, manages Workbench firewall rules."
   "producer/alloydb=Executes 04-producer/AlloyDB stage, manages AlloyDB instance."
   "producer/mrc=Executes 04-producer/MRC stage, manages MRC instance."
   "producer/cloudsql=Executes 04-producer/CloudSQL stage, manages CloudSQL instance."
   "producer/gke=Executes 04-producer/GKE stage, manages GKE clusters."
   "producer/vectorsearch=Executes 04-producer/VectorSearch stage, manages Vector Search instances."
   "producer/onlineendpoint=Executes 04-producer/Vertex-AI-Online-Endpoints stage, manages Online endpoints."
-  "networking-manual=Executes 05-networking-manual stage, manages PSC for supported services."
+  "producer-connectivity=Executes 05-producer-connectivity stage, manages PSC for supported services."
   "consumer/gce=Executes 06-consumer/GCE stage, manages GCE instance."
   "consumer/cloudrun/job=Executes 06-consumer/CloudRun/Job, manages Cloud Run jobs."
   "consumer/cloudrun/service=Executes 06-consumer/CloudRun/Service, manages Cloud Run services."
   "consumer/mig=Executes 06-consumer/MIG stage, manages MIG instances."
+  "consumer/workbench=Executes 06-consumer/Workbench stage, manages Workbench instance."
   "load-balancing/application/external=Executes 07-consumer-load-balancing/Application/External stage, manages external application load balancers."
   )
 
