@@ -26,35 +26,7 @@ output "instance_service_urls" {
   }
 }
 
-output "instance_domain_mapping_details" {
-  description = "Map of instance keys to the domain mapping resource records created by that instance."
-  value = {
-    for key, instance in module.appengine_standard_instance : key => instance.domain_mapping_resource_records
-  }
-}
-
-output "instance_vpc_connector_names" {
-  description = "Map of instance keys to the name of the VPC Access Connector created by that instance (if any)."
-  value = {
-    for key, instance in module.appengine_standard_instance : key => instance.vpc_connector_name
-  }
-}
-
-output "instance_vpc_connector_self_links" {
-  description = "Map of instance keys to the self-link of the VPC Access Connector created by that instance (if any)."
-  value = {
-    for key, instance in module.appengine_standard_instance : key => instance.vpc_connector_self_link
-  }
-}
-
-output "all_instance_details" {
-  description = "Map of instance keys to an object containing key outputs for that instance."
-  value = {
-    for key, instance in module.appengine_standard_instance : key => {
-      application_url = instance.application_url
-      service_urls    = instance.service_urls
-      vpc_connector   = instance.vpc_connector_name
-      domain_mappings = instance.domain_mapping_resource_records # Contains the full object might be large
-    }
-  }
+output "app_engine_standard" {
+  description = "The configuration details for the standard app engine instances deployed."
+  value       = module.appengine_standard_instance
 }

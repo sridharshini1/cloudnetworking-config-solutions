@@ -1,0 +1,48 @@
+project_id: your-test-project-id  # <--- USE A TEST PROJECT!
+service: test-service-1
+version_id: v1
+runtime: python39
+
+deployment:
+  files:
+    name: "app.yaml"
+    source_url: "https://storage.googleapis.com/your-test-bucket/app.yaml" # Replace with a valid GCS URL
+
+entrypoint:
+  shell: "python main.py"
+
+instance_class: F2
+
+automatic_scaling:
+  max_concurrent_requests: 80
+  min_idle_instances: 1
+  max_idle_instances: 5
+  max_pending_latency: "5s"
+  min_pending_latency: "1s"
+  standard_scheduler_settings:
+    target_cpu_utilization: 0.7
+    target_throughput_utilization: 0.6
+    min_instances: 1
+    max_instances: 10
+
+env_variables:
+  VAR1: "value1-service1"
+  VAR2: "another-value"
+
+handlers:
+  - url_regex: "/static"
+    static_files:
+      path: static
+      upload_path_regex: "static/.*"
+      http_headers:
+        X-Custom-Header: "Service1-Static"
+      mime_type: "text/css"
+      expiration: "1000s"  # Correct duration format
+  - url_regex: "/.*"
+    script:
+      script_path: "auto"
+vpc_access_connector:
+  name: "projects/your-project-id/locations/us-central1/connectors/your-connector"
+
+app_engine_application:
+  location_id: us-central1  # IMPORTANT: Must match region above
