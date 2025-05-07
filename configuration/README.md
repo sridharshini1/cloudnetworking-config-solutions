@@ -48,15 +48,16 @@ This directory serves as a centralized repository for all Terraform configuratio
         - mig.tfvars
         - config
           - instance.yaml.example
-  - CloudRun
-    - Job
-      - cloudrunjob.tfvars
-      - config
-          - instance.yaml.example
-    - Service
-      - cloudrunservice.tfvars
-      - config
-          - instance.yaml.example
+  - Serverless
+      - CloudRun
+        - Job
+          - cloudrunjob.tfvars
+          - config
+              - instance.yaml.example
+        - Service
+          - cloudrunservice.tfvars
+          - config
+              - instance.yaml.example
   - Workbench
     - config
       - instance-lite.yaml.example

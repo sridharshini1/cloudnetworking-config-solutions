@@ -29,16 +29,16 @@ import (
 )
 
 const (
-	terraformDirectoryPath = "../../../../../06-consumer/CloudRun/Job"
+	terraformDirectoryPath = "../../../../../../06-consumer/Serverless/CloudRun/Service"
 	region                 = "us-central1"
-	configFolderPath       = "../../../test/integration/consumer/CloudRun/Job/config"
-	image                  = "us-docker.pkg.dev/cloudrun/container/job"
+	configFolderPath       = "../../../../test/integration/consumer/Serverless/CloudRun/Service/config"
+	image                  = "us-docker.pkg.dev/cloudrun/container/hello"
 )
 
 var (
-	projectID = os.Getenv("TF_VAR_project_id")
-	jobName   = fmt.Sprintf("test-%d", rand.Int())
-	tfVars    = map[string]any{
+	projectID   = os.Getenv("TF_VAR_project_id")
+	serviceName = fmt.Sprintf("test-%d", rand.Int())
+	tfVars      = map[string]any{
 		"config_folder_path": configFolderPath,
 	}
 )
@@ -51,14 +51,14 @@ type ContainersStruct struct {
 	ContainerName ContainerNameStruct `yaml:"container-name"`
 }
 
-type CloudRunJobStruct struct {
+type CloudRunServiceStruct struct {
 	ProjectID  string           `yaml:"project_id"`
 	Region     string           `yaml:"region"`
 	Name       string           `yaml:"name"`
 	Containers ContainersStruct `yaml:"containers"`
 }
 
-func TestCreateCloudRunJob(t *testing.T) {
+func TestCreateCloudRunService(t *testing.T) {
 	createConfigYAML(t)
 	var (
 		tfVars = map[string]any{
@@ -86,32 +86,32 @@ func TestCreateCloudRunJob(t *testing.T) {
 	time.Sleep(60 * time.Second)
 
 	// Run `terraform output` to get the values of output variables and check they have the expected values.
-	cloudRunJobOutputValue := terraform.OutputJson(t, terraformOptions, "cloud_run_job_details")
-	if !gjson.Valid(cloudRunJobOutputValue) {
-		t.Errorf("Error parsing output, invalid json: %s", cloudRunJobOutputValue)
+	cloudRunServiceOutputValue := terraform.OutputJson(t, terraformOptions, "cloud_run_service_details")
+	if !gjson.Valid(cloudRunServiceOutputValue) {
+		t.Errorf("Error parsing output, invalid json: %s", cloudRunServiceOutputValue)
 	}
-	result := gjson.Parse(cloudRunJobOutputValue)
-	jobIDPath := fmt.Sprintf("projects/%s/locations/%s/jobs/%s.id", projectID, region, jobName)
+	result := gjson.Parse(cloudRunServiceOutputValue)
+	serviceIDPath := fmt.Sprintf("%s.service.id", serviceName)
 	t.Log(" ========= Terraform resource creation completed ========= ")
-	t.Log(" ========= Verify Job Id ========= ")
-	got := gjson.Get(result.String(), jobIDPath).String()
-	want := fmt.Sprintf("projects/%s/locations/%s/jobs/%s", projectID, region, jobName)
+	t.Log(" ========= Verify Service ID ========= ")
+	got := gjson.Get(result.String(), serviceIDPath).String()
+	want := fmt.Sprintf("projects/%s/locations/%s/services/%s", projectID, region, serviceName)
 	if got != want {
-		t.Errorf("Cloud Run Job with invalid ID created = %v, want = %v", got, want)
+		t.Errorf("Cloud Run Service with invalid ID created = %v, want = %v", got, want)
 	}
-	t.Log(" ========= Verify Job Location ========= ")
-	jobLocationPath := fmt.Sprintf("projects/%s/locations/%s/jobs/%s.job.location", projectID, region, jobName)
-	got = gjson.Get(result.String(), jobLocationPath).String()
+	t.Log(" ========= Verify Service Location ========= ")
+	serviceLocationPath := fmt.Sprintf("%s.service.location", serviceName)
+	got = gjson.Get(result.String(), serviceLocationPath).String()
 	want = region
 	if got != want {
-		t.Errorf("Cloud Run job with invalid Location created = %v, want = %v", got, want)
+		t.Errorf("Cloud Run Service with invalid Location created = %v, want = %v", got, want)
 	}
-	t.Log(" ========= Verify Job Name ========= ")
-	jobNamePath := fmt.Sprintf("projects/%s/locations/%s/jobs/%s.job.name", projectID, region, jobName)
-	got = gjson.Get(result.String(), jobNamePath).String()
-	want = jobName
+	t.Log(" ========= Verify Service Name ========= ")
+	serviceNamePath := fmt.Sprintf("%s.id", serviceName)
+	got = gjson.Get(result.String(), serviceNamePath).String()
+	want = serviceName
 	if got != want {
-		t.Errorf("Cloud Run job with invalid Name created = %v, want = %v", got, want)
+		t.Errorf("Cloud Run Service with invalid Name created = %v, want = %v", got, want)
 	}
 }
 
@@ -128,9 +128,8 @@ func createConfigYAML(t *testing.T) {
 	containersStructList := ContainersStruct{
 		ContainerName: containerNameList,
 	}
-
-	instance1 := CloudRunJobStruct{
-		Name:       jobName,
+	instance1 := CloudRunServiceStruct{
+		Name:       serviceName,
 		ProjectID:  projectID,
 		Region:     region,
 		Containers: containersStructList,

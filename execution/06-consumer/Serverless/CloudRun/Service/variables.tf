@@ -13,9 +13,9 @@
 # limitations under the License.
 
 variable "config_folder_path" {
-  description = "Location of YAML files holding Cloud Run Job configuration values."
+  description = "Location of YAML files holding Cloud Run Service configuration values."
   type        = string
-  default     = "../../../../configuration/consumer/CloudRun/Job/config"
+  default     = "../../../../../configuration/consumer/Serverless/CloudRun/Service/config"
 }
 
 variable "containers" {
@@ -81,7 +81,7 @@ variable "containers" {
 variable "create_job" {
   description = "Create Cloud Run Job instead of Service."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "custom_audiences" {
@@ -257,3 +257,4 @@ variable "vpc_connector_create" {
   })
   default = null
 }
+

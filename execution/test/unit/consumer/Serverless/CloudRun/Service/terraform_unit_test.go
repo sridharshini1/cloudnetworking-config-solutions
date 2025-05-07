@@ -26,8 +26,8 @@ import (
 )
 
 const (
-	terraformDirectoryPath = "../../../../../06-consumer/CloudRun/Job"
-	configFolderPath       = "../../../test/unit/consumer/CloudRun/Job/config"
+	terraformDirectoryPath = "../../../../../../06-consumer/Serverless/CloudRun/Service"
+	configFolderPath       = "../../../../test/unit/consumer/Serverless/CloudRun/Service/config"
 )
 
 var (
@@ -43,14 +43,14 @@ var (
 )
 
 /*
-	TestInitAndPlanRunWithTfVars performs sanity check to ensure the terraform init
-&& terraform plan is executed successfully and returns a valid Succeeded run code.
+		 TestInitAndPlanRunWithTfVars performs sanity check to ensure the terraform init
+	 && terraform plan is executed successfully and returns a valid Succeeded run code.
 */
 func TestInitAndPlanRunWithTfVars(t *testing.T) {
 	/*
-	 0 = Succeeded with empty diff (no changes)
-	 1 = Error
-	 2 = Succeeded with non-empty diff (changes present)
+		0 = Succeeded with empty diff (no changes)
+		1 = Error
+		2 = Succeeded with non-empty diff (changes present)
 	*/
 	// Construct the terraform options with default retryable errors to handle the most common
 	// retryable errors in terraform testing.
@@ -77,9 +77,9 @@ to ensure the terraform init && terraform plan is executed unsuccessfully and re
 */
 func TestInitAndPlanRunWithInvalidTfVarsExpectFailureScenario(t *testing.T) {
 	/*
-	 0 = Succeeded with empty diff (no changes)
-	 1 = Error
-	 2 = Succeeded with non-empty diff (changes present)
+		0 = Succeeded with empty diff (no changes)
+		1 = Error
+		2 = Succeeded with non-empty diff (changes present)
 	*/
 	// Construct the terraform options with default retryable errors to handle the most common
 	// retryable errors in terraform testing.
@@ -102,8 +102,8 @@ func TestInitAndPlanRunWithInvalidTfVarsExpectFailureScenario(t *testing.T) {
 }
 
 /*
-	TestResourcesCount performs validation to verify number of  resources created, deleted and
-updated.
+		 TestResourcesCount performs validation to verify number of  resources created, deleted and
+	 updated.
 */
 func TestResourcesCount(t *testing.T) {
 	// Construct the terraform options with default retryable errors to handle the most common
@@ -131,13 +131,13 @@ func TestResourcesCount(t *testing.T) {
 }
 
 /*
-	TestTerraformModuleResourceAddressListMatch compares and verifies the list of resources, modules
-created by the terraform solution.
+		 TestTerraformModuleResourceAddressListMatch compares and verifies the list of resources, modules
+	 created by the terraform solution.
 */
 func TestTerraformModuleResourceAddressListMatch(t *testing.T) {
 	// Construct the terraform options with default retryable errors to handle the most common
 	// retryable errors in terraform testing.
-	expectedModulesAddress := []string{"module.cloud_run_job[\"dummy\"]"}
+	expectedModulesAddress := []string{"module.cloud_run_service[\"dummy\"]"}
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// Set the path to the Terraform code that will be tested.
 		TerraformDir: terraformDirectoryPath,

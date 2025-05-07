@@ -23,7 +23,7 @@ GREEN='\033[0;32m'
 NC='\033[0m'
 
 # Define valid stages to be accepted by the -s flag
-valid_stages="all organization networking security/alloydb security/mrc security/cloudsql security/gce security/mig security/workbench producer/alloydb producer/mrc producer/cloudsql producer/gke producer/vectorsearch producer/onlineendpoint producer-connectivity consumer/gce consumer/cloudrun/job consumer/cloudrun/service consumer/mig consumer/workbench load-balancing/application/external"
+valid_stages="all organization networking security/alloydb security/mrc security/cloudsql security/gce security/mig security/workbench producer/alloydb producer/mrc producer/cloudsql producer/gke producer/vectorsearch producer/onlineendpoint producer-connectivity consumer/gce consumer/serverless/cloudrun/job consumer/serverless/cloudrun/service consumer/serverless/cloudrun/job consumer/serverless/appengine/standard consumer/serverless/appengine/flexible consumer/mig consumer/workbench load-balancing/application/external"
 
 # Define valid Terraform commands to be accepted by the -tf or --tfcommand flag
 valid_tf_commands="init apply apply-auto-approve destroy destroy-auto-approve init-apply init-apply-auto-approve"
@@ -46,8 +46,10 @@ stage_path_map=(
     "producer/onlineendpoint=04-producer/Vertex-AI-Online-Endpoints"
     "producer-connectivity=05-producer-connectivity"
     "consumer/gce=06-consumer/GCE"
-    "consumer/cloudrun/job=06-consumer/CloudRun/Job"
-    "consumer/cloudrun/service=06-consumer/CloudRun/Service"
+    "consumer/serverless/cloudrun/job=06-consumer/Serverless/CloudRun/Job"
+    "consumer/serverless/cloudrun/service=06-consumer/Serverless/CloudRun/Service"
+    "consumer/serverless/appengine/standard=06-consumer/Serverless/AppEngine/Standard"
+    "consumer/serverless/appengine/flexible=06-consumer/Serverless/AppEngine/Flexible"
     "consumer/mig=06-consumer/MIG"
     "consumer/workbench=06-consumer/Workbench"
     "load-balancing/application/external=07-consumer-load-balancing/Application/External"
@@ -72,8 +74,10 @@ stagewise_tfvar_path_map=(
     "04-producer/Vertex-AI-Online-Endpoints=../../../configuration/producer/Vertex-AI-Online-Endpoints/vertex-ai-online-endpoints.tfvars"
     "05-producer-connectivity=../../configuration/producer-connectivity.tfvars"
     "06-consumer/GCE=../../../configuration/consumer/GCE/gce.tfvars"
-    "06-consumer/CloudRun/Job=../../../../configuration/consumer/CloudRun/Job/cloudrunjob.tfvars"
-    "06-consumer/CloudRun/Service=../../../../configuration/consumer/CloudRun/Service/cloudrunservice.tfvars"
+    "06-consumer/Serverless/CloudRun/Job=../../../../../configuration/consumer/Serverless/CloudRun/Job/cloudrunjob.tfvars"
+    "06-consumer/Serverless/CloudRun/Service=../../../../../configuration/consumer/Serverless/CloudRun/Service/cloudrunservice.tfvars"
+    "06-consumer/Serverless/AppEngine/Standard=../../../../../configuration/consumer/Serverless/AppEngine/Standard/standardappengine.tfvars"
+    "06-consumer/Serverless/AppEngine/Flexible=../../../../../configuration/consumer/Serverless/AppEngine/Flexible/flexibleappengine.tfvars"
     "06-consumer/MIG=../../../configuration/consumer/MIG/mig.tfvars"
     "06-consumer/Workbench=../../../configuration/consumer/Workbench/workbench.tfvars"
     "07-consumer-load-balancing/Application/External=../../../../configuration/consumer-load-balancing/Application/External/external-application-lb.tfvars"
@@ -107,8 +111,10 @@ stage_wise_description_map=(
   "producer/onlineendpoint=Executes 04-producer/Vertex-AI-Online-Endpoints stage, manages Online endpoints."
   "producer-connectivity=Executes 05-producer-connectivity stage, manages PSC for supported services."
   "consumer/gce=Executes 06-consumer/GCE stage, manages GCE instance."
-  "consumer/cloudrun/job=Executes 06-consumer/CloudRun/Job, manages Cloud Run jobs."
-  "consumer/cloudrun/service=Executes 06-consumer/CloudRun/Service, manages Cloud Run services."
+  "consumer/serverless/cloudrun/job=Executes 06-consumer/Serverless/CloudRun/Job, manages Cloud Run jobs."
+  "consumer/serverless/cloudrun/service=Executes 06-consumer/Serverless/CloudRun/Service, manages Cloud Run services."
+  "consumer/serverless/appengine/flexible=Executes 06-consumer/Serverless/AppEngine/FlexibleAppEngine, manages Flexible App Engine"
+  "consumer/serverless/appengine/standard=Executes 06-consumer/Serverless/AppEngine/StandardAppEngine, manages Standard App Engine"
   "consumer/mig=Executes 06-consumer/MIG stage, manages MIG instances."
   "consumer/workbench=Executes 06-consumer/Workbench stage, manages Workbench instance."
   "load-balancing/application/external=Executes 07-consumer-load-balancing/Application/External stage, manages external application load balancers."
@@ -169,7 +175,7 @@ populate_valid_producers_consumers
 # Displays the table formatting.
 tableprint() {
     printf "\t\t "
-    printf "~%.0s" {1..109}
+    printf "~%.0s" {1..153}
     printf "\n"
 }
 
@@ -179,20 +185,20 @@ usage() {
   printf " \033[1m-h, --help\033[0m              Displays the detailed help.\n"
   printf " \033[1m-s, --stage\033[0m             STAGENAME to be executed (STAGENAME is case insensitive). e.g. '-s all'  \n\t Valid options are: \n"
   tableprint
-  printf "\t\t |%-25s| %-80s|\n" "STAGENAME" "Description"
+  printf "\t\t |%-40s| %-110s|\n" "STAGENAME" "Description"
   tableprint
   for stage_name in $valid_stages; do
     value=$(get_value $stage_name "stage_wise_description_map")
-    printf "\t\t |%-25s| %-80s|\n" "$stage_name"  "$value"
+    printf "\t\t |%-40s| %-110s|\n" "$stage_name"  "$value"
   done
   tableprint
   printf " \033[1m-t, --tfcommand\033[0m         TFCOMMAND to be executed (TFCOMMAND is case insensitive). e.g. '-t init' \n\t Valid options are: \n"
   tableprint
-  printf "\t\t |%-25s| %-80s|\n" "TFCOMMAND" "Description"
+  printf "\t\t |%-40s| %-110s|\n" "TFCOMMAND" "Description"
   tableprint
   for tfcommand_value in $valid_tf_commands; do
     value=$(get_value $tfcommand_value "tfcommand_wise_description_map")
-    printf "\t\t |%-25s| %-80s|\n" "$tfcommand_value"  "$value"
+    printf "\t\t |%-40s| %-110s|\n" "$tfcommand_value"  "$value"
   done
   tableprint
 }
