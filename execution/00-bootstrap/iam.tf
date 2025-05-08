@@ -406,7 +406,7 @@ module "consumer_vpc_access_connector" {
  Service Account used to run App Engine Consumer Stage
 *********************************************/
 
-module "appeng_consumer" {
+module "appengine_consumer" {
   source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account?ref=v31.1.0"
   project_id = var.bootstrap_project_id
   name       = var.consumer_appengine_sa_name

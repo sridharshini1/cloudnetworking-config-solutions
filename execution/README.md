@@ -21,6 +21,8 @@ The deployment is divided into seven logically isolated stages, each handled by 
    + consumer_cloudrun_email = "serviceAccount:consumer-cloudrun-sa@<project-id>.iam.gserviceaccount.com"
    + consumer_gce_email      = "serviceAccount:consumer-gce-sa@<project-id>.iam.gserviceaccount.com"
    + consumer_workbench_email = "serviceAccount:consumer-workbench-sa@<project-id>.iam.gserviceaccount.com"
+   + consumer_appengine_email = "serviceAccount:consumer-appengine-sa@<project-id>.iam.gserviceaccount.com"
+   + consumer_vpc_access_connector_email = "serviceAccount:consumer-vpcaccess-sa@<project-id>.iam.gserviceaccount.com"
    + networking_email        = "serviceAccount:networking-sa@<project-id>.iam.gserviceaccount.com"
    + producer_connectivity_email = "serviceAccount:producer-connectivity-sa@<project-id>.iam.gserviceaccount.com"
    + organization_email      = "serviceAccount:organization-sa@<project-id>.iam.gserviceaccount.com"
@@ -96,7 +98,7 @@ The deployment is divided into seven logically isolated stages, each handled by 
 
 7. **06-consumer:**
    - Deploys GCP-managed consumer services.
-      - Includes Google Compute Engine (GCE) instances, Managed Instance Groups (MIG), Cloud Run, and Workbench.
+      - Includes Google Compute Engine (GCE) instances, Managed Instance Groups (MIG), Cloud Run, Workbench and AppEngine.
 
 8. **07-consumer-load-balancing:**
    - Deploys GCP-managed Load Balancers.
