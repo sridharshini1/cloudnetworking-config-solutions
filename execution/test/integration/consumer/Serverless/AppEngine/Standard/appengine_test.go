@@ -377,7 +377,7 @@ func TestAppEngineStandardIntegration(t *testing.T) {
 func createServiceAccount(t *testing.T, projectID string, accountID string, displayName string) string {
 	t.Helper()
 	t.Logf("Attempting to create service account '%s' in project '%s' with display name '%s'...", accountID, projectID, displayName)
-
+	var extractedEmail string
 	cmd := shell.Command{
 		Command: "gcloud",
 		Args: []string{
@@ -389,56 +389,12 @@ func createServiceAccount(t *testing.T, projectID string, accountID string, disp
 		},
 	}
 
-	rawGcloudOutput, err := shell.RunCommandAndGetOutputE(t, cmd)
-	t.Logf("gcloud command to create service account '%s' failed. Raw command output:\n%s: Error :%s", accountID, rawGcloudOutput, err)
-
-	t.Logf("Raw output from 'gcloud iam service-accounts create ... --format=value(email)':\n---\n%s\n---", rawGcloudOutput)
-
-	var extractedEmail string
-	foundEmailFlag := false
-
-	potentialEmailLines := strings.Split(rawGcloudOutput, "\n")
-	for _, line := range potentialEmailLines {
-		if foundEmailFlag {
-			break
-		}
-		trimmedLine := strings.TrimSpace(line)
-		if trimmedLine == "" {
-			t.Logf("Ignoring empty line from gcloud output.")
-			continue
-		}
-
-		if strings.Contains(trimmedLine, "@") &&
-			strings.HasSuffix(trimmedLine, ".iam.gserviceaccount.com") &&
-			!strings.Contains(trimmedLine, " ") {
-			extractedEmail = trimmedLine
-			t.Logf("Identified service account email (clean line): '%s'", extractedEmail)
-			foundEmailFlag = true
-			continue
-		}
-
-		if strings.Contains(trimmedLine, "@") && strings.Contains(trimmedLine, ".iam.gserviceaccount.com") {
-			t.Logf("Line '%s' is not a clean email but might contain an email component. Splitting by fields to check...", trimmedLine)
-			fields := strings.Fields(trimmedLine)
-			for _, field := range fields {
-				cleanField := strings.Trim(field, ".,;:()[]{}<>'\"")
-				if strings.Contains(cleanField, "@") &&
-					strings.HasSuffix(cleanField, ".iam.gserviceaccount.com") &&
-					!strings.Contains(cleanField, " ") {
-					extractedEmail = cleanField
-					t.Logf("Extracted service account email component: '%s' from field '%s' in line '%s'", extractedEmail, field, trimmedLine)
-					foundEmailFlag = true
-					break
-				}
-			}
-		} else if !foundEmailFlag {
-			t.Logf("Ignoring line (does not appear to be or contain an email): '%s'", trimmedLine)
-		}
+	_, err := shell.RunCommandAndGetOutputE(t, cmd)
+	if err != nil {
+		t.Errorf("Error creating service account %s : Error %s", accountID, err)
+	} else {
+		extractedEmail = fmt.Sprintf("%s@%s.iam.gserviceaccount.com", accountID, projectID)
 	}
-
-	require.True(t, foundEmailFlag && extractedEmail != "", "Could not extract a valid service account email from gcloud output. Please check logs for raw gcloud output. Raw output was:\n---\n%s\n---", rawGcloudOutput)
-
-	t.Logf("Service Account '%s' created. Final extracted email: %s", accountID, extractedEmail)
 	return extractedEmail
 }
 
