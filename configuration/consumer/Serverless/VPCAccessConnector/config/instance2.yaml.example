@@ -1,0 +1,10 @@
+# consumer/vpc_access_connector/config/instance2.yaml.example
+# Example configuration for a single VPC Access Connector using Network and IP CIDR range.
+
+name: <connector-name>
+project_id: <connector-project>
+region: <connector-region>
+network: <network-to-attach>
+ip_cidr_range: <ip-cidr-range-to-assign>  #This must have a no more than /28 mask
+min_instances: 2
+max_instances: 5

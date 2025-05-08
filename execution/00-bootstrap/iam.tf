@@ -371,6 +371,38 @@ module "consumer_load_balancing" {
 }
 
 /********************************************
+ Service Account used to run Consumer VPC Access Connector Stage
+*********************************************/
+
+module "consumer_vpc_access_connector" {
+  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account?ref=v31.1.0"
+  project_id = var.bootstrap_project_id
+  name       = var.consumer_vpc_connector_sa_name
+  iam = {
+    "roles/iam.serviceAccountTokenCreator" = var.consumer_vpc_connector_administrator
+  }
+  iam_project_roles = {
+    (var.network_hostproject_id) = [
+      "roles/vpcaccess.admin",
+    ]
+    (var.network_serviceproject_id) = [
+      "roles/compute.networkViewer",
+
+      # *Important*: If using Shared VPC and the connector needs to attach to
+      # a subnet in the network_project_id (Host Project), the SA *might*
+      # also need 'roles/compute.networkUser' on the Host Project or specific subnets.
+      # Test if networkViewer is sufficient first.
+      # "roles/compute.networkUser",
+    ]
+  }
+  iam_storage_roles = {
+    (module.google_storage_bucket.name) = [
+      "roles/storage.objectAdmin"
+    ]
+  }
+}
+
+/********************************************
  Service Account used to run App Engine Consumer Stage
 *********************************************/
 
