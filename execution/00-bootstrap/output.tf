@@ -83,9 +83,9 @@ output "consumer_vpc_access_connector_email" {
   value       = module.consumer_vpc_access_connector.iam_email
 }
 
-output "consumer_appeng_email" {
+output "consumer_appengine_email" {
   description = "App engine consumer stage service account IAM email."
-  value       = module.appeng_consumer.iam_email
+  value       = module.appengine_consumer.iam_email
 }
 
 output "consumer_workbench_email" {

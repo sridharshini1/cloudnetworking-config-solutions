@@ -204,17 +204,19 @@ variable "consumer_vpc_connector_sa_name" {
 variable "consumer_vpc_connector_administrator" {
   description = "List of VPC conector administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
   type        = list(string)
+  default     = [""]
 }
 
 variable "consumer_appengine_sa_name" {
   type        = string
   description = "Name of the service account to create for App Engine consumer stage."
-  default     = "consumer-mig-sa"
+  default     = "consumer-appengine-sa"
 }
 
 variable "consumer_appengine_administrator" {
   type        = list(string)
   description = "List of App Engine administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
+  default     = [""]
 }
 
 variable "consumer_workbench_sa_name" {

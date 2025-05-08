@@ -32,7 +32,15 @@ The project is structured into the following folders:
               ├── cloudrun
               ├── gce
               ├── mig
-              └── workbench
+              ├── workbench
+              ├── severless
+                ├── appengine
+                    ├── flexible
+                    ├── standard
+                ├── cloudrun
+                    ├── job
+                    ├── service
+                ├── vpcaccessconnector
           ├──security
               ├── alloydb.tfvars
               ├── cloudsql.tfvars
@@ -65,7 +73,7 @@ The project is structured into the following folders:
   * `03-security`:  Configures firewalls and other security measures.
   * `04-producer`: Implements producer services like AlloyDB, Memorystore for Redis clusters, and Cloud SQL.
   * `05-producer-connectivity`: Implements networking services like Private Service Connectivity.
-  * `06-consumer`: Implements consumer services like Google Compute Engine instances, Cloud Run and Managed Instance Groups.
+  * `06-consumer`: Implements consumer services like Google Compute Engine instances, Cloud Run, Workbench, AppEngine and Managed Instance Groups.
   * `07-consumer-load-balancing`: Implements load balancing services.
 
 * `modules`: contains reusable Terraform modules.

@@ -13,7 +13,7 @@ This directory serves as a centralized repository for all Terraform configuratio
     - Cloud SQL (sql.tfvars)
     - GCE (gce.tfvars)
     - Workbench (workbench.tfvars)
-  - 04-producer stage
+- 04-producer stage
     - AlloyDB
       - alloydb.tfvars
       - config
@@ -45,19 +45,29 @@ This directory serves as a centralized repository for all Terraform configuratio
         - config
           - instance.yaml.example
   - MIG
-        - mig.tfvars
+    - mig.tfvars
+    - config
+      - instance.yaml.example
+  - Serverless
+    - AppEngine
+      - Flexible
+        - appengineflexible.tfvars
+        - config
+          - instance1.yaml.example
+      - Standard
+        - appenginestandard.tfvars
+        - config
+          - instance1.yaml.example
+    - CloudRun
+      - Job
+        - cloudrunjob.tfvars
         - config
           - instance.yaml.example
-  - Serverless
-      - CloudRun
-        - Job
-          - cloudrunjob.tfvars
-          - config
-              - instance.yaml.example
-        - Service
-          - cloudrunservice.tfvars
-          - config
-              - instance.yaml.example
+      - Service
+        - cloudrunservice.tfvars
+        - config
+          - instance.yaml.example
+    - VPCAccessConnector
   - Workbench
     - config
       - instance-lite.yaml.example
@@ -141,6 +151,12 @@ consumer_stage_administrator              = ["example@example.com"]
         "aiplatform.googleapis.com",
         "container.googleapis.com",
         "run.googleapis.com",
+        "appengine.googleapis.com",
+        "cloudbuild.googleapis.com",
+        "cloudresourcemanager.googleapis.com",
+        "artifactregistry.googleapis.com",
+        "notebooks.googleapis.com",
+        "vpcaccess.googleapis.com",
       ],
     },
   }

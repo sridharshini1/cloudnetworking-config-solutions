@@ -33,7 +33,7 @@ With the prerequisites in place, you can now leverage Terraform to automate the 
     * Use the terraform plan command to generate an execution plan. This will show you the changes Terraform will make to your Google Cloud infrastructure:
 
     ```
-    terraform plan
+    terraform plan -var-file="../../configuration/organization.tfvars"
     ```
 
 Carefully review the plan to ensure it aligns with your intended configuration.
@@ -43,7 +43,7 @@ Carefully review the plan to ensure it aligns with your intended configuration.
     Once you're satisfied with the plan, execute the terraform apply command to enabling/disabling APIs as defined in your `terraform.tfvars` file for the specified project :
 
     ```
-    terraform apply
+    terraform apply -var-file="../../configuration/organization.tfvars"
     ```
 
 
@@ -65,7 +65,13 @@ To get you started, we've included sample `terraform.tfvars` configuration files
         "aiplatform.googleapis.com",
         "container.googleapis.com",
         "run.googleapis.com",
-        "notebooks.googleapis.com", 
+        "notebooks.googleapis.com",
+        "appengine.googleapis.com",
+        "cloudbuild.googleapis.com",
+        "cloudresourcemanager.googleapis.com",
+        "iamcredentials.googleapis.com", 
+        "artifactregistry.googleapis.com",
+        "vpcaccess.googleapis.com",
       ],
     },
   }
