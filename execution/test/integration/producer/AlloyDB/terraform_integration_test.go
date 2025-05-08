@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2024-2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -80,10 +80,15 @@ func getProjectNumber(t *testing.T, projectID string) (string, error) {
 }
 
 // getAttachmentProjectNumber retrieves the project number for the attachment project.
+// If TF_VAR_ATTACHMENT_PROJECT_ID is not set, it defaults to the primary project ID.
 func getAttachmentProjectNumber(t *testing.T) (string, error) {
 	attachmentProjectID := os.Getenv("TF_VAR_ATTACHMENT_PROJECT_ID")
+
+	// If attachmentProjectID is not set, use the primary projectID as fallback.
 	if attachmentProjectID == "" {
-		return "", fmt.Errorf("environment variable TF_VAR_ATTACHMENT_PROJECT_ID not set")
+		attachmentProjectID = projectID
+		t.Logf("TF_VAR_ATTACHMENT_PROJECT_ID not set. Defaulting to primary project ID: %s", projectID)
+		return getProjectNumber(t, projectID) // Use the global projectID as the fallback
 	}
 
 	return getProjectNumber(t, attachmentProjectID)

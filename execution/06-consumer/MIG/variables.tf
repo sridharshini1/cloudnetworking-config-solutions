@@ -1,4 +1,4 @@
-# Copyright 2024 Google LLC
+# Copyright 2024-2025 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ variable "addresses" {
 variable "mig_image" {
   description = "Image for the MIG instance."
   type        = string
-  default     = "projects/debian-cloud/global/images/family/debian-11"
+  default     = "projects/ubuntu-os-cloud/global/images/family/ubuntu-2204-lts"
 }
 
 variable "mig_template_name" {
