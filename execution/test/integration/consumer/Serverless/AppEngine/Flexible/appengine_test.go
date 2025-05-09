@@ -755,7 +755,8 @@ func TestCreateAppEngine(t *testing.T) {
 			}
 
 			actualServiceInfo := gjson.Parse(gcloudOutput)
-			status := actualServiceInfo.Get("servingStatus").String()
+			t.Logf("Actual Service Info : %s",actualServiceInfo)
+			status := gjson.Get(actualServiceInfo.String(),"servingStatus").String()
 			t.Logf("Status for %s/%s: %s", serviceName, versionID, status)
 			if status == "SERVING" {
 				t.Logf("Service %s/%s is SERVING. Performing assertions...", serviceName, versionID)
