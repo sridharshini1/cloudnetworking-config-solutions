@@ -458,6 +458,7 @@ func validateAndAssignRoles(t *testing.T, serviceAccountEmail string, projectID 
 	t.Helper()
 	requiredRoles := []string{
 		"roles/bigquery.jobUser",
+		"roles/bigquery.dataEditor",
 		"roles/bigquery.dataViewer",
 		"roles/serviceusage.serviceUsageConsumer",
 		"roles/notebooks.admin",        // Or a more specific role if needed
