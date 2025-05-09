@@ -1,0 +1,8 @@
+name: load-balancer
+project: <project-id>
+network: network-name
+backends:
+  default:
+    groups:
+      - group: instance-group-name
+        region : region

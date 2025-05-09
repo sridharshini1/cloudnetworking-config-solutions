@@ -13,7 +13,7 @@
 # limitations under the License.
 
 variable "project_id" {
-  description = "The ID of the google cloud project where this compute instance will be created."
+  description = "The ID of the google cloud project where AlloyDB firewall rules would be created."
   type        = string
 }
 

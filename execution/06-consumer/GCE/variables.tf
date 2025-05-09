@@ -346,12 +346,6 @@ variable "tag_bindings" {
   default     = null
 }
 
-variable "tag_bindings_firewall" {
-  description = "Firewall (network scoped) tag bindings for this instance, in tag key => tag value format."
-  type        = map(string)
-  default     = null
-}
-
 variable "tags" {
   description = "Instance network tags for firewall rule targets."
   type        = list(string)

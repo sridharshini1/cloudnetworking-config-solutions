@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2024 Google LLC
+# Copyright 2024-2025 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m'
 
-# Define valid stages to be accespted by the -s flag
-valid_stages="all organization networking security/alloydb security/mrc security/cloudsql security/gce producer/alloydb producer/mrc producer/cloudsql producer/gke producer/vectorsearch producer/onlineendpoint networking-manual consumer/gce consumer/cloudrun/job consumer/cloudrun/service"
+# Define valid stages to be accepted by the -s flag
+valid_stages="all organization networking security/alloydb security/mrc security/cloudsql security/gce security/mig security/workbench producer/alloydb producer/mrc producer/cloudsql producer/gke producer/vectorsearch producer/onlineendpoint producer-connectivity consumer/gce consumer/serverless/cloudrun/job consumer/serverless/cloudrun/service consumer/serverless/cloudrun/job consumer/serverless/appengine/standard consumer/serverless/appengine/flexible consumer/mig consumer/workbench load-balancing/application/external"
 
 # Define valid Terraform commands to be accepted by the -tf or --tfcommand flag
 valid_tf_commands="init apply apply-auto-approve destroy destroy-auto-approve init-apply init-apply-auto-approve"
@@ -36,16 +36,24 @@ stage_path_map=(
     "security/mrc=03-security/MRC"
     "security/cloudsql=03-security/CloudSQL"
     "security/gce=03-security/GCE"
+    "security/mig=03-security/MIG"
+    "security/workbench=03-security/Workbench"
     "producer/alloydb=04-producer/AlloyDB"
     "producer/mrc=04-producer/MRC"
     "producer/cloudsql=04-producer/CloudSQL"
     "producer/gke=04-producer/GKE"
     "producer/vectorsearch=04-producer/VectorSearch"
     "producer/onlineendpoint=04-producer/Vertex-AI-Online-Endpoints"
-    "networking-manual=05-networking-manual"
+    "producer-connectivity=05-producer-connectivity"
     "consumer/gce=06-consumer/GCE"
-    "consumer/cloudrun/job=06-consumer/CloudRun/Job"
-    "consumer/cloudrun/service=06-consumer/CloudRun/Service"
+    "consumer/serverless/cloudrun/job=06-consumer/Serverless/CloudRun/Job"
+    "consumer/serverless/cloudrun/service=06-consumer/Serverless/CloudRun/Service"
+    "consumer/serverless/appengine/standard=06-consumer/Serverless/AppEngine/Standard"
+    "consumer/serverless/appengine/flexible=06-consumer/Serverless/AppEngine/Flexible"
+    "consumer/mig=06-consumer/MIG"
+    "consumer/workbench=06-consumer/Workbench"
+    "load-balancing/application/external=07-consumer-load-balancing/Application/External"
+
 )
 
 # Define tfvars to stage path mapping (excluding "all")
@@ -56,16 +64,32 @@ stagewise_tfvar_path_map=(
     "03-security/MRC=../../../configuration/security/mrc.tfvars"
     "03-security/CloudSQL=../../../configuration/security/cloudsql.tfvars"
     "03-security/GCE=../../../configuration/security/gce.tfvars"
+    "03-security/MIG=../../../configuration/security/mig.tfvars"
+    "03-security/Workbench=../../../configuration/security/workbench.tfvars"
     "04-producer/AlloyDB=../../../configuration/producer/AlloyDB/alloydb.tfvars"
     "04-producer/MRC=../../../configuration/producer/MRC/mrc.tfvars"
     "04-producer/CloudSQL=../../../configuration/producer/CloudSQL/cloudsql.tfvars"
     "04-producer/GKE=../../../configuration/producer/GKE/gke.tfvars"
     "04-producer/VectorSearch=../../../configuration/producer/VectorSearch/vectorsearch.tfvars"
     "04-producer/Vertex-AI-Online-Endpoints=../../../configuration/producer/Vertex-AI-Online-Endpoints/vertex-ai-online-endpoints.tfvars"
-    "05-networking-manual=../../configuration/networking-manual.tfvars"
+    "05-producer-connectivity=../../configuration/producer-connectivity.tfvars"
     "06-consumer/GCE=../../../configuration/consumer/GCE/gce.tfvars"
-    "06-consumer/CloudRun/Job=../../../../configuration/consumer/CloudRun/Job/cloudrunjob.tfvars"
-    "06-consumer/CloudRun/Service=../../../../configuration/consumer/CloudRun/Service/cloudrunservice.tfvars"
+    "06-consumer/Serverless/CloudRun/Job=../../../../../configuration/consumer/Serverless/CloudRun/Job/cloudrunjob.tfvars"
+    "06-consumer/Serverless/CloudRun/Service=../../../../../configuration/consumer/Serverless/CloudRun/Service/cloudrunservice.tfvars"
+    "06-consumer/Serverless/AppEngine/Standard=../../../../../configuration/consumer/Serverless/AppEngine/Standard/standardappengine.tfvars"
+    "06-consumer/Serverless/AppEngine/Flexible=../../../../../configuration/consumer/Serverless/AppEngine/Flexible/flexibleappengine.tfvars"
+    "06-consumer/MIG=../../../configuration/consumer/MIG/mig.tfvars"
+    "06-consumer/Workbench=../../../configuration/consumer/Workbench/workbench.tfvars"
+    "07-consumer-load-balancing/Application/External=../../../../configuration/consumer-load-balancing/Application/External/external-application-lb.tfvars"
+)
+
+security_config_map=(
+    "03-security/GCE=../configuration/consumer/GCE/config"
+    "03-security/MRC=../configuration/producer/MRC/config"
+    "03-security/CloudSQL=../configuration/producer/CloudSQL/config"
+    "03-security/AlloyDB=../configuration/producer/AlloyDB/config"
+    "03-security/MIG=../configuration/consumer/MIG/config"
+    "03-security/Workbench=../configuration/consumer/Workbench/config"
 )
 
 # Define stage to description mapping (excluding "all")
@@ -77,16 +101,23 @@ stage_wise_description_map=(
   "security/mrc=Executes 03-security/MRC stage, manages MRC firewall rules."
   "security/cloudsql=Executes 03-security/CloudSQL stage, manages CloudSQL firewall rules."
   "security/gce=Executes 03-security/GCE stage, manages GCE firewall rules."
+  "security/mig=Executes 03-security/MIG stage, manages MIG firewall rules."
+  "security/workbench=Executes 03-security/Workbench stage, manages Workbench firewall rules."
   "producer/alloydb=Executes 04-producer/AlloyDB stage, manages AlloyDB instance."
   "producer/mrc=Executes 04-producer/MRC stage, manages MRC instance."
   "producer/cloudsql=Executes 04-producer/CloudSQL stage, manages CloudSQL instance."
   "producer/gke=Executes 04-producer/GKE stage, manages GKE clusters."
   "producer/vectorsearch=Executes 04-producer/VectorSearch stage, manages Vector Search instances."
   "producer/onlineendpoint=Executes 04-producer/Vertex-AI-Online-Endpoints stage, manages Online endpoints."
-  "networking-manual=Executes 05-networking-manual stage, manages PSC for supported services."
+  "producer-connectivity=Executes 05-producer-connectivity stage, manages PSC for supported services."
   "consumer/gce=Executes 06-consumer/GCE stage, manages GCE instance."
-  "consumer/cloudrun/job=Executes 06-consumer/CloudRun/Job, manages Cloud Run jobs."
-  "consumer/cloudrun/service=Executes 06-consumer/CloudRun/Service, manages Cloud Run services."
+  "consumer/serverless/cloudrun/job=Executes 06-consumer/Serverless/CloudRun/Job, manages Cloud Run jobs."
+  "consumer/serverless/cloudrun/service=Executes 06-consumer/Serverless/CloudRun/Service, manages Cloud Run services."
+  "consumer/serverless/appengine/flexible=Executes 06-consumer/Serverless/AppEngine/FlexibleAppEngine, manages Flexible App Engine"
+  "consumer/serverless/appengine/standard=Executes 06-consumer/Serverless/AppEngine/StandardAppEngine, manages Standard App Engine"
+  "consumer/mig=Executes 06-consumer/MIG stage, manages MIG instances."
+  "consumer/workbench=Executes 06-consumer/Workbench stage, manages Workbench instance."
+  "load-balancing/application/external=Executes 07-consumer-load-balancing/Application/External stage, manages external application load balancers."
   )
 
 # Define tfcommand to description mapping.
@@ -110,18 +141,41 @@ function get_value {
   # Iterate directly over the elements of the array
   for pair in "${map_ref[@]}"; do
     key_from_map="${pair%%=*}"       # Extract key (part before '=')
-
     if [[ "$key_from_map" == "$key" ]]; then
       value="${pair#*=}"
       echo "${value}"
+      return
     fi
   done
 }
 
+# Function to check if any .yaml files exist in the specified directory
+function check_yaml_exists {
+    local dir="$1"
+    if compgen -G "$dir/*.yaml" > /dev/null; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Function to populate valid_producers_consumers array based on existing .yaml files
+function populate_valid_producers_consumers() {
+    for stage in "${!security_config_map[@]}"; do
+        config_path="${security_config_map[$stage]}"
+        if check_yaml_exists "$config_path"; then
+            valid_producers_consumers+=("$stage")
+        fi
+    done
+}
+
+# Call the function to populate the valid_producers_consumers array
+populate_valid_producers_consumers
+
 # Displays the table formatting.
 tableprint() {
     printf "\t\t "
-    printf "~%.0s" {1..109}
+    printf "~%.0s" {1..153}
     printf "\n"
 }
 
@@ -131,20 +185,20 @@ usage() {
   printf " \033[1m-h, --help\033[0m              Displays the detailed help.\n"
   printf " \033[1m-s, --stage\033[0m             STAGENAME to be executed (STAGENAME is case insensitive). e.g. '-s all'  \n\t Valid options are: \n"
   tableprint
-  printf "\t\t |%-25s| %-80s|\n" "STAGENAME" "Description"
+  printf "\t\t |%-40s| %-110s|\n" "STAGENAME" "Description"
   tableprint
   for stage_name in $valid_stages; do
     value=$(get_value $stage_name "stage_wise_description_map")
-    printf "\t\t |%-25s| %-80s|\n" "$stage_name"  "$value"
+    printf "\t\t |%-40s| %-110s|\n" "$stage_name"  "$value"
   done
   tableprint
   printf " \033[1m-t, --tfcommand\033[0m         TFCOMMAND to be executed (TFCOMMAND is case insensitive). e.g. '-t init' \n\t Valid options are: \n"
   tableprint
-  printf "\t\t |%-25s| %-80s|\n" "TFCOMMAND" "Description"
+  printf "\t\t |%-40s| %-110s|\n" "TFCOMMAND" "Description"
   tableprint
   for tfcommand_value in $valid_tf_commands; do
     value=$(get_value $tfcommand_value "tfcommand_wise_description_map")
-    printf "\t\t |%-25s| %-80s|\n" "$tfcommand_value"  "$value"
+    printf "\t\t |%-40s| %-110s|\n" "$tfcommand_value"  "$value"
   done
   tableprint
 }
@@ -155,9 +209,9 @@ confirm() {
         echo -e "${RED} [WARNING] : This action modifies existing resources on all stages without further confirmation. Proceed with caution..${NC}"
         read -p "Do you want to continue. Please answer y or n. $1 (y/n) " confirmation_input
         case $confirmation_input in
-            [Yy]* ) break;;
-            [Nn]* ) exit 1;;
-            * ) echo "Please answer yes or no.";;
+            [Yy]* ) break;; # If user confirms, exit the loop
+            [Nn]* ) exit 1;; # If user declines, exit the script
+            * ) echo "Please answer yes or no.";; # Handle invalid input
         esac
     done
 }
@@ -183,7 +237,7 @@ while [[ $# -gt 0 ]]; do
             usage
             exit 0 ;;
         *)
-            echo "Invalid option: $1" >&2
+            echo "${RED}Invalid option: $1${NC}" >&2
             usage
             exit 1 ;;
     esac
@@ -200,17 +254,18 @@ fi
 
 # Execute Terraform commands based on the stage and tfcommand
 if [[ $stage == "all" ]]; then
-  # Handles the execution of all the stages one by one if the stage="all" value is passed
+  # Handles execution of all stages one by one when stage="all" is specified.
   # Create an array of stage paths in the correct sequential order ensuring the incremental order is maintained
   stage_path_array=()
   for stage_name in $valid_stages; do
     if [[ $stage_name != "all" ]]; then
-      stage_path_value=$(get_value $stage_name "stage_path_map")
+      stage_path_value=$(get_value "$stage_name" "stage_path_map")
       stage_path_array+=("${stage_path_value}")
     fi
   done
   # Determine execution order based on tfcommand, reverse the order of execution if the -tf/--tfcommand contain destroy/deletion instructions
   if [[ $tfcommand == destroy || $tfcommand == destroy-auto-approve ]]; then
+     reversed_array=()  # Initialize reversed_array
      for (( i=${#stage_path_array[@]}-1; i>=0; i-- )); do
         reversed_array+=("${stage_path_array[i]}")
     done
@@ -224,27 +279,49 @@ if [[ $stage == "all" ]]; then
 
   # Iterate over stages in the determined order
   for stage_path in "${stage_path_array[@]}"; do
-    echo -e "Executing Terraform command(s) in ${GREEN}$stage_path${NC}..."
-    tfvar_file_path=$(get_value $stage_path  "stagewise_tfvar_path_map")
-    echo "tfvars file path : ${tfvar_file_path}"
-    (cd "$stage_path" &&
-      case "$tfcommand" in
-          init) terraform init -var-file=$tfvar_file_path ;;
-          apply) terraform apply -var-file=$tfvar_file_path ;;
-          apply-auto-approve) terraform apply --auto-approve -var-file=$tfvar_file_path ;;
-          destroy) terraform destroy -var-file=$tfvar_file_path ;;
-          destroy-auto-approve) terraform destroy -var-file=$tfvar_file_path --auto-approve ;;
-          init-apply) terraform init && terraform apply -var-file=$tfvar_file_path ;;
-          init-apply-auto-approve) terraform init && terraform apply -var-file=$tfvar_file_path --auto-approve ;;
-          *) echo "${RED}Error: Invalid tfcommand '$tfcommand'${NC}" >&2; exit 1 ;;
-      esac
-    )
+      execute_terraform=true # Default value set to true.
+
+      # Check if the current stage path is a security stage
+      if [[ "$stage_path" == "03-security/"* ]]; then
+          # Check if the stage_path exists in the security_config_map
+          for security_stage_path in "${security_config_map[@]}"; do
+              key="${security_stage_path%%=*}"
+              if [[ "$key" == "$stage_path" ]]; then
+                  config_path="${security_stage_path#*=}"
+                  if ! check_yaml_exists "$config_path"; then
+                      echo "${RED}Skipping $stage_path: No YAML files found.${NC}"
+                      execute_terraform=false # Set to false if no config found.
+                  fi
+                  break
+              fi
+          done
+      fi
+
+      # Only execute Terraform commands if execute_terraform is true
+      if [[ "$execute_terraform" == true ]]; then
+         echo -e "Executing Terraform command(s) in ${GREEN}$stage_path${NC}..."
+         tfvar_file_path=$(get_value "$stage_path" "stagewise_tfvar_path_map")
+         echo "tfvars file path : ${tfvar_file_path}"
+         (cd "$stage_path" &&
+           case "$tfcommand" in
+               init) terraform init -var-file="$tfvar_file_path" ;;
+               apply) terraform apply -var-file="$tfvar_file_path" ;;
+               apply-auto-approve) terraform apply --auto-approve -var-file="$tfvar_file_path" ;;
+               destroy) terraform destroy -var-file="$tfvar_file_path" ;;
+               destroy-auto-approve) terraform destroy -var-file="$tfvar_file_path" --auto-approve ;;
+               init-apply) terraform init && terraform apply -var-file="$tfvar_file_path" ;;
+               init-apply-auto-approve) terraform init && terraform apply -var-file="$tfvar_file_path" --auto-approve ;;
+               *) echo "${RED}Error: Invalid tfcommand '$tfcommand'${NC}" >&2; exit 1 ;;
+           esac)
+      fi
   done
 else
-  # Otherwise, get the path for the specified stage. logic for single stage execution
-  stage_path=$(get_value $stage  "stage_path_map")
-  tfvar_file_path=$(get_value $stage_path  "stagewise_tfvar_path_map")
+  # Otherwise, get the path for the specified stage. Logic for single stage execution
+  stage_path=$(get_value "$stage" "stage_path_map")
+  tfvar_file_path=$(get_value "$stage_path" "stagewise_tfvar_path_map")
+
   echo "tfvars file path : ${tfvar_file_path}"
+
   if [[ -z "$stage_path" ]]; then  # Check if a path was found
       echo "${RED}: Unexpected error finding path for stage '$stage'${NC}" >&2
       exit 1
@@ -252,12 +329,12 @@ else
     echo "Executing Terraform command(s) in $stage_path..."
     (cd "$stage_path" &&
       case "$tfcommand" in
-          init) terraform init -var-file=$tfvar_file_path;;
-          apply) terraform apply -var-file=$tfvar_file_path ;;
+          init) terraform init -var-file="$tfvar_file_path";;
+          apply) terraform apply -var-file="$tfvar_file_path";;
           apply-auto-approve) terraform apply -var-file=$tfvar_file_path --auto-approve ;;
-          destroy) terraform destroy -var-file=$tfvar_file_path ;;
-          destroy-auto-approve) terraform destroy -var-file=$tfvar_file_path --auto-approve ;;
-          init-apply) terraform init && terraform apply -var-file=$tfvar_file_path ;;
+          destroy) terraform destroy -var-file="$tfvar_file_path";;
+          destroy-auto-approve) terraform destroy -var-file="$tfvar_file_path" --auto-approve;;
+          init-apply) terraform init && terraform apply -var-file="$tfvar_file_path";;
           init-apply-auto-approve) terraform init && terraform apply -var-file=$tfvar_file_path --auto-approve ;;
           *) echo "${RED}Error: Invalid tfcommand '$tfcommand'${NC}" >&2; exit 1 ;;
       esac

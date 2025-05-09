@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2024-2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -33,8 +33,18 @@ var (
 	tfVars    = map[string]any{
 		"activate_api_identities": map[string]any{
 			projectID: map[string]any{
-				"project_id":    projectID,
-				"activate_apis": []string{"servicenetworking.googleapis.com", "alloydb.googleapis.com", "sqladmin.googleapis.com", "iam.googleapis.com", "compute.googleapis.com", "run.googleapis.com", "aiplatform.googleapis.com", "container.googleapis.com"},
+				"project_id": projectID,
+				"activate_apis": []string{
+					"servicenetworking.googleapis.com",
+					"alloydb.googleapis.com",
+					"sqladmin.googleapis.com",
+					"iam.googleapis.com",
+					"compute.googleapis.com",
+					"run.googleapis.com",
+					"aiplatform.googleapis.com",
+					"notebooks.googleapis.com",
+					"container.googleapis.com",
+				},
 			},
 		},
 	}
@@ -42,9 +52,9 @@ var (
 
 func TestInitAndPlanRunWithTfVars(t *testing.T) {
 	/*
-	 0 = Succeeded with empty diff (no changes)
-	 1 = Error
-	 2 = Succeeded with non-empty diff (changes present)
+	   0 = Succeeded with empty diff (no changes)
+	   1 = Error
+	   2 = Succeeded with non-empty diff (changes present)
 	*/
 	// Construct the terraform options with default retryable errors to handle the most common
 	// retryable errors in terraform testing.
@@ -64,11 +74,12 @@ func TestInitAndPlanRunWithTfVars(t *testing.T) {
 		t.Errorf("Test Plan Exit Code = %v, want = %v", got, want)
 	}
 }
+
 func TestInitAndPlanRunWithoutTfVarsExpectFailureScenario(t *testing.T) {
 	/*
-	 0 = Succeeded with empty diff (no changes)
-	 1 = Error
-	 2 = Succeeded with non-empty diff (changes present)
+	   0 = Succeeded with empty diff (no changes)
+	   1 = Error
+	   2 = Succeeded with non-empty diff (changes present)
 	*/
 	// Construct the terraform options with default retryable errors to handle the most common
 	// retryable errors in terraform testing.
@@ -102,7 +113,7 @@ func TestResourcesCount(t *testing.T) {
 	})
 	planStruct := terraform.InitAndPlan(t, terraformOptions)
 	resourceCount := terraform.GetResourceCount(t, planStruct)
-	if got, want := resourceCount.Add, 8; got != want {
+	if got, want := resourceCount.Add, 9; got != want {
 		t.Errorf("Test Resource Count Add = %v, want = %v", got, want)
 	}
 	if got, want := resourceCount.Change, 0; got != want {

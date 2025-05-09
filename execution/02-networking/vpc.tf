@@ -31,4 +31,3 @@ module "vpc_network" {
   shared_vpc_service_projects = var.shared_vpc_service_projects
   subnets                     = var.create_subnetwork ? var.subnets : null
 }
-

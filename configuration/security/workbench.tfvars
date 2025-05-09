@@ -1,0 +1,29 @@
+# Project ID for the Google Cloud project
+project_id = "<project-id>"
+
+# Network name where the firewall rules will be applied
+network = "projects/<project-id>/global/networks/<vpc-name>"
+
+# Ingress rules configuration
+ingress_rules = {
+  "allow-ssh-custom-ranges-workbench" = {
+    deny               = false
+    description        = "Allow SSH access to Workbench instances from trusted sources"
+    destination_ranges = []
+    disabled           = false
+    enable_logging = {
+      include_metadata = true
+    }
+    priority = 1000
+    source_ranges = [
+      "YOUR_IP/32", # <--- *** REPLACE THIS with your actual IP/range ***
+    ]
+    targets = ["allow-ssh-custom-ranges-workbench"]
+    rules = [
+      {
+        protocol = "tcp"
+        ports    = ["22"]
+      }
+    ]
+  }
+}

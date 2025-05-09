@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2024-2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import (
 	"os"
 	"path"
 	"reflect"
+	stdlib_strconv "strconv"
 	"strings"
 	"testing"
 	"time"
@@ -73,17 +74,38 @@ func getProjectNumber(t *testing.T, projectID string) (string, error) {
 	}
 	output, err := shell.RunCommandAndGetOutputE(t, cmd)
 	if err != nil {
-		return "", fmt.Errorf("error getting project number: %v", err)
+		return "", fmt.Errorf("Error getting project number: %v", err)
 	}
-	projectNumber := strings.Trim(output, "'")
+
+	// The gcloud command might output warnings before the actual project number,
+	// especially with impersonation. The project number is expected to be the last
+	// non-empty line of the output.
+	lines := strings.Split(strings.TrimSpace(output), "\n")
+	if len(lines) == 0 {
+		return "", fmt.Errorf("No output from gcloud projects describe for project ID %s", projectID)
+	}
+
+	// Get the last line and trim any surrounding single quotes
+	projectNumber := strings.Trim(lines[len(lines)-1], "'")
+
+	// Basic validation that it looks like a number
+	if _, err := stdlib_strconv.ParseInt(projectNumber, 10, 64); err != nil {
+		return "", fmt.Errorf("Extracted project number '%s' is not a valid number. Full output: %s. Error: %v", projectNumber, output, err)
+	}
+
 	return projectNumber, nil
 }
 
 // getAttachmentProjectNumber retrieves the project number for the attachment project.
+// If TF_VAR_ATTACHMENT_PROJECT_ID is not set, it defaults to the primary project ID.
 func getAttachmentProjectNumber(t *testing.T) (string, error) {
 	attachmentProjectID := os.Getenv("TF_VAR_ATTACHMENT_PROJECT_ID")
+
+	// If attachmentProjectID is not set, use the primary projectID as fallback.
 	if attachmentProjectID == "" {
-		return "", fmt.Errorf("environment variable TF_VAR_ATTACHMENT_PROJECT_ID not set")
+		attachmentProjectID = projectID
+		t.Logf("TF_VAR_ATTACHMENT_PROJECT_ID not set. Defaulting to primary project ID: %s", projectID)
+		return getProjectNumber(t, projectID) // Use the global projectID as the fallback
 	}
 
 	return getProjectNumber(t, attachmentProjectID)

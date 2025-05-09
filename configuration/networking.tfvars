@@ -6,19 +6,23 @@ region     = ""
 network_name = ""
 subnets = [
   {
-    ip_cidr_range = ""
-    name          = ""
-    region        = ""
+    name                  = ""
+    ip_cidr_range         = ""
+    region                = ""
+    enable_private_access = false # Use true or false
   }
 ]
 
+# Configuration for setting up a Shared VPC Host project, enabling centralized network management and resource sharing across multiple projects.
+shared_vpc_host = false
+
 # PSC/Service Connecitvity Variables
 
-create_scp_policy      = ""   # Use true or false
-subnets_for_scp_policy = [""] # List subnets here from the same region as the SCP
+create_scp_policy      = false # Use true or false based on your requirements
+subnets_for_scp_policy = [""]  # List subnets here from the same region as the SCP
 
 ## Cloud Nat input variables
-create_nat = "" # Use true or false
+create_nat = false # Use true or false 
 
 ## Cloud HA VPN input variables
 

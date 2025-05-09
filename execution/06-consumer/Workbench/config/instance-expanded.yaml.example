@@ -1,0 +1,57 @@
+name: my-workbench-instance
+project_id: your-gcp-project-id
+location: us-central1-a # This corresponds to the 'zone' used by the module
+
+# --- GCE Instance Setup ---
+gce_setup:
+  machine_type: n1-standard-4
+  service_account: "your-custom-sa@your-gcp-project-id.iam.gserviceaccount.com" # Optional: Defaults to null (Compute Default SA)
+  disable_public_ip: true          # Explicitly disable public IP (overrides var.disable_public_ip_default)
+  disable_proxy_access: false      # Explicitly enable proxy access (overrides var.disable_proxy_access_default)
+  network_tags: ["workbench", "data-science"] # Override default tags
+  metadata:                        # Optional: Add custom metadata
+    startup-script: |
+      #!/bin/bash
+      echo "Hello World" > /tmp/startup.txt
+    custom-key: custom-value
+
+  vm_image: # Uses defaults from vars.tf if not specified
+    project: deeplearning-platform-release
+    family: tf-latest-cpu
+    # name: "specific-image-name-if-needed" # Optional: Use specific image name instead of family
+
+  boot_disk_type: PD_SSD             # Optional: Override default boot disk type
+  boot_disk_size_gb: 150             # Optional: Override default boot disk size
+  boot_disk_kms_key: "projects/your-project/locations/your-region/keyRings/your-keyring/cryptoKeys/your-key" # Optional: CMEK
+
+  data_disks: # Only one data disk supported directly by module v0.1
+    - disk_size_gb: 200             # Override default data disk size
+      disk_type: PD_SSD             # Override default data disk type
+
+  network_interfaces: # Assumes using existing network defined below
+    - network: projects/your-gcp-project-id/global/networks/your-vpc-network
+      subnet: projects/your-gcp-project-id/regions/us-central1/subnetworks/your-subnet
+      nic_type: GVNIC                # Optional: Override default NIC type
+      internal_ip_only: true         # Makes sense if disable_public_ip is true
+
+  accelerator_configs:              # Optional: Add GPUs
+    - type: "NVIDIA_TESLA_T4"
+      core_count: 1
+
+  idle_shutdown: true               # Optional: Enable idle shutdown
+  idle_shutdown_timeout: 60         # Optional: Set timeout (minutes)
+
+  instance_owners:                  # Optional: Specify owners (emails)
+     - "user:example-user@example.com"
+
+  shielded_instance_config:         # Optional: Enable Shielded VM features
+    enable_secure_boot: true
+    enable_vtpm: true
+    enable_integrity_monitoring: true
+
+  confidential_instance_config:     # Optional: Enable Confidential Computing
+    enable_confidential_compute: true
+
+  labels: # Overrides default labels
+    environment: production
+    team: science

@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2024-2025 Google LLC
 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -38,20 +38,21 @@ var (
 	// Path to the Terraform module directory.
 	terraformDirectoryPath = filepath.Join(projectRoot, "04-producer/GKE")
 	// Path to the folder containing YAML configuration files.
-	configFolderPath   = filepath.Join(projectRoot, "test/integration/producer/GKE/config")
-	projectID          = os.Getenv("TF_VAR_project_id")
-	region             = "us-central1"
-	kubernetesVersion  = "1.31.1-gke.2105000"
-	instanceName       = fmt.Sprintf("gke-%d", rand.Int())
-	networkName        = fmt.Sprintf("gke-cluster-vpc-%d", rand.Int())
-	subnetName         = fmt.Sprintf("gke-cluster-subnetwork-%d", rand.Int())
-	subnetIPRange      = "10.0.0.0/16"
-	ipRangePods        = "pods"
-	ipRangeServices    = "services"
-	podIPRange         = "10.1.0.0/16"
-	servicesIPRange    = "10.2.0.0/16"
-	deletionProtection = false
-	tfVars             = map[string]any{
+	configFolderPath         = filepath.Join(projectRoot, "test/integration/producer/GKE/config")
+	projectID                = os.Getenv("TF_VAR_project_id")
+	region                   = "us-central1"
+	kubernetesVersion        = "latest"
+	instanceName             = fmt.Sprintf("gke-%d", rand.Int())
+	networkName              = fmt.Sprintf("gke-cluster-vpc-%d", rand.Int())
+	subnetName               = fmt.Sprintf("gke-cluster-subnetwork-%d", rand.Int())
+	subnetIPRange            = "10.0.0.0/16"
+	ipRangePods              = "pods"
+	ipRangeServices          = "services"
+	podIPRange               = "10.1.0.0/16"
+	servicesIPRange          = "10.2.0.0/16"
+	deletionProtection       = false
+	remove_default_node_pool = true
+	tfVars                   = map[string]any{
 		"config_folder_path": configFolderPath,
 	}
 	invalidTFVars = map[string]any{
@@ -61,15 +62,16 @@ var (
 )
 
 type GKEConfig struct {
-	Name               string `yaml:"name"`
-	ProjectID          string `yaml:"project_id"`
-	KubernetesVersion  string `yaml:"kubernetes_version"`
-	Network            string `yaml:"network"`
-	Subnetwork         string `yaml:"subnetwork"`
-	IPRangePods        string `yaml:"ip_range_pods"`
-	IPRangeServices    string `yaml:"ip_range_services"`
-	Region             string `yaml:"region"`
-	DeletionProtection bool   `yaml:"deletion_protection"`
+	Name                  string `yaml:"name"`
+	ProjectID             string `yaml:"project_id"`
+	KubernetesVersion     string `yaml:"kubernetes_version"`
+	Network               string `yaml:"network"`
+	Subnetwork            string `yaml:"subnetwork"`
+	IPRangePods           string `yaml:"ip_range_pods"`
+	IPRangeServices       string `yaml:"ip_range_services"`
+	Region                string `yaml:"region"`
+	RemoveDefaultNodePool bool   `yaml:"remove_default_node_pool"`
+	DeletionProtection    bool   `yaml:"deletion_protection"`
 }
 
 // TestCreateGKECluster tests the creation of a GKE cluster.
@@ -133,14 +135,6 @@ func TestCreateGKECluster(t *testing.T) {
 				t.Errorf("GKE Cluster name is invalid: got %s, want %s", name, instanceName)
 			} else {
 				t.Logf("GKE Cluster name is valid: %s", name) // Success message
-			}
-
-			// Verify Kubernetes Version
-			kubernetesVersion := clusterData.Get("master_version").String()
-			if kubernetesVersion != "1.31.1-gke.2105000" {
-				t.Errorf("GKE Cluster Kubernetes version is invalid: got %s, want 1.31.1-gke.2105000", kubernetesVersion)
-			} else {
-				t.Logf("GKE Cluster Kubernetes version is valid: %s", kubernetesVersion) // Success message
 			}
 
 			// Verify Region
@@ -315,15 +309,16 @@ createGKEConfigYAML creates the YAML configuration file for GKE.
 func createGKEConfigYAML(t *testing.T) {
 	t.Log("========= YAML File =========")
 	gkeConfig := GKEConfig{
-		Name:               instanceName,
-		ProjectID:          projectID,
-		KubernetesVersion:  kubernetesVersion,
-		Network:            networkName,
-		Subnetwork:         subnetName,
-		IPRangePods:        ipRangePods,
-		IPRangeServices:    ipRangeServices,
-		Region:             region,
-		DeletionProtection: deletionProtection,
+		Name:                  instanceName,
+		ProjectID:             projectID,
+		KubernetesVersion:     kubernetesVersion,
+		Network:               networkName,
+		Subnetwork:            subnetName,
+		IPRangePods:           ipRangePods,
+		IPRangeServices:       ipRangeServices,
+		Region:                region,
+		RemoveDefaultNodePool: remove_default_node_pool,
+		DeletionProtection:    deletionProtection,
 	}
 
 	yamlData, err := yaml.Marshal(&gkeConfig)

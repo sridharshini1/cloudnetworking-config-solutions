@@ -14,7 +14,7 @@
 
 variable "project_id" {
   type        = string
-  description = "The ID of the Google Cloud project."
+  description = "The ID of the Google Cloud project where the firewall rules for GCE instance would be created."
 }
 
 variable "network" {

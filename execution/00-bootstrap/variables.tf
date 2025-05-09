@@ -1,5 +1,5 @@
 
-# Copyright 2024 Google LLC
+# Copyright 2024-2025 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -147,13 +147,13 @@ variable "producer_gke_administrator" {
   default     = [""]
 }
 
-variable "networking_manual_sa_name" {
+variable "producer_connectivity_sa_name" {
   type        = string
-  description = "Name of the service account to create for networking manual stage."
-  default     = "networking-manual-sa"
+  description = "Name of the service account to create for producer connectivity stage."
+  default     = "producer_connectivity_sa"
 }
 
-variable "networking_manual_administrator" {
+variable "producer_connectivity_administrator" {
   type        = list(string)
   description = "List of Members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
   default     = [""]
@@ -180,5 +180,65 @@ variable "consumer_cloudrun_sa_name" {
 variable "consumer_cloudrun_administrator" {
   type        = list(string)
   description = "List of Cloud Run administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
+  default     = [""]
+}
+
+variable "consumer_mig_sa_name" {
+  type        = string
+  description = "Name of the service account to create for MIG consumer stage."
+  default     = "consumer-mig-sa"
+}
+
+variable "consumer_mig_administrator" {
+  type        = list(string)
+  description = "List of MIG administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
+  default     = [""]
+}
+
+variable "consumer_vpc_connector_sa_name" {
+  description = "Name of the service account to create for VPC Access Connector consumer stage."
+  type        = string
+  default     = "consumer-vpcaccess-sa"
+}
+
+variable "consumer_vpc_connector_administrator" {
+  description = "List of VPC conector administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
+  type        = list(string)
+  default     = [""]
+}
+
+variable "consumer_appengine_sa_name" {
+  type        = string
+  description = "Name of the service account to create for App Engine consumer stage."
+  default     = "consumer-appengine-sa"
+}
+
+variable "consumer_appengine_administrator" {
+  type        = list(string)
+  description = "List of App Engine administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
+  default     = [""]
+}
+
+variable "consumer_workbench_sa_name" {
+  type        = string
+  description = "Name of the service account to create for Workbench consumer stage."
+  default     = "consumer-workbench-sa"
+}
+
+variable "consumer_workbench_administrator" {
+  type        = list(string)
+  description = "List of Workbench administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
+  default     = [""]
+}
+
+variable "consumer_lb_sa_name" {
+  type        = string
+  description = "Name of the service account to create for LB consumer stage."
+  default     = "consumer-lb-sa"
+}
+
+variable "consumer_lb_administrator" {
+  type        = list(string)
+  description = "List of LB administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
   default     = [""]
 }

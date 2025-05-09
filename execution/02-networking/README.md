@@ -166,13 +166,13 @@ private_ip_address_prefix_length = 30             # Example prefix length
 **NOTE** : run the terraform commands with the `-var-file` referencing the networking.tfvars present under the /configuration folder. Example :
 
 ```
-terraform plan -var-file=../configuration/networking.tfvars
-terraform apply -var-file=../configuration/networking.tfvars
+terraform plan -var-file=../../configuration/networking.tfvars
+terraform apply -var-file=../../configuration/networking.tfvars
 ```
 
 - Initialize: Run `terraform init`.
-- Plan: Run `terraform plan -var-file=../configuration/networking.tfvars` to review the planned changes.
-- Apply:  If the plan looks good, run `terraform apply -var-file=../configuration/networking.tfvars` to create or update the resources.
+- Plan: Run `terraform plan -var-file=../../configuration/networking.tfvars` to review the planned changes.
+- Apply:  If the plan looks good, run `terraform apply -var-file=../../configuration/networking.tfvars` to create or update the resources.
 
 
 ## Notes
