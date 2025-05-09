@@ -51,7 +51,7 @@ const (
 	saCreationPropagationWait    = 15 * time.Second     // Wait after SA creation before binding roles
 	appCreatePropagationWait     = 15 * time.Second     // Wait after App Engine app creation
 	apiEnablementPropagationWait = 30 * time.Second     // Wait after enabling APIs
-	vpcAccessCreateWaitTime      = 60 * time.Second
+	vpcAccessCreateWaitTime      = 120 * time.Second
 
 	// Constants for gcloud-created VPC Access Connector (used with --subnet)
 	connectorMachineType  = "e2-micro"       // Machine type for the connector

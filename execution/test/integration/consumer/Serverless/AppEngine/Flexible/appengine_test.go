@@ -741,7 +741,7 @@ func TestCreateAppEngine(t *testing.T) {
 		versionID := expectedConfig.VersionID
 		for i := 0; i < maxRetries; i++ {
 			t.Logf("Describing %s/%s (Attempt %d/%d)...", serviceName, versionID, i+1, maxRetries)
-			cmd := shell.Command{Command: "gcloud", Args: []string{"app", "versions", "describe", versionID, "--service", serviceName, "--project", projectID, "--format", "json"}}
+			cmd := shell.Command{Command: "gcloud", Args: []string{"app", "versions", "describe", versionID, "--service", serviceName, "--verbosity=none","--project", projectID, "--format", "json"}}
 			gcloudOutput, errCmd := shell.RunCommandAndGetOutputE(t, cmd)
 			if errCmd != nil {
 				t.Logf("gcloud error for %s/%s: %v. Retrying...", serviceName, versionID, errCmd)
@@ -753,7 +753,7 @@ func TestCreateAppEngine(t *testing.T) {
 				time.Sleep(retryInterval)
 				continue
 			}
-
+			t.Logf("gcloud Output : %s",gcloudOutput)
 			actualServiceInfo := gjson.Parse(gcloudOutput)
 			t.Logf("Actual Service Info : %s",actualServiceInfo)
 			status := gjson.Get(actualServiceInfo.String(),"servingStatus").String()
