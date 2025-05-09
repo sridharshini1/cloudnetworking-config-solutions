@@ -165,13 +165,17 @@ func TestWorkbenchInstances(t *testing.T) {
 		}
 		assert.Equal(t, expectedProxyURI, proxyURI, fmt.Sprintf("Proxy URI mismatch for instance %s. Expected: %s, Got: %s", instanceName, expectedProxyURI, proxyURI))
 
-		instanceDetailsOutput := shell.RunCommandAndGetOutput(t, shell.Command{
+		stdout, stderr, err := shell.RunCommandAndGetStdOutErrE(t, shell.Command{
 			Command: "gcloud",
 			Args:    []string{"compute", "instances", "describe", instanceName, "--project", projectID, "--zone", zone, "--format=json"},
 		})
+		if err != nil {
+			t.Fatalf("Failed to describe instance %s: %v\nStderr: %s", instanceName, err, stderr)
+		}
+		instanceDetailsOutput := stdout
 
 		var actualInstance map[string]interface{}
-		err := json.Unmarshal([]byte(instanceDetailsOutput), &actualInstance)
+		err = json.Unmarshal([]byte(instanceDetailsOutput), &actualInstance)
 		if err != nil {
 			t.Fatalf("Failed to unmarshal instance details: %v", err)
 		}
