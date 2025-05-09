@@ -132,8 +132,7 @@ Terraform will read the YAML files from the `configuration/consumer/GCE/config` 
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_vm"></a> [vm](#module\_vm) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/compute-vm | n/a |
-
+| <a name="module_vm"></a> [vm](#module\_vm) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/compute-vm | v38.1.0 |
 
 ## Inputs
 
@@ -164,7 +163,6 @@ Terraform will read the YAML files from the `configuration/consumer/GCE/config` 
 | <a name="input_shielded_config"></a> [shielded\_config](#input\_shielded\_config) | Shielded VM configuration of the instances. | <pre>object({<br>    enable_secure_boot          = bool<br>    enable_vtpm                 = bool<br>    enable_integrity_monitoring = bool<br>  })</pre> | `null` | no |
 | <a name="input_snapshot_schedules"></a> [snapshot\_schedules](#input\_snapshot\_schedules) | Snapshot schedule resource policies that can be attached to disks. | <pre>map(object({<br>    schedule = object({<br>      daily = optional(object({<br>        days_in_cycle = number<br>        start_time    = string<br>      }))<br>      hourly = optional(object({<br>        hours_in_cycle = number<br>        start_time     = string<br>      }))<br>      weekly = optional(list(object({<br>        day        = string<br>        start_time = string<br>      })))<br>    })<br>    description = optional(string)<br>    retention_policy = optional(object({<br>      max_retention_days         = number<br>      on_source_disk_delete_keep = optional(bool)<br>    }))<br>    snapshot_properties = optional(object({<br>      chain_name        = optional(string)<br>      guest_flush       = optional(bool)<br>      labels            = optional(map(string))<br>      storage_locations = optional(list(string))<br>    }))<br>  }))</pre> | `{}` | no |
 | <a name="input_tag_bindings"></a> [tag\_bindings](#input\_tag\_bindings) | Resource manager tag bindings for this instance, in tag key => tag value format. | `map(string)` | `null` | no |
-| <a name="input_tag_bindings_firewall"></a> [tag\_bindings\_firewall](#input\_tag\_bindings\_firewall) | Firewall (network scoped) tag bindings for this instance, in tag key => tag value format. | `map(string)` | `null` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Instance network tags for firewall rule targets. | `list(string)` | `[]` | no |
 
 ## Outputs

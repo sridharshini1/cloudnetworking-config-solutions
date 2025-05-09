@@ -1,0 +1,32 @@
+# configuration/consumer/AppEngine/StandardAppEngine/config/instance2.yaml
+# This example considers the app engine application needs to be configured and also the required vpc conenctor is already created
+project_id: <project-id>  # REPLACE with your actual project ID
+service: service-one      # Service name
+version_id: v1            # Version ID
+runtime: python39         # Runtime environment
+
+# --- Deployment (using a ZIP file) ---
+deployment:
+  files:
+    name: <file-name>                      # File name of the file eg. app.yaml
+    source_url: <GCS URL storing the code> # Public url of the code file hosted in the cloud storage bucket
+
+# --- Entrypoint (for Python/Flask with Gunicorn) ---
+entrypoint:
+  shell: "python main.py"
+
+# --- Instance Class (override module default) ---
+instance_class: F2
+
+handlers:
+  - url_regex: "/.*"
+    script:
+      script_path: "auto"
+
+vpc_access_connector:                                                                   # This is only needed if vpc connector is already created and create_vpc_connector: false
+  name: "projects/<project-id>/locations/<location-id>/connectors/<test-vpc-connector>" # for vpc connector the region in which the connector is created  is known as location
+
+create_app_engine_application: true
+
+app_engine_application:              # Note you can create tehe app engine application only once per project, if it already exists google cloud will not alow you to enable it again. If it exists you donot need to create an application.
+  location_id: <APP_LOCATION>        # MANDATORY for creation: e.g., us-central1, europe-west. Once set cannot be changed later

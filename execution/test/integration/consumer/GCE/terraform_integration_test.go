@@ -26,7 +26,7 @@ import (
 	"time"
 
 	"github.com/gruntwork-io/terratest/modules/shell"
-	"github.com/gruntwork-io/terratest/modules/terraform" // Correct import
+	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/tidwall/gjson"
 	"gopkg.in/yaml.v2"
 )

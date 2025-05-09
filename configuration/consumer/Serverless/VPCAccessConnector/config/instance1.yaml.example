@@ -1,0 +1,9 @@
+# consumer/vpc_access_connector/config/instance1.yaml.example
+# Example configuration for a single VPC Access Connector using subnet.
+
+name: <connector-name>
+project_id: <connector-project>
+region: <connector-region>
+subnet_name: <subnet-to-attach>
+min_instances: 2
+max_instances: 5

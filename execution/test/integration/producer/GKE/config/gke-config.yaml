@@ -6,4 +6,5 @@ subnetwork: gke-cluster-subnetwork
 ip_range_pods: pods
 ip_range_services: services
 region: us-central1
+remove_default_node_pool: true
 deletion_protection: false
