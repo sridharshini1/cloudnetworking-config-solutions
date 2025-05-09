@@ -19,6 +19,7 @@ import (
 	"os"
 	"path"
 	"reflect"
+	stdlib_strconv "strconv"
 	"strings"
 	"testing"
 	"time"
@@ -73,9 +74,25 @@ func getProjectNumber(t *testing.T, projectID string) (string, error) {
 	}
 	output, err := shell.RunCommandAndGetOutputE(t, cmd)
 	if err != nil {
-		return "", fmt.Errorf("error getting project number: %v", err)
+		return "", fmt.Errorf("Error getting project number: %v", err)
 	}
-	projectNumber := strings.Trim(output, "'")
+
+	// The gcloud command might output warnings before the actual project number,
+	// especially with impersonation. The project number is expected to be the last
+	// non-empty line of the output.
+	lines := strings.Split(strings.TrimSpace(output), "\n")
+	if len(lines) == 0 {
+		return "", fmt.Errorf("No output from gcloud projects describe for project ID %s", projectID)
+	}
+
+	// Get the last line and trim any surrounding single quotes
+	projectNumber := strings.Trim(lines[len(lines)-1], "'")
+
+	// Basic validation that it looks like a number
+	if _, err := stdlib_strconv.ParseInt(projectNumber, 10, 64); err != nil {
+		return "", fmt.Errorf("Extracted project number '%s' is not a valid number. Full output: %s. Error: %v", projectNumber, output, err)
+	}
+
 	return projectNumber, nil
 }
 
