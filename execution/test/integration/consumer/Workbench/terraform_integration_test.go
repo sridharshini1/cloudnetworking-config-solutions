@@ -33,7 +33,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 	"golang.org/x/oauth2/google"
-	"google.golang.org/api/cloudresourcemanager/v1"
 	"google.golang.org/api/option"
 	"gopkg.in/yaml.v2"
 )
@@ -456,71 +455,29 @@ func deleteFirewallRule(t *testing.T, projectID, firewallRuleName string) {
 
 // validateAndAssignRoles validates and assigns necessary roles to the service account.
 func validateAndAssignRoles(t *testing.T, serviceAccountEmail string, projectID string) error {
-	ctx := context.Background()
-	credentials, err := google.FindDefaultCredentials(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get default credentials: %w", err)
-	}
-
-	resourceManagerClient, err := cloudresourcemanager.NewService(ctx, option.WithCredentials(credentials))
-	if err != nil {
-		return fmt.Errorf("failed to create resource manager client: %w", err)
-	}
-
-	policy, err := resourceManagerClient.Projects.GetIamPolicy(projectID, &cloudresourcemanager.GetIamPolicyRequest{}).Do()
-	if err != nil {
-		return fmt.Errorf("failed to get IAM policy for project %s: %w", projectID, err)
-	}
-
+	t.Helper()
 	requiredRoles := []string{
 		"roles/bigquery.jobUser",
 		"roles/bigquery.dataViewer",
 		"roles/serviceusage.serviceUsageConsumer",
-		// Add necessary permissions for interacting with the Workbench API
 		"roles/notebooks.admin",        // Or a more specific role if needed
 		"roles/iam.serviceAccountUser", // To allow the SA to act as itself
 	}
 
 	member := fmt.Sprintf("serviceAccount:%s", serviceAccountEmail)
 
-	policyUpdated := false
 	for _, role := range requiredRoles {
-		roleAssigned := false
-		for _, binding := range policy.Bindings {
-			if binding.Role == role {
-				for _, m := range binding.Members {
-					if m == member {
-						roleAssigned = true
-						break
-					}
-				}
-				if roleAssigned {
-					break
-				}
-				if !roleAssigned {
-					binding.Members = append(binding.Members, member)
-					policyUpdated = true
-				}
-
-			}
+		t.Logf("Adding role %s to %s for project %s", role, member, projectID)
+		cmd := shell.Command{
+			Command: "gcloud",
+			Args:    []string{"projects", "add-iam-policy-binding", projectID, "--member=" + member, "--role=" + role, "--condition=None"},
 		}
-		if !roleAssigned {
-			policy.Bindings = append(policy.Bindings, &cloudresourcemanager.Binding{
-				Role:    role,
-				Members: []string{member},
-			})
-			policyUpdated = true
-		}
-
-	}
-	if policyUpdated {
-		_, err = resourceManagerClient.Projects.SetIamPolicy(projectID, &cloudresourcemanager.SetIamPolicyRequest{Policy: policy}).Do()
+		output, err := shell.RunCommandAndGetOutputE(t, cmd)
 		if err != nil {
-			return fmt.Errorf("failed to set IAM policy for project %s: %w", projectID, err)
+			t.Logf("Failed to add IAM binding '%s' for member '%s' to project '%s'. Output:\n%s, Error: %v", role, member, projectID, output, err)
+			return fmt.Errorf("failed to add IAM binding '%s' for member '%s': %w", role, member, err)
 		}
-		t.Logf("Successfully assigned required roles to service account: %s", serviceAccountEmail)
-	} else {
-		t.Logf("All required roles already assigned to service account: %s", serviceAccountEmail)
+		t.Logf("Successfully added role %s to %s for project %s", role, member, projectID)
 	}
 
 	return nil
