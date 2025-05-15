@@ -473,6 +473,8 @@ func validateAndAssignRoles(t *testing.T, serviceAccountEmail string, projectID 
 			Args:    []string{"projects", "add-iam-policy-binding", projectID, "--member=" + member, "--role=" + role, "--condition=None"},
 		}
 		output, err := shell.RunCommandAndGetOutputE(t, cmd)
+		t.Logf("Output of IAM binding command for %s: %s", role, output)
+
 		if err != nil {
 			t.Logf("Failed to add IAM binding '%s' for member '%s' to project '%s'. Output:\n%s, Error: %v", role, member, projectID, output, err)
 			return fmt.Errorf("failed to add IAM binding '%s' for member '%s': %w", role, member, err)
@@ -523,6 +525,7 @@ func createAndPopulateBigQuery(t *testing.T, projectID string, serviceAccountEma
 	if err != nil {
 		return "", "", fmt.Errorf("failed to get default credentials: %w", err)
 	}
+	t.Logf("Credentials obtained with email: %s, using project ID: %s for BigQuery", credentials.Email, projectID)
 
 	bqClient, err := bigquery.NewClient(ctx, projectID, option.WithCredentials(credentials))
 	if err != nil {
@@ -539,6 +542,7 @@ func createAndPopulateBigQuery(t *testing.T, projectID string, serviceAccountEma
 	if err := dataset.Create(ctx, &bigquery.DatasetMetadata{
 		Location: region,
 	}); err != nil {
+		t.Logf("Error creating dataset %s: %+v", datasetID, err)
 		return "", "", fmt.Errorf("failed to create dataset: %w", err)
 	}
 	t.Logf("Created BigQuery Dataset: %s", datasetID)
@@ -586,6 +590,7 @@ func deleteBigQueryResources(t *testing.T, projectID string, datasetID string) {
 		t.Fatalf("failed to get default credentials: %v", err)
 		return
 	}
+	t.Logf("Credentials obtained with email: %s, using project ID: %s for BigQuery deletion", credentials.Email, projectID)
 
 	bqClient, err := bigquery.NewClient(ctx, projectID, option.WithCredentials(credentials))
 	if err != nil {
@@ -604,14 +609,14 @@ func deleteBigQueryResources(t *testing.T, projectID string, datasetID string) {
 
 // validateBigQueryDirectly executes a query directly against BigQuery and validates the result.
 func validateBigQueryDirectly(t *testing.T, projectID string, datasetID string, tableID string) error {
-	t.Logf("Executing BigQuery query directly...")
+	t.Logf("Executing BigQuery query directly... using project ID: %s", projectID)
 
 	ctx := context.Background()
 	credentials, err := google.FindDefaultCredentials(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get default credentials: %w", err)
 	}
-	t.Logf("Credentials obtained successfully")
+	t.Logf("Credentials obtained with email: %s", credentials.Email)
 
 	bqClient, err := bigquery.NewClient(ctx, projectID, option.WithCredentials(credentials))
 	if err != nil {
@@ -625,15 +630,18 @@ func validateBigQueryDirectly(t *testing.T, projectID string, datasetID string, 
 	q := bqClient.Query(query)
 	job, err := q.Run(ctx)
 	if err != nil {
+		t.Logf("Error running query: %+v", err)
 		return fmt.Errorf("failed to run query: %w", err)
 	}
 	t.Logf("Query job started successfully")
 
 	status, err := job.Wait(ctx)
 	if err != nil {
+		t.Logf("Error waiting for query job: %+v", err)
 		return fmt.Errorf("failed to wait for query job: %w", err)
 	}
 	if err := status.Err(); err != nil {
+		t.Logf("Query job failed with error: %+v", status.Err())
 		return fmt.Errorf("query failed with error: %w", err)
 	}
 	t.Logf("Query job finished successfully")
