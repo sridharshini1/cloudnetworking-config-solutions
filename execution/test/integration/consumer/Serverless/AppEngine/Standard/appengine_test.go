@@ -38,26 +38,26 @@ import (
 // --- Test Configuration ---
 const (
 	// Default values - can be overridden by environment variables where applicable
-	defaultRegion                = "us-central1"
-	networkPrefix                = "appeng-test-vpc"    // Prefix for created VPC Network
-	subnetPrefix                 = "appeng-test-subnet" // Prefix for created Subnet
-	connectorPrefix              = "test-conn"          // Prefix for created VPC Connector
-	testSubnetCIDR               = "10.5.4.0/28"        // Subnet CIDR for the subnet that will host the connector
-	httpCheckRetries             = 10                   // Retries for HTTP check
-	httpCheckInterval            = 30 * time.Second     // Interval for HTTP check
-	vpcCleanupWaitShort          = 30 * time.Second     // Shorter wait in deleteVPC
-	vpcCleanupWaitLong           = 60 * time.Second     // Longer wait in deleteVPC
-	iamPropagationWait           = 30 * time.Second     // Wait after adding IAM bindings
-	saCreationPropagationWait    = 15 * time.Second     // Wait after SA creation before binding roles
-	appCreatePropagationWait     = 15 * time.Second     // Wait after App Engine app creation
-	apiEnablementPropagationWait = 30 * time.Second     // Wait after enabling APIs
-	vpcAccessCreateWaitTime      = 120 * time.Second
+	defaultRegion = "us-central1"
+	// networkPrefix = "appeng-test-vpc"    // Prefix for created VPC Network
+	// subnetPrefix  = "appeng-test-subnet" // Prefix for created Subnet
+	// connectorPrefix              = "test-conn"          // Prefix for created VPC Connector
+	testSubnetCIDR    = "10.5.4.0/28"    // Subnet CIDR for the subnet that will host the connector
+	httpCheckRetries  = 10               // Retries for HTTP check
+	httpCheckInterval = 30 * time.Second // Interval for HTTP check
+	// vpcCleanupWaitShort          = 30 * time.Second // Shorter wait in deleteVPC
+	// vpcCleanupWaitLong           = 60 * time.Second // Longer wait in deleteVPC
+	iamPropagationWait           = 30 * time.Second // Wait after adding IAM bindings
+	saCreationPropagationWait    = 15 * time.Second // Wait after SA creation before binding roles
+	appCreatePropagationWait     = 15 * time.Second // Wait after App Engine app creation
+	apiEnablementPropagationWait = 30 * time.Second // Wait after enabling APIs
+	// vpcAccessCreateWaitTime      = 120 * time.Second
 
 	// Constants for gcloud-created VPC Access Connector (used with --subnet)
-	connectorMachineType  = "e2-micro"       // Machine type for the connector
-	connectorMinInstances = 2                // Min instances for the connector
-	connectorMaxInstances = 3                // Max instances for the connector
-	connectorDeleteWait   = 20 * time.Second // Brief wait before attempting connector delete
+	// connectorMachineType  = "e2-micro"       // Machine type for the connector
+	// connectorMinInstances = 2                // Min instances for the connector
+	// connectorMaxInstances = 3                // Max instances for the connector
+	// connectorDeleteWait   = 20 * time.Second // Brief wait before attempting connector delete
 
 	// Sample App Configuration (used in createConfigYAML)
 	sampleAppRuntime       = "python311"
@@ -88,7 +88,7 @@ var (
 		"roles/artifactregistry.reader",
 		"roles/compute.networkViewer",
 		"roles/storage.objectAdmin",
-		"roles/vpcaccess.admin",
+		// "roles/vpcaccess.admin",
 		"roles/serviceusage.serviceUsageAdmin",
 	}
 
@@ -105,7 +105,7 @@ var (
 		"iam.googleapis.com",
 		"cloudresourcemanager.googleapis.com",
 		"storage.googleapis.com",
-		"vpcaccess.googleapis.com",
+		// "vpcaccess.googleapis.com",
 		"cloudbuild.googleapis.com",
 		"artifactregistry.googleapis.com",
 	}
@@ -113,30 +113,30 @@ var (
 
 // --- Struct Definitions ---
 type AppEngineConfig struct {
-	ProjectID                  string                           `yaml:"project_id"`
-	Service                    string                           `yaml:"service"`
-	VersionID                  string                           `yaml:"version_id"`
-	Runtime                    string                           `yaml:"runtime"`
-	Deployment                 *DeploymentConfig                `yaml:"deployment,omitempty"`
-	Entrypoint                 *EntrypointConfig                `yaml:"entrypoint,omitempty"`
-	AutomaticScaling           *AutomaticScalingConfig          `yaml:"automatic_scaling,omitempty"`
-	Handlers                   HandlerConfig                    `yaml:"handlers,omitempty"`
-	VPCAccessConnector         *VPCAccessConnectorConfig        `yaml:"vpc_access_connector,omitempty"`
-	VPCAccessConnectorDetails  *VPCAccessConnectorDetailsConfig `yaml:"vpc_connector_details,omitempty"`
-	AppEngineApplication       *AppEngineAppConfig              `yaml:"app_engine_application,omitempty"`
-	CreateVPCConnector         bool                             `yaml:"create_vpc_connector,omitempty"`
-	CreateSplitTraffic         bool                             `yaml:"create_split_traffic,omitempty"`
-	CreateAppEngineApplication bool                             `yaml:"create_app_engine_application,omitempty"`
-	CreateDispatchRules        bool                             `yaml:"create_dispatch_rules,omitempty"`
-	CreateNetworkSettings      bool                             `yaml:"create_network_settings,omitempty"`
-	DeleteServiceOnDestroy     bool                             `yaml:"delete_service_on_destroy,omitempty"`
-	CreateDomainMappings       bool                             `yaml:"create_domain_mappings,omitempty"`
-	DomainMappings             []DomainMappingConfig            `yaml:"domain_mappings,omitempty"`
-	CreateFirewallRules        bool                             `yaml:"create_firewall_rules,omitempty"`
-	FirewallRules              []FirewallRuleConfig             `yaml:"firewall_rules,omitempty"`
-	CreateAppVersion           bool                             `yaml:"create_app_version,omitempty"`
-	EnvVariables               map[string]string                `yaml:"env_variables,omitempty"`
-	Labels                     map[string]string                `yaml:"labels,omitempty"`
+	ProjectID        string                  `yaml:"project_id"`
+	Service          string                  `yaml:"service"`
+	VersionID        string                  `yaml:"version_id"`
+	Runtime          string                  `yaml:"runtime"`
+	Deployment       *DeploymentConfig       `yaml:"deployment,omitempty"`
+	Entrypoint       *EntrypointConfig       `yaml:"entrypoint,omitempty"`
+	AutomaticScaling *AutomaticScalingConfig `yaml:"automatic_scaling,omitempty"`
+	Handlers         HandlerConfig           `yaml:"handlers,omitempty"`
+	// VPCAccessConnector         *VPCAccessConnectorConfig        `yaml:"vpc_access_connector,omitempty"`
+	// VPCAccessConnectorDetails *VPCAccessConnectorDetailsConfig `yaml:"vpc_connector_details,omitempty"`
+	AppEngineApplication *AppEngineAppConfig `yaml:"app_engine_application,omitempty"`
+	// CreateVPCConnector         bool                             `yaml:"create_vpc_connector,omitempty"`
+	CreateSplitTraffic         bool                  `yaml:"create_split_traffic,omitempty"`
+	CreateAppEngineApplication bool                  `yaml:"create_app_engine_application,omitempty"`
+	CreateDispatchRules        bool                  `yaml:"create_dispatch_rules,omitempty"`
+	CreateNetworkSettings      bool                  `yaml:"create_network_settings,omitempty"`
+	DeleteServiceOnDestroy     bool                  `yaml:"delete_service_on_destroy,omitempty"`
+	CreateDomainMappings       bool                  `yaml:"create_domain_mappings,omitempty"`
+	DomainMappings             []DomainMappingConfig `yaml:"domain_mappings,omitempty"`
+	CreateFirewallRules        bool                  `yaml:"create_firewall_rules,omitempty"`
+	FirewallRules              []FirewallRuleConfig  `yaml:"firewall_rules,omitempty"`
+	CreateAppVersion           bool                  `yaml:"create_app_version,omitempty"`
+	EnvVariables               map[string]string     `yaml:"env_variables,omitempty"`
+	Labels                     map[string]string     `yaml:"labels,omitempty"`
 }
 type DeploymentConfig struct {
 	Files *FilesConfig `yaml:"files,omitempty"`
@@ -163,15 +163,16 @@ type ScriptConfig struct {
 type VPCAccessConnectorConfig struct {
 	Name string `yaml:"name"`
 }
-type VPCAccessConnectorDetailsConfig struct {
-	Name          string `yaml:"name"`
-	SubnetName    string `yaml:"subnet_name"`
-	MachineType   string `yaml:"machine_type"`
-	MinInstances  int    `yaml:"min_instances"`
-	MaxInstances  int    `yaml:"max_instances"`
-	HostProjectID string `yaml:"host_project_id"`
-	Region        string `yaml:"region"`
-}
+
+//	type VPCAccessConnectorDetailsConfig struct {
+//		Name          string `yaml:"name"`
+//		SubnetName    string `yaml:"subnet_name"`
+//		MachineType   string `yaml:"machine_type"`
+//		MinInstances  int    `yaml:"min_instances"`
+//		MaxInstances  int    `yaml:"max_instances"`
+//		HostProjectID string `yaml:"host_project_id"`
+//		Region        string `yaml:"region"`
+//	}
 type AppEngineAppConfig struct {
 	LocationID string `yaml:"location_id"`
 }
@@ -212,9 +213,9 @@ func TestAppEngineStandardIntegration(t *testing.T) {
 
 	serviceAccountID := fmt.Sprintf("ae-test-sa-%s", uniqueID[:min(len(uniqueID), 18)])
 	serviceAccountDisplayName := fmt.Sprintf("App Engine Test SA (%s)", uniqueID)
-	testNetworkName := fmt.Sprintf("%s-%s", networkPrefix, uniqueID)
-	testSubnetworkName := fmt.Sprintf("%s-%s", subnetPrefix, uniqueID)
-	testConnectorName := fmt.Sprintf("%s-%s", connectorPrefix, uniqueID)
+	// testNetworkName := fmt.Sprintf("%s-%s", networkPrefix, uniqueID)
+	// testSubnetworkName := fmt.Sprintf("%s-%s", subnetPrefix, uniqueID)
+	// testConnectorName := fmt.Sprintf("%s-%s", connectorPrefix, uniqueID)
 	testConfigFolderPath := configFolderPath
 	testGcsObjectPathPrefix := fmt.Sprintf("app-test-%s", uniqueID)
 
@@ -264,24 +265,24 @@ func TestAppEngineStandardIntegration(t *testing.T) {
 	uploadGcsObject(t, projectID, sampleAppGcsBucket, appYamlGcsPath, appYamlContent)
 	uploadGcsObject(t, projectID, sampleAppGcsBucket, mainPyGcsPath, mainPyContent)
 
-	t.Logf("Creating test VPC network '%s' and subnet '%s' using gcloud...", testNetworkName, testSubnetworkName)
-	createVPC(t, projectID, testNetworkName, testSubnetworkName, testSubnetCIDR, defaultRegion) // This creates testSubnetworkName
-	defer deleteVPC(t, projectID, testNetworkName, testSubnetworkName, defaultRegion)
+	// t.Logf("Creating test VPC network '%s' and subnet '%s' using gcloud...", testNetworkName, testSubnetworkName)
+	// createVPC(t, projectID, testNetworkName, testSubnetworkName, testSubnetCIDR, defaultRegion) // This creates testSubnetworkName
+	// defer deleteVPC(t, projectID, testNetworkName, testSubnetworkName, defaultRegion)
 
-	t.Logf("Creating VPC Access Connector '%s' via gcloud using subnet '%s'...", testConnectorName, testSubnetworkName)
-	// Using testSubnetworkName as the dedicated subnet for the connector.
-	// projectID is used as subnetProjectID as the subnet is in the same project.
-	gcloudCreatedConnectorFullName := createVPCConnectorGcloud(t, projectID, testConnectorName, defaultRegion,
-		testSubnetworkName, projectID, // Pass subnetName and its projectID
-		connectorMachineType, connectorMinInstances, connectorMaxInstances)
-	time.Sleep(vpcAccessCreateWaitTime)
-	defer deleteVPCConnectorGcloud(t, projectID, testConnectorName, defaultRegion)
+	// t.Logf("Creating VPC Access Connector '%s' via gcloud using subnet '%s'...", testConnectorName, testSubnetworkName)
+	// // Using testSubnetworkName as the dedicated subnet for the connector.
+	// // projectID is used as subnetProjectID as the subnet is in the same project.
+	// gcloudCreatedConnectorFullName := createVPCConnectorGcloud(t, projectID, testConnectorName, defaultRegion,
+	// 	testSubnetworkName, projectID, // Pass subnetName and its projectID
+	// 	connectorMachineType, connectorMinInstances, connectorMaxInstances)
+	// time.Sleep(vpcAccessCreateWaitTime)
+	// defer deleteVPCConnectorGcloud(t, projectID, testConnectorName, defaultRegion)
 
 	appYamlDisplayUrl := fmt.Sprintf("https://storage.googleapis.com/%s/%s", sampleAppGcsBucket, appYamlGcsPath)
 	defer os.RemoveAll(testConfigFolderPath)
 	// Pass gcloudCreatedConnectorFullName; testSubnetName and uniqueID for createConfigYAML are for other potential uses or logging.
 	t.Logf("Creating YAML Config.")
-	createConfigYAML(t, testConfigFolderPath, testSubnetworkName, uniqueID, appYamlDisplayUrl, gcloudCreatedConnectorFullName)
+	createConfigYAML(t, testConfigFolderPath, uniqueID, appYamlDisplayUrl) //,testSubnetworkName, gcloudCreatedConnectorFullName)
 
 	tfVars := map[string]interface{}{
 		"config_folder_path": testConfigFolderPath,
@@ -422,10 +423,12 @@ func addProjectIamBindings(t *testing.T, projectID string, serviceAccountEmail s
 		t.Logf("Adding role %s to %s for project %s", role, member, projectID)
 		cmd := shell.Command{
 			Command: "gcloud",
-			Args:    []string{"projects", "add-iam-policy-binding", projectID, "--member=" + member, "--role=" + role, "--condition=None"},
+			Args:    []string{"projects", "add-iam-policy-binding", projectID, "--member=" + member, "--role=" + role, "--condition=None", "--format=none"},
 		}
 		output, err := shell.RunCommandAndGetOutputE(t, cmd)
-		t.Logf("Failed to add IAM binding '%s' for member '%s' to project '%s'. Output:\n%s, Error: %s", role, member, projectID, output, err)
+		if err != nil {
+			t.Logf("Failed to add IAM binding '%s' for member '%s' to project '%s'. Output:\n%s, Error: %s", role, member, projectID, output, err)
+		}
 	}
 }
 
@@ -436,7 +439,7 @@ func removeProjectIamBindings(t *testing.T, projectID string, serviceAccountEmai
 		t.Logf("Removing role %s from %s for project %s", role, member, projectID)
 		cmd := shell.Command{
 			Command: "gcloud",
-			Args:    []string{"projects", "remove-iam-policy-binding", projectID, "--member=" + member, "--role=" + role, "--condition=None", "--quiet"},
+			Args:    []string{"projects", "remove-iam-policy-binding", projectID, "--member=" + member, "--role=" + role, "--condition=None", "--quiet", "--format=none"},
 		}
 		output, err := shell.RunCommandAndGetOutputE(t, cmd)
 		if err != nil {
@@ -497,13 +500,19 @@ func deleteGcsObjects(t *testing.T, bucketName string, objectPathPrefix string) 
 func uploadGcsObject(t *testing.T, projectID string, bucketName string, objectPath string, content string) {
 	t.Helper()
 	tmpFile, err := os.CreateTemp("", "gcs-upload-*.tmp")
-	t.Logf("Failed to create temp file for GCS upload:Error %s", err)
+	if err != nil {
+		t.Logf("Failed to create temp file for GCS upload:Error %s", err)
+	}
 	defer os.Remove(tmpFile.Name())
 
 	_, err = tmpFile.WriteString(content)
-	t.Logf("Failed to write content to temp file: Error:%s", err)
+	if err != nil {
+		t.Logf("Failed to write content to temp file: Error:%s", err)
+	}
 	err = tmpFile.Close()
-	t.Logf("Failed to close temp file: Error:%s", err)
+	if err != nil {
+		t.Logf("Failed to close temp file: Error:%s", err)
+	}
 
 	gcsDest := fmt.Sprintf("gs://%s/%s", bucketName, objectPath)
 	t.Logf("Uploading temp file %s to %s", tmpFile.Name(), gcsDest)
@@ -518,168 +527,168 @@ func uploadGcsObject(t *testing.T, projectID string, bucketName string, objectPa
 	t.Logf("Uploaded object %s successfully.", objectPath)
 }
 
-func createVPC(t *testing.T, projectID string, networkName string, subnetName string, subnetCIDR string, region string) {
-	t.Helper()
-	t.Logf("Creating VPC network '%s' in project '%s'...", networkName, projectID)
-	cmdNetwork := shell.Command{Command: "gcloud", Args: []string{"compute", "networks", "create", networkName, "--project=" + projectID, "--subnet-mode=custom", "--bgp-routing-mode=global", "--format=json"}}
-	outputNetwork, errNetwork := shell.RunCommandAndGetOutputE(t, cmdNetwork)
-	if errNetwork != nil {
-		t.Logf("Failed to create VPC network %s. Output:\n%s. Error:%s", networkName, outputNetwork, errNetwork)
-	}
-	t.Logf("VPC network '%s' created.", networkName)
-	t.Logf("Creating subnet '%s' in network '%s', region '%s' with range '%s'...", subnetName, networkName, region, subnetCIDR)
-	cmdSubnet := shell.Command{Command: "gcloud", Args: []string{"compute", "networks", "subnets", "create", subnetName, "--project=" + projectID, "--network=" + networkName, "--region=" + region, "--range=" + subnetCIDR, "--format=json"}}
-	outputSubnet, errSubnet := shell.RunCommandAndGetOutputE(t, cmdSubnet)
-	if errSubnet != nil {
-		t.Logf("Failed to create subnet %s. Output:\n%s Error:%s", subnetName, outputSubnet, errSubnet)
-	}
+// func createVPC(t *testing.T, projectID string, networkName string, subnetName string, subnetCIDR string, region string) {
+// 	t.Helper()
+// 	t.Logf("Creating VPC network '%s' in project '%s'...", networkName, projectID)
+// 	cmdNetwork := shell.Command{Command: "gcloud", Args: []string{"compute", "networks", "create", networkName, "--project=" + projectID, "--subnet-mode=custom", "--bgp-routing-mode=global", "--format=json"}}
+// 	outputNetwork, errNetwork := shell.RunCommandAndGetOutputE(t, cmdNetwork)
+// 	if errNetwork != nil {
+// 		t.Logf("Failed to create VPC network %s. Output:\n%s. Error:%s", networkName, outputNetwork, errNetwork)
+// 	}
+// 	t.Logf("VPC network '%s' created.", networkName)
+// 	t.Logf("Creating subnet '%s' in network '%s', region '%s' with range '%s'...", subnetName, networkName, region, subnetCIDR)
+// 	cmdSubnet := shell.Command{Command: "gcloud", Args: []string{"compute", "networks", "subnets", "create", subnetName, "--project=" + projectID, "--network=" + networkName, "--region=" + region, "--range=" + subnetCIDR, "--format=json"}}
+// 	outputSubnet, errSubnet := shell.RunCommandAndGetOutputE(t, cmdSubnet)
+// 	if errSubnet != nil {
+// 		t.Logf("Failed to create subnet %s. Output:\n%s Error:%s", subnetName, outputSubnet, errSubnet)
+// 	}
 
-	t.Logf("Subnet '%s' created.", subnetName)
-}
+// 	t.Logf("Subnet '%s' created.", subnetName)
+// }
 
-func deleteVPC(t *testing.T, projectID string, networkName string, subnetName string, region string) {
-	t.Helper()
-	t.Logf("Waiting %v before deleting subnet %s...", vpcCleanupWaitShort, subnetName)
-	time.Sleep(vpcCleanupWaitShort)
-	t.Logf("Deleting subnet '%s' in region '%s' from project '%s'...", subnetName, region, projectID)
-	cmdSubnet := shell.Command{Command: "gcloud", Args: []string{"compute", "networks", "subnets", "delete", subnetName, "--project=" + projectID, "--region=" + region, "--quiet"}}
-	outputSubnet, errSubnet := shell.RunCommandAndGetOutputE(t, cmdSubnet)
-	if errSubnet != nil {
-		if !strings.Contains(outputSubnet, "NOT_FOUND") && !strings.Contains(errSubnet.Error(), "NOT_FOUND") {
-			t.Logf("Error deleting subnet %s: %v. Output:\n%s", subnetName, errSubnet, outputSubnet)
-		} else {
-			t.Logf("Subnet %s already deleted or not found.", subnetName)
-		}
-	} else {
-		t.Logf("Subnet %s deleted or was already gone.", subnetName)
-	}
+// func deleteVPC(t *testing.T, projectID string, networkName string, subnetName string, region string) {
+// 	t.Helper()
+// 	t.Logf("Waiting %v before deleting subnet %s...", vpcCleanupWaitShort, subnetName)
+// 	time.Sleep(vpcCleanupWaitShort)
+// 	t.Logf("Deleting subnet '%s' in region '%s' from project '%s'...", subnetName, region, projectID)
+// 	cmdSubnet := shell.Command{Command: "gcloud", Args: []string{"compute", "networks", "subnets", "delete", subnetName, "--project=" + projectID, "--region=" + region, "--quiet"}}
+// 	outputSubnet, errSubnet := shell.RunCommandAndGetOutputE(t, cmdSubnet)
+// 	if errSubnet != nil {
+// 		if !strings.Contains(outputSubnet, "NOT_FOUND") && !strings.Contains(errSubnet.Error(), "NOT_FOUND") {
+// 			t.Logf("Error deleting subnet %s: %v. Output:\n%s", subnetName, errSubnet, outputSubnet)
+// 		} else {
+// 			t.Logf("Subnet %s already deleted or not found.", subnetName)
+// 		}
+// 	} else {
+// 		t.Logf("Subnet %s deleted or was already gone.", subnetName)
+// 	}
 
-	t.Logf("Waiting %v before deleting network %s...", vpcCleanupWaitLong, networkName)
-	time.Sleep(vpcCleanupWaitLong)
-	t.Logf("Deleting network '%s' from project '%s'...", networkName, projectID)
-	cmdNetwork := shell.Command{Command: "gcloud", Args: []string{"compute", "networks", "delete", networkName, "--project=" + projectID, "--quiet"}}
-	outputNetwork, errNetwork := shell.RunCommandAndGetOutputE(t, cmdNetwork)
-	if errNetwork != nil {
-		if !strings.Contains(outputNetwork, "NOT_FOUND") && !strings.Contains(errNetwork.Error(), "NOT_FOUND") {
-			t.Logf("Error deleting network %s: %v. Output:\n%s", networkName, errNetwork, outputNetwork)
-		} else {
-			t.Logf("Network %s already deleted or not found.", networkName)
-		}
-	} else {
-		t.Logf("Network %s deleted or was already gone.", networkName)
-	}
-}
+// 	t.Logf("Waiting %v before deleting network %s...", vpcCleanupWaitLong, networkName)
+// 	time.Sleep(vpcCleanupWaitLong)
+// 	t.Logf("Deleting network '%s' from project '%s'...", networkName, projectID)
+// 	cmdNetwork := shell.Command{Command: "gcloud", Args: []string{"compute", "networks", "delete", networkName, "--project=" + projectID, "--quiet"}}
+// 	outputNetwork, errNetwork := shell.RunCommandAndGetOutputE(t, cmdNetwork)
+// 	if errNetwork != nil {
+// 		if !strings.Contains(outputNetwork, "NOT_FOUND") && !strings.Contains(errNetwork.Error(), "NOT_FOUND") {
+// 			t.Logf("Error deleting network %s: %v. Output:\n%s", networkName, errNetwork, outputNetwork)
+// 		} else {
+// 			t.Logf("Network %s already deleted or not found.", networkName)
+// 		}
+// 	} else {
+// 		t.Logf("Network %s deleted or was already gone.", networkName)
+// 	}
+// }
 
 // createVPCConnectorGcloud creates a VPC Access Connector using the user-specified gcloud command structure.
-func createVPCConnectorGcloud(t *testing.T, projectID, connectorName, region,
-	subnetName, // Name of the dedicated /28 subnet
-	subnetProjectID, // Project ID of the subnet (usually same as projectID)
-	machineType string, minInstances, maxInstances int) string {
-	t.Helper()
-	t.Logf("Creating VPC Access Connector '%s' using 'gcloud compute networks vpc-access connectors create' in project '%s', region '%s' using subnet '%s'...",
-		connectorName, projectID, region, subnetName)
-	t.Logf("Connector details: SubnetProject='%s', MachineType='%s', MinInst=%d, MaxInst=%d",
-		subnetProjectID, machineType, minInstances, maxInstances)
+// func createVPCConnectorGcloud(t *testing.T, projectID, connectorName, region,
+// 	subnetName, // Name of the dedicated /28 subnet
+// 	subnetProjectID, // Project ID of the subnet (usually same as projectID)
+// 	machineType string, minInstances, maxInstances int) string {
+// 	t.Helper()
+// 	t.Logf("Creating VPC Access Connector '%s' using 'gcloud compute networks vpc-access connectors create' in project '%s', region '%s' using subnet '%s'...",
+// 		connectorName, projectID, region, subnetName)
+// 	t.Logf("Connector details: SubnetProject='%s', MachineType='%s', MinInst=%d, MaxInst=%d",
+// 		subnetProjectID, machineType, minInstances, maxInstances)
 
-	args := []string{
-		"compute", "networks", "vpc-access", "connectors", "create", connectorName,
-		"--project=" + projectID, // Though gcloud often infers this, explicit is safer for scripts
-		"--region=" + region,
-		"--subnet=" + subnetName,
-		fmt.Sprintf("--min-instances=%d", minInstances),
-		fmt.Sprintf("--max-instances=%d", maxInstances),
-		"--machine-type=" + machineType,
-		"--format=value(name)", // Assuming this format option is available for this command path
-		"--quiet",              // To handle any operational prompts non-interactively
-	}
+// 	args := []string{
+// 		"compute", "networks", "vpc-access", "connectors", "create", connectorName,
+// 		"--project=" + projectID, // Though gcloud often infers this, explicit is safer for scripts
+// 		"--region=" + region,
+// 		"--subnet=" + subnetName,
+// 		fmt.Sprintf("--min-instances=%d", minInstances),
+// 		fmt.Sprintf("--max-instances=%d", maxInstances),
+// 		"--machine-type=" + machineType,
+// 		"--format=value(name)", // Assuming this format option is available for this command path
+// 		"--quiet",              // To handle any operational prompts non-interactively
+// 	}
 
-	cmd := shell.Command{
-		Command: "gcloud",
-		Args:    args,
-	}
+// 	cmd := shell.Command{
+// 		Command: "gcloud",
+// 		Args:    args,
+// 	}
 
-	output, err := shell.RunCommandAndGetOutputE(t, cmd)
-	if err != nil {
-		t.Logf("Failed to create VPC Access Connector '%s' using 'compute networks vpc-access' path and subnet. Output:\n%s. Error: %s", connectorName, output, err)
-	}
+// 	output, err := shell.RunCommandAndGetOutputE(t, cmd)
+// 	if err != nil {
+// 		t.Logf("Failed to create VPC Access Connector '%s' using 'compute networks vpc-access' path and subnet. Output:\n%s. Error: %s", connectorName, output, err)
+// 	}
 
-	// Log the full raw stdout for debugging purposes
-	t.Logf("Raw stdout from 'gcloud compute networks vpc-access connectors create ... --format=value(name)':\n---\n%s\n---", output)
+// 	// Log the full raw stdout for debugging purposes
+// 	t.Logf("Raw stdout from 'gcloud compute networks vpc-access connectors create ... --format=value(name)':\n---\n%s\n---", output)
 
-	connectorFullName := fmt.Sprintf("projects/%s/locations/%s/connectors/%s", projectID, region, connectorName)
+// 	connectorFullName := fmt.Sprintf("projects/%s/locations/%s/connectors/%s", projectID, region, connectorName)
 
-	t.Logf("VPC Access Connector '%s' created successfully. Fully qualified name to be used: '%s'", connectorName, connectorFullName)
-	return connectorFullName
-}
+// 	t.Logf("VPC Access Connector '%s' created successfully. Fully qualified name to be used: '%s'", connectorName, connectorFullName)
+// 	return connectorFullName
+// }
 
 // deleteVPCConnectorGcloud deletes a VPC Access Connector using the standard gcloud path.
 // The delete command path is typically stable even if creation paths change or have aliases.
-func deleteVPCConnectorGcloud(t *testing.T, projectID, connectorName, region string) {
-	t.Helper()
-	t.Logf("Waiting %v before attempting to delete VPC Access Connector '%s'...", connectorDeleteWait, connectorName)
-	time.Sleep(connectorDeleteWait)
+// func deleteVPCConnectorGcloud(t *testing.T, projectID, connectorName, region string) {
+// 	t.Helper()
+// 	t.Logf("Waiting %v before attempting to delete VPC Access Connector '%s'...", connectorDeleteWait, connectorName)
+// 	time.Sleep(connectorDeleteWait)
 
-	t.Logf("Deleting VPC Access Connector '%s' in project '%s', region '%s' (using 'gcloud vpc-access connectors delete')...", connectorName, projectID, region)
-	cmd := shell.Command{
-		Command: "gcloud",
-		Args: []string{
-			// Standard GA command for delete, assuming it targets the same resource type
-			"compute", "networks", "vpc-access", "connectors", "delete", connectorName,
-			"--project=" + projectID,
-			"--region=" + region,
-			"--quiet",
-		},
-	}
+// 	t.Logf("Deleting VPC Access Connector '%s' in project '%s', region '%s' (using 'gcloud vpc-access connectors delete')...", connectorName, projectID, region)
+// 	cmd := shell.Command{
+// 		Command: "gcloud",
+// 		Args: []string{
+// 			// Standard GA command for delete, assuming it targets the same resource type
+// 			"compute", "networks", "vpc-access", "connectors", "delete", connectorName,
+// 			"--project=" + projectID,
+// 			"--region=" + region,
+// 			"--quiet",
+// 		},
+// 	}
 
-	output, err := shell.RunCommandAndGetOutputE(t, cmd)
-	if err != nil {
-		if strings.Contains(output, "NOT_FOUND") || strings.Contains(output, "NotFound") || strings.Contains(err.Error(), "NOT_FOUND") {
-			t.Logf("VPC Access Connector '%s' already deleted or not found.", connectorName)
-		} else {
-			t.Logf("Error deleting VPC Access Connector '%s': %v. Output:\n%s", connectorName, err, output)
-		}
-	} else {
-		t.Logf("VPC Access Connector '%s' deleted successfully or was already gone.", connectorName)
-	}
-}
+// 	output, err := shell.RunCommandAndGetOutputE(t, cmd)
+// 	if err != nil {
+// 		if strings.Contains(output, "NOT_FOUND") || strings.Contains(output, "NotFound") || strings.Contains(err.Error(), "NOT_FOUND") {
+// 			t.Logf("VPC Access Connector '%s' already deleted or not found.", connectorName)
+// 		} else {
+// 			t.Logf("Error deleting VPC Access Connector '%s': %v. Output:\n%s", connectorName, err, output)
+// 		}
+// 	} else {
+// 		t.Logf("VPC Access Connector '%s' deleted successfully or was already gone.", connectorName)
+// 	}
+// }
 
 // Updated createConfigYAML helper function
-func createConfigYAML(t *testing.T, outputDir string, testSubnetName string, uniqueID string, deploymentFileURL string, gcloudCreatedConnectorFullName string) {
+func createConfigYAML(t *testing.T, outputDir string, uniqueID string, deploymentFileURL string) { //,testSubnetName string, gcloudCreatedConnectorFullName string) {
 	t.Helper()
 	testProjectID := projectID
 
 	configs := map[string]AppEngineConfig{
 		"instance1.yaml": {
-			ProjectID:                 testProjectID,
-			Service:                   service1,
-			VersionID:                 versionID1,
-			Runtime:                   sampleAppRuntime,
-			Deployment:                &DeploymentConfig{Files: &FilesConfig{Name: sampleAppGcsObjectName, SourceURL: deploymentFileURL}},
-			Entrypoint:                &EntrypointConfig{Shell: sampleAppEntrypoint},
-			AutomaticScaling:          &AutomaticScalingConfig{MaxConcurrentRequests: 50, MinIdleInstances: 1, MaxIdleInstances: 3},
-			Handlers:                  HandlerConfig{{URLRegex: "/.*", Script: &ScriptConfig{ScriptPath: "auto"}}},
-			VPCAccessConnector:        &VPCAccessConnectorConfig{Name: gcloudCreatedConnectorFullName},
-			CreateVPCConnector:        false, // Terraform is not creating the connector
-			VPCAccessConnectorDetails: nil,   // Ensure not set
-			CreateAppVersion:          false,
-			DeleteServiceOnDestroy:    true,
-			AppEngineApplication:      &AppEngineAppConfig{LocationID: defaultRegion},
+			ProjectID:        testProjectID,
+			Service:          service1,
+			VersionID:        versionID1,
+			Runtime:          sampleAppRuntime,
+			Deployment:       &DeploymentConfig{Files: &FilesConfig{Name: sampleAppGcsObjectName, SourceURL: deploymentFileURL}},
+			Entrypoint:       &EntrypointConfig{Shell: sampleAppEntrypoint},
+			AutomaticScaling: &AutomaticScalingConfig{MaxConcurrentRequests: 50, MinIdleInstances: 1, MaxIdleInstances: 3},
+			Handlers:         HandlerConfig{{URLRegex: "/.*", Script: &ScriptConfig{ScriptPath: "auto"}}},
+			// VPCAccessConnector:        &VPCAccessConnectorConfig{Name: gcloudCreatedConnectorFullName},
+			// CreateVPCConnector:        false, // Terraform is not creating the connector
+			// VPCAccessConnectorDetails: nil,   // Ensure not set
+			CreateAppVersion:       false,
+			DeleteServiceOnDestroy: true,
+			AppEngineApplication:   &AppEngineAppConfig{LocationID: defaultRegion},
 		},
 		"instance2.yaml": {
-			ProjectID:                 testProjectID,
-			Service:                   service2,
-			VersionID:                 versionID2,
-			Runtime:                   sampleAppRuntime,
-			Deployment:                &DeploymentConfig{Files: &FilesConfig{Name: sampleAppGcsObjectName, SourceURL: deploymentFileURL}},
-			Entrypoint:                &EntrypointConfig{Shell: sampleAppEntrypoint},
-			AutomaticScaling:          &AutomaticScalingConfig{MaxConcurrentRequests: 60, MinIdleInstances: 0, MaxIdleInstances: 2},
-			Handlers:                  HandlerConfig{{URLRegex: "/.*", Script: &ScriptConfig{ScriptPath: "auto"}}},
-			VPCAccessConnector:        &VPCAccessConnectorConfig{Name: gcloudCreatedConnectorFullName},
-			CreateVPCConnector:        false, // Terraform is not creating the connector
-			VPCAccessConnectorDetails: nil,   // Ensure not set
-			CreateAppVersion:          false,
-			DeleteServiceOnDestroy:    true,
-			AppEngineApplication:      &AppEngineAppConfig{LocationID: defaultRegion},
+			ProjectID:        testProjectID,
+			Service:          service2,
+			VersionID:        versionID2,
+			Runtime:          sampleAppRuntime,
+			Deployment:       &DeploymentConfig{Files: &FilesConfig{Name: sampleAppGcsObjectName, SourceURL: deploymentFileURL}},
+			Entrypoint:       &EntrypointConfig{Shell: sampleAppEntrypoint},
+			AutomaticScaling: &AutomaticScalingConfig{MaxConcurrentRequests: 60, MinIdleInstances: 0, MaxIdleInstances: 2},
+			Handlers:         HandlerConfig{{URLRegex: "/.*", Script: &ScriptConfig{ScriptPath: "auto"}}},
+			// VPCAccessConnector:        &VPCAccessConnectorConfig{Name: gcloudCreatedConnectorFullName},
+			// CreateVPCConnector:        false, // Terraform is not creating the connector
+			// VPCAccessConnectorDetails: nil,   // Ensure not set
+			CreateAppVersion:       false,
+			DeleteServiceOnDestroy: true,
+			AppEngineApplication:   &AppEngineAppConfig{LocationID: defaultRegion},
 		},
 	}
 	if err := os.MkdirAll(outputDir, 0755); err != nil {
@@ -875,6 +884,7 @@ func addTokenCreatorRoleToPrincipalOnServiceAccount(t *testing.T, projectID stri
 			"--member=" + memberIdentifier,
 			"--role=" + role,
 			"--quiet",
+			"--format=none",
 		},
 	}
 	output, err := shell.RunCommandAndGetOutputE(t, cmd)
@@ -906,6 +916,7 @@ func removeTokenCreatorRoleFromPrincipalOnServiceAccount(t *testing.T, projectID
 			"--member=" + memberIdentifier,
 			"--role=" + role,
 			"--quiet",
+			"--format=none",
 		},
 	}
 	output, err := shell.RunCommandAndGetOutputE(t, cmd)
