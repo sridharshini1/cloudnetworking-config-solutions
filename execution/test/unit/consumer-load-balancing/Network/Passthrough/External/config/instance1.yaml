@@ -1,0 +1,5 @@
+name: minimal-nlb
+project_id: your-project-id
+region: region
+backends:
+  - group_name: your-regional-mig
