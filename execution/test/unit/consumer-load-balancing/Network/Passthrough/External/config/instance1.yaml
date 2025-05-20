@@ -1,5 +1,8 @@
-name: minimal-nlb
+name: nlb-hybrid
 project_id: your-project-id
-region: region
+region: us-central1
 backends:
-  - group_name: your-regional-mig
+  - group_name: rmig-for-hybrid
+    group_region: us-central1
+  - group_name: zmig-for-hybrid
+    group_zone: us-central1-a

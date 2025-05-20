@@ -1,5 +1,7 @@
 name: lite-nlb
-project_id: <your-project-id>
-region: <region> e.g. : us-central1
+project_id: pm-singleproject-30
+region: us-central1
 backends:
-  - group_name: <your-regional-mig>
+  - group_name: regional-mig # region picked from value above
+  - group_name: zonal-mig
+    group_zone: zone # e.g. : us-central1-a

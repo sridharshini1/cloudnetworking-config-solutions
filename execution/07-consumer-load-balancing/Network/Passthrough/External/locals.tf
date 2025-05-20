@@ -136,14 +136,13 @@ locals {
       forwarding_rules_config = {
         for rule_key, rule_config in try(processed_config.lb_config.forwarding_rules, var.forwarding_rules_map) : rule_key => {
           # Map individual attributes for each rule with defaults
-          address     = try(rule_config.address, var.forwarding_rule_address)                                   # Default address from root var
-          description = try(rule_config.description, var.forwarding_rule_description)                           # Use root variable default
-          ipv6        = try(rule_config.ipv6, try(var.forwarding_rule_ipv6, var.forwarding_rule_ipv6_fallback)) # Use variable for fallback
-          name        = try(rule_config.name, var.forwarding_rule_name_override)                                # Use root variable for override
-          ports       = try(rule_config.ports, var.forwarding_rule_ports)                                       # Default ports from root var
-          # Rule-specific protocol if available, otherwise use LB default protocol, otherwise use root var default
-          protocol   = try(rule_config.protocol, try(processed_config.lb_config.forwarding_rule_protocol, var.forwarding_rule_protocol))
-          subnetwork = try(rule_config.subnetwork, var.forwarding_rule_subnetwork) # Use root variable default
+          address     = try(rule_config.address, var.forwarding_rule_address)
+          description = try(rule_config.description, var.forwarding_rule_description)
+          ipv6        = try(rule_config.ipv6, try(var.forwarding_rule_ipv6, var.forwarding_rule_ipv6_fallback))
+          name        = try(rule_config.name, var.forwarding_rule_name_override)
+          ports       = try(rule_config.ports, var.forwarding_rule_ports)
+          protocol    = try(rule_config.protocol, try(processed_config.lb_config.forwarding_rule_protocol, var.forwarding_rule_protocol))
+          subnetwork  = try(rule_config.subnetwork, var.forwarding_rule_subnetwork)
         }
       }
     }
@@ -158,12 +157,20 @@ locals {
       {
         backends = [
           for backend_def in lb.backend_definitions : {
-            group = format(var.backend_group_self_link_format,
-              lb.project_id,
-              try(backend_def.group_region, lb.region),
-              backend_def.group_name
-            )
-            failover    = try(backend_def.failover, var.backend_item_failover)
+            group = (
+              try(backend_def.group_zone, null) != null ?
+              format("projects/%s/zones/%s/instanceGroups/%s",
+                lb.project_id,
+                backend_def.group_zone,
+                backend_def.group_name
+              ) :
+              format(var.backend_group_self_link_format,
+                lb.project_id,
+                try(backend_def.group_region, lb.region),
+                backend_def.group_name
+              )
+            ),
+            failover    = try(backend_def.failover, var.backend_item_failover),
             description = try(backend_def.description, var.backend_item_description)
           }
         ]

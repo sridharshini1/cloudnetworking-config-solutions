@@ -102,34 +102,54 @@ The `locals.tf` file processes YAML files from the `config_folder_path`. Each YA
 
 Below are sample YAML structures demonstrating common configurations. Refer to `variables.tf` for the full list of default values and configurable options.
 
-* **Basic TCP NLB (using Serving Port):**
+* **Basic TCP NLB (Regional MIG using Default Region):**
 
-    This example defines a simple TCP NLB targeting an existing Regional Managed Instance Group (R-MIG), using the default "Serving port" for health checks, and listening on common web ports.
+    This example defines a simple TCP NLB targeting an existing Regional Managed Instance Group (R-MIG). Since `group_zone` is not specified and `group_region` is also omitted, the R-MIG is assumed to be in the same region as the load balancer (`us-central1`).
 
     ```yaml
     name: nlb-simple-web
     project_id: your-gcp-project-id
     region: us-central1
     backends:
-    - group_name: your-existing-mig-name
+    - group_name: your-regional-mig-in-lb-region # This MIG is expected to be a Regional MIG in us-central1
     ```
 
-* **Basic TCP NLB (using Serving Port) with multiple MIG backends:**
+* **Basic TCP NLB with Multiple Regional MIGs (Default Region):**
 
-    This example defines a simple TCP NLB targeting an existing Regional Managed Instance Group (R-MIG), using the default "Serving port" for health checks, and listening on common web ports.
+    This example targets multiple Regional MIGs, all assumed to be in the same region as the load balancer.
 
     ```yaml
     name: multi-backend-lb
     project_id: your-gcp-project-id
     region: "us-central1"
     backends:
-    - group_name: my-mig-1
-    - group_name: my-mig-2
+    - group_name: my-regional-mig-1
+    - group_name: my-regional-mig-2
     ```
 
-* **TCP/UDP NLB with Static IPs and Request/Response Health Check:**
+* **NLB with Mixed Regional and Zonal MIGs:**
 
-    This example demonstrates defining multiple forwarding rules for different protocols and IPs, using static addresses, and configuring a health check that sends a specific string and expects a specific response. This is common for applications that provide a health check endpoint.
+    This example demonstrates configuring an NLB with both a Regional MIG (implicitly in the LB's region) and a Zonal MIG.
+
+    ```yaml
+    name: nlb-hybrid-backends
+    project_id: your-gcp-project-id
+    region: us-central1
+
+    backends:
+      - group_name: my-app-regional-mig
+        group_region: us-central1 # Optional for Regional MIG, defaults to lb.region (us-central1)
+        description: "This is a Regional MIG"
+
+      - group_name: my-app-zonal-mig
+        group_zone: us-central1-a
+        description: This is a Zonal MIG in us-central1-a
+        failover: true
+    ```
+
+* **TCP/UDP NLB with Static IPs and Advanced Options:**
+
+    This example demonstrates defining multiple forwarding rules, using static addresses, and configuring more specific backend service and health check parameters. The backend shown is a Regional MIG with an explicitly defined region.
 
     ```yaml
     name: expanded-nlb
@@ -138,46 +158,46 @@ Below are sample YAML structures demonstrating common configurations. Refer to `
     description: Comprehensive NLB configured via YAML
 
     backend_service:
-    protocol: TCP
-    port_name: my-app-port
-    timeout_sec: 60
-    connection_draining_timeout_sec: 300
-    log_sample_rate: 0.75
-    locality_lb_policy: MAGLEV
-    session_affinity: CLIENT_IP_PORT_PROTO
-    connection_tracking:
-        persist_conn_on_unhealthy: ALWAYS_PERSIST
-        track_per_session: false
-    failover_config:
-        disable_conn_drain: true
-        drop_traffic_if_unhealthy: true
-        ratio: 0.8
+      protocol: TCP
+      port_name: my-app-port
+      timeout_sec: 60
+      connection_draining_timeout_sec: 300
+      log_sample_rate: 0.75
+      locality_lb_policy: MAGLEV
+      session_affinity: CLIENT_IP_PORT_PROTO
+      connection_tracking:
+          persist_conn_on_unhealthy: ALWAYS_PERSIST
+          track_per_session: false
+      failover_config:
+          disable_conn_drain: true
+          drop_traffic_if_unhealthy: true
+          ratio: 0.8
 
     backends:
-    - group_name: <your-regional-mig>
-        group_region: <group_region> # e.g., us-central1
-        failover: true
-        description: Main production backend group
+    - group_name: <your-specific-regional-mig>
+      group_region: <group_region>
+      failover: true
+      description: Main production backend group for this service
 
     health_check:
-    check_interval_sec: 8
-    timeout_sec: 8
-    healthy_threshold: 4
-    unhealthy_threshold: 4
-    enable_logging: true
-    description: Custom auto-created health check
-    tcp:
-        port: 80
-        port_specification: USE_FIXED_PORT
-        request: HEALTH_CHECK
-        response: OK
+      check_interval_sec: 8
+      timeout_sec: 8
+      healthy_threshold: 4
+      unhealthy_threshold: 4
+      enable_logging: true
+      description: Custom auto-created health check
+      tcp:
+          port: 80
+          port_specification: USE_FIXED_PORT
+          request: HEALTH_CHECK
+          response: OK
 
     forwarding_rules:
-    "fwd-rule":
-        protocol: TCP
-        ports: ["80", "443", "8080"]
-        description: Primary web traffic listener
-        ipv6: false
+      "fwd-rule-tcp":
+          protocol: TCP
+          ports: ["80", "443", "8080"]
+          description: Primary web traffic listener (TCP)
+          ipv6: false
     ```
 
 <!-- BEGIN_TF_DOCS -->

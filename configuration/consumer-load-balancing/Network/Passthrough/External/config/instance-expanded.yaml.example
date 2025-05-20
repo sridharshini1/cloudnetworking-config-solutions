@@ -20,10 +20,9 @@ backend_service:
     ratio: 0.8
 
 backends:
-  - group_name: <your-regional-mig>
-    group_region: <group_region> # e.g., us-central1
-    failover: true
-    description: Main production backend group
+  - group_name: regional-mig # region picked from value above
+  - group_name: zonal-mig
+    group_zone: zone # e.g. : us-central1-a
 
 health_check:
   check_interval_sec: 8
