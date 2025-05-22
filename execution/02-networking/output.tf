@@ -59,8 +59,3 @@ output "subnet_self_links_for_scp_policy" {
   value       = local.subnet_self_links_for_scp_policy
   description = "The self-links of the subnets where the SCP policy is applied."
 }
-
-output "network_connectivity_center" {
-  value       = module.network_connectivity_center
-  description = "Detailed information about resources created by network connectivity center."
-}

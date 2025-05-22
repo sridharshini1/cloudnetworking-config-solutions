@@ -52,7 +52,7 @@ locals {
 }
 
 resource "google_compute_global_address" "psa_ranges" {
-  for_each      = local.psa_configs_ranges
+  for_each      = var.create_psa ? local.psa_configs_ranges : {}
   project       = var.project_id
   network       = local.network.id
   name          = each.key
@@ -63,7 +63,7 @@ resource "google_compute_global_address" "psa_ranges" {
 }
 
 resource "google_service_networking_connection" "psa_connection" {
-  for_each                = local.psa_configs
+  for_each                = var.create_psa ? local.psa_configs : {}
   network                 = local.network.id
   service                 = each.key
   reserved_peering_ranges = formatlist("${each.value.key}%s", keys(each.value.ranges))
@@ -77,7 +77,7 @@ resource "time_sleep" "wait_60_seconds" {
 }
 
 resource "google_compute_network_peering_routes_config" "psa_routes" {
-  for_each = local.psa_configs
+  for_each = var.create_psa ? local.psa_configs : {}
   project  = var.project_id
   peering = (
     google_service_networking_connection.psa_connection[each.key].peering
@@ -98,3 +98,5 @@ resource "google_service_networking_peered_dns_domain" "name" {
   service    = each.value.service_producer
   depends_on = [google_service_networking_connection.psa_connection]
 }
+
+

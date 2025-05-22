@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Google LLC
+ * Copyright 2024-25 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,55 +15,84 @@
  */
 
 locals {
-  vpc_spokes = {
-    for k, v in google_network_connectivity_spoke.vpc_spoke :
-    k => v
-  }
-  hybrid_spokes = {
-    for k, v in google_network_connectivity_spoke.hybrid_spoke :
-    k => v
-  }
-  router_appliance_spokes = {
-    for k, v in google_network_connectivity_spoke.router_appliance_spoke :
-    k => v
-  }
+  hub_id = (
+    var.existing_hub_uri != null && var.existing_hub_uri != ""
+    ? var.existing_hub_uri
+    : google_network_connectivity_hub.hub[0].id
+  )
 }
 
 resource "google_network_connectivity_hub" "hub" {
-  name        = var.ncc_hub_name
-  project     = var.project_id
-  description = var.ncc_hub_description
-  export_psc  = var.export_psc
-  labels      = var.ncc_hub_labels
+  count           = var.create_new_hub ? 1 : 0
+  name            = var.ncc_hub_name
+  project         = var.project_id
+  description     = var.ncc_hub_description
+  labels          = var.ncc_hub_labels
+  export_psc      = var.export_psc
+  policy_mode     = var.policy_mode
+  preset_topology = var.preset_topology
 }
 
+resource "google_network_connectivity_group" "default" {
+  name        = var.group_name
+  hub         = local.hub_id
+  project     = var.project_id
+  description = var.group_decription
+  labels      = var.ncc_hub_labels
+
+  auto_accept {
+    auto_accept_projects = var.auto_accept_projects
+  }
+}
 
 resource "google_network_connectivity_spoke" "vpc_spoke" {
   for_each    = var.vpc_spokes
-  project     = var.project_id
+  project     = each.value.project_id
   name        = each.key
   location    = "global"
   description = each.value.description
-  hub         = google_network_connectivity_hub.hub.id
-  labels      = merge(var.spoke_labels, each.value.labels)
+  hub         = local.hub_id
+  labels      = merge(var.spoke_labels, lookup(each.value, "labels", {}))
 
   linked_vpc_network {
     uri                   = each.value.uri
-    exclude_export_ranges = each.value.exclude_export_ranges
+    exclude_export_ranges = lookup(each.value, "exclude_export_ranges", [])
+    include_export_ranges = lookup(each.value, "include_export_ranges", [])
   }
+}
+
+resource "google_network_connectivity_spoke" "producer_vpc_spoke" {
+  for_each    = var.producer_vpc_spokes
+  project     = each.value.project_id
+  name        = each.key
+  location    = each.value.location
+  description = each.value.description
+  hub         = local.hub_id
+  labels      = merge(var.spoke_labels, lookup(each.value, "labels", {}))
+
+  linked_producer_vpc_network {
+    network               = each.value.uri
+    peering               = each.value.peering
+    exclude_export_ranges = lookup(each.value, "exclude_export_ranges", [])
+    include_export_ranges = lookup(each.value, "include_export_ranges", [])
+  }
+
+  depends_on = [
+    google_network_connectivity_spoke.vpc_spoke
+  ]
 }
 
 resource "google_network_connectivity_spoke" "hybrid_spoke" {
   for_each    = var.hybrid_spokes
-  project     = var.project_id
+  project     = each.value.project_id
   name        = each.key
   location    = each.value.location
   description = each.value.description
-  hub         = google_network_connectivity_hub.hub.id
-  labels      = merge(var.spoke_labels, each.value.labels)
+  hub         = local.hub_id
+  labels      = merge(var.spoke_labels, lookup(each.value, "labels", {}))
 
   dynamic "linked_interconnect_attachments" {
-    for_each = each.value.type == "interconnect" ? [1] : []
+    for_each = each.value.spoke_type == "interconnect" ? [1] : []
     content {
       uris                       = each.value.uris
       site_to_site_data_transfer = each.value.site_to_site_data_transfer
@@ -71,18 +100,18 @@ resource "google_network_connectivity_spoke" "hybrid_spoke" {
   }
 
   dynamic "linked_vpn_tunnels" {
-    for_each = each.value.type == "vpn" ? [1] : []
+    for_each = each.value.spoke_type == "vpn" ? [1] : []
     content {
       uris                       = each.value.uris
       site_to_site_data_transfer = each.value.site_to_site_data_transfer
     }
   }
 
-  # TODO: gleichda remove once b/369823133 is fixed
   depends_on = [
     google_network_connectivity_spoke.vpc_spoke
   ]
 }
+
 
 resource "google_network_connectivity_spoke" "router_appliance_spoke" {
   for_each    = var.router_appliance_spokes
@@ -90,8 +119,8 @@ resource "google_network_connectivity_spoke" "router_appliance_spoke" {
   name        = each.key
   location    = each.value.location
   description = each.value.description
-  hub         = google_network_connectivity_hub.hub.id
-  labels      = merge(var.spoke_labels, each.value.labels)
+  hub         = local.hub_id
+  labels      = merge(var.spoke_labels, lookup(each.value, "labels", {}))
 
   linked_router_appliance_instances {
     dynamic "instances" {
@@ -103,10 +132,7 @@ resource "google_network_connectivity_spoke" "router_appliance_spoke" {
       }
     }
     site_to_site_data_transfer = each.value.site_to_site_data_transfer
-
   }
-
-  # TODO: gleichda remove once b/369823133 is fixed
   depends_on = [
     google_network_connectivity_spoke.hybrid_spoke
   ]

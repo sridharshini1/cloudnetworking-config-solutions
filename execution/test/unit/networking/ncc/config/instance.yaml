@@ -1,0 +1,37 @@
+hubs:
+  - name: test-hub
+    project_id: test-project-id
+    description: "Test hub for unit testing"
+    labels:
+      env: test
+    export_psc: true
+    policy_mode: PRESET
+    preset_topology: MESH
+    auto_accept_projects:
+      - test-project-id
+      - auto-accept-project-2
+    create_new_hub: true
+    existing_hub_uri: ""
+    group_name: default
+    group_decription: "Test group description"
+    spoke_labels:
+      team: networking
+spokes:
+  - type: linked_vpc_network
+    name: spoke1
+    project_id: spoke1-project
+    uri: spoke1-uri
+    description: "First spoke for testing"
+    labels:
+      env: dev
+
+  - type: linked_producer_vpc_network
+    name: prodspoke1
+    project_id: prodspoke1-project
+    location: us-central1
+    uri: prodspoke1-uri
+    description: "Producer spoke for testing"
+    labels:
+      env: prod
+    peering: true
+    exclude_export_ranges: []

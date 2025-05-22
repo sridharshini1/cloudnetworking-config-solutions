@@ -161,7 +161,7 @@ variable "private_service_connect_config" {
     project_allowlist              = list(string),
   })
   default     = null
-  description = "Optional) Optional. Configuration for private service connect. network and privateServiceConnectConfig are mutually exclusive."
+  description = "Optional. Configuration for private service connect. network and privateServiceConnectConfig are mutually exclusive."
 }
 
 variable "index_endpoint_network" {

@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Google LLC
+ * Copyright 2024-25 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,35 +20,21 @@ output "ncc_hub" {
 }
 
 output "vpc_spokes" {
-  description = "All vpc spoke objects"
-  value       = local.vpc_spokes
+  description = "All created vpc spoke resource objects"
+  value       = google_network_connectivity_spoke.vpc_spoke
 }
 
-
 output "hybrid_spokes" {
-  description = "All hybrid spoke objects"
-  value       = local.hybrid_spokes
+  description = "All created hybrid spoke resource objects"
+  value       = google_network_connectivity_spoke.hybrid_spoke
 }
 
 output "router_appliance_spokes" {
-  description = "All router appliance spoke objects"
-  value       = local.router_appliance_spokes
+  description = "All created router appliance spoke resource objects"
+  value       = google_network_connectivity_spoke.router_appliance_spoke
 }
 
-output "spokes" {
-  description = "All spoke objects prefixed with the type of spoke (vpc, hybrid, appliance)"
-  value = flatten([
-    {
-      for k, v in local.vpc_spokes :
-      "vpc/${k}" => v
-    },
-    {
-      for k, v in local.hybrid_spokes :
-      "hybrid/${k}" => v
-    },
-    {
-      for k, v in local.router_appliance_spokes :
-      "appliance/${k}" => v
-    },
-  ])
+output "producer_vpc_spokes" {
+  description = "All created producer VPC spoke resource objects"
+  value       = google_network_connectivity_spoke.producer_vpc_spoke
 }

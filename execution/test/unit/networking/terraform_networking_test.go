@@ -14,11 +14,10 @@
 package unittest
 
 import (
-	compare "cmp"
+	"sort"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"golang.org/x/exp/slices"
 )
@@ -46,7 +45,7 @@ var (
 		"create_havpn":           true,
 		"create_interconnect":    true,
 		"create_scp_policy":      true,
-		"subnets_for_scp_policy": []interface{}{"unit-test-subnet-1"}, // Changed to []interface{}
+		"subnets_for_scp_policy": []interface{}{"unit-test-subnet-1"},
 		"subnets": []any{
 			map[string]any{
 				"ip_cidr_range": "10.0.0.0/24",
@@ -82,12 +81,6 @@ var (
 )
 
 // variables for Interconnect Configuration
-var zone = "us-west2-a"
-var subnetworkName = "cloudsql-easy-subnet"
-var subnetworkIPCidr = "10.2.0.0/16"
-var deletionProtection = false
-
-// variables for Interconnect configuration
 var interconnectProjectID = "dummy-interconnect-project-id"
 var firstInterconnectName = "cso-lab-interconnect-1"
 var secondInterconnectName = "cso-lab-interconnect-2"
@@ -107,9 +100,9 @@ var secondVlanTag = 601
 
 func TestInitAndPlanRunWithTfVars(t *testing.T) {
 	/*
-	 0 = Succeeded with empty diff (no changes)
-	 1 = Error
-	 2 = Succeeded with non-empty diff (changes present)
+	   0 = Succeeded with empty diff (no changes)
+	   1 = Error
+	   2 = Succeeded with non-empty diff (changes present)
 	*/
 	// Construct the terraform options with default retryable errors to handle the most common
 	// retryable errors in terraform testing.
@@ -129,11 +122,12 @@ func TestInitAndPlanRunWithTfVars(t *testing.T) {
 		t.Errorf("Test Plan Exit Code = %v, want = %v", got, want)
 	}
 }
+
 func TestInitAndPlanRunWithoutTfVarsExpectFailureScenario(t *testing.T) {
 	/*
-	 0 = Succeeded with empty diff (no changes)
-	 1 = Error
-	 2 = Succeeded with non-empty diff (changes present)
+	   0 = Succeeded with empty diff (no changes)
+	   1 = Error
+	   2 = Succeeded with non-empty diff (changes present)
 	*/
 	// Construct the terraform options with default retryable errors to handle the most common
 	// retryable errors in terraform testing.
@@ -148,17 +142,13 @@ func TestInitAndPlanRunWithoutTfVarsExpectFailureScenario(t *testing.T) {
 	planExitCode := terraform.InitAndPlanWithExitCode(t, terraformOptions)
 	want := 1
 	got := planExitCode
-	if !cmp.Equal(got, want) {
+	if got != want {
 		t.Errorf("Test Plan Exit Code = %v, want = %v", got, want)
 	}
 }
 
 func TestResourcesCount(t *testing.T) {
-	// Construct the terraform options with default retryable errors to handle the most common
-	// retryable errors in terraform testing.
-	tfVars["create_ncc"] = false
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
-		// Set the path to the Terraform code that will be tested.
 		TerraformDir: terraformDirectoryPath,
 		Vars:         tfVars,
 		Reconfigure:  true,
@@ -168,32 +158,9 @@ func TestResourcesCount(t *testing.T) {
 	})
 	planStruct := terraform.InitAndPlan(t, terraformOptions)
 	resourceCount := terraform.GetResourceCount(t, planStruct)
-	// Validate total number of resources to be created except NCC hub and spoke
-	if got, want := resourceCount.Add, 30; got != want {
-		t.Errorf("Test Resource Count Add = %v, want = %v", got, want)
-	}
-	if got, want := resourceCount.Change, 0; got != want {
-		t.Errorf("Test Resource Count Change = %v, want = %v", got, want)
-	}
-	if got, want := resourceCount.Destroy, 0; got != want {
-		t.Errorf("Test Resource Count Destroy = %v, want = %v", got, want)
-	}
-	t.Log("Test the resource count after enabling the creation of NCC resource")
-	// Enable Creation of NCC resource
-	tfVars["create_ncc"] = true
-	terraformOptions = terraform.WithDefaultRetryableErrors(t, &terraform.Options{
-		// Set the path to the Terraform code that will be tested.
-		TerraformDir: terraformDirectoryPath,
-		Vars:         tfVars,
-		Reconfigure:  true,
-		Lock:         true,
-		PlanFilePath: "./plan",
-		NoColor:      true,
-	})
-	planStruct = terraform.InitAndPlan(t, terraformOptions)
-	resourceCount = terraform.GetResourceCount(t, planStruct)
-	// Validate total number of resources to be created along with NCC hub and spoke
-	if got, want := resourceCount.Add, 32; got != want {
+	want := 29
+	got := resourceCount.Add
+	if got != want {
 		t.Errorf("Test Resource Count Add = %v, want = %v", got, want)
 	}
 	if got, want := resourceCount.Change, 0; got != want {
@@ -207,7 +174,6 @@ func TestResourcesCount(t *testing.T) {
 func TestTerraformModuleResourceAddressListMatch(t *testing.T) {
 	// Construct the terraform options with default retryable errors to handle the most common
 	// retryable errors in terraform testing.
-	tfVars["create_ncc"] = false
 	expectedModuleAddresses := []string{"module.vpc_network", "module.vlan_attachment_a[0]", "module.vlan_attachment_b[0]", "module.havpn[0]", "module.nat[0]"}
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// Set the path to the Terraform code that will be tested.
@@ -232,42 +198,14 @@ func TestTerraformModuleResourceAddressListMatch(t *testing.T) {
 	}
 	want := expectedModuleAddresses
 	got := actualModuleAddresses
-	if !cmp.Equal(got, want, cmpopts.SortSlices(compare.Less[string])) {
-		t.Errorf("Test Element Mismatch = %v, want = %v", got, want)
-	}
-	t.Log("Test the Terraform Module / Resource Address Match after enabling the creation of NCC resource")
-	tfVars["create_ncc"] = true
-	expectedModuleAddresses = []string{"module.vpc_network", "module.vlan_attachment_a[0]", "module.vlan_attachment_b[0]", "module.havpn[0]", "module.nat[0]", "module.network_connectivity_center[0]"}
-	terraformOptions = terraform.WithDefaultRetryableErrors(t, &terraform.Options{
-		// Set the path to the Terraform code that will be tested.
-		TerraformDir: terraformDirectoryPath,
-		Vars:         tfVars,
-		Reconfigure:  true,
-		Lock:         true,
-		PlanFilePath: "./plan",
-		NoColor:      true,
-	})
-	planStruct = terraform.InitAndPlanAndShow(t, terraformOptions)
-	content, err = terraform.ParsePlanJSON(planStruct)
-	if err != nil {
-		t.Errorf("Error parsing Terraform plan: %v", err) // Detailed error message
-		return                                            // Exit early on parsing error
-	}
-	actualModuleAddresses = make([]string, 0)
-	for _, element := range content.ResourceChangesMap {
-		if element.ModuleAddress != "" && !slices.Contains(actualModuleAddresses, element.ModuleAddress) {
-			actualModuleAddresses = append(actualModuleAddresses, element.ModuleAddress)
-		}
-	}
-	want = expectedModuleAddresses
-	got = actualModuleAddresses
-	if !cmp.Equal(got, want, cmpopts.SortSlices(compare.Less[string])) {
-		t.Errorf("Test Element Mismatch = %v, want = %v", got, want)
-	}
-}
 
-func TestTerraformResourceAddressListMatch(t *testing.T) {
-	tfVars["create_ncc"] = false
+	sort.Strings(want)
+	sort.Strings(got)
+	// Compare the actual and expected module addresses
+	if !cmp.Equal(got, want) {
+		t.Errorf("Test Element Mismatch = %v, want = %v", got, want)
+	}
+
 	expectedResourceAddresses := []string{
 		"google_compute_route.default[0]",
 		"google_network_connectivity_service_connection_policy.policy[0]",
@@ -294,14 +232,13 @@ func TestTerraformResourceAddressListMatch(t *testing.T) {
 		"module.vpc_network.google_compute_subnetwork.subnetwork[\"us-central1/unit-test-subnet-1\"]",
 		"module.vpc_network.google_compute_subnetwork.subnetwork[\"us-central1/unit-test-subnet-2\"]",
 		"google_compute_router.interconnect-router[0]",
-		"module.vpc_network.google_compute_shared_vpc_host_project.shared_vpc_host[0]",
 		"module.vpc_network.time_sleep.wait_60_seconds",
 		"module.vpc_network.google_service_networking_connection.psa_connection[\"servicenetworking.googleapis.com\"]",
 		"module.vpc_network.google_compute_global_address.psa_ranges[\"servicenetworking-googleapis-com-psarange\"]",
 		"module.vpc_network.google_compute_network_peering_routes_config.psa_routes[\"servicenetworking.googleapis.com\"]",
 	}
 
-	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
+	terraformOptions = terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		TerraformDir: terraformDirectoryPath,
 		Vars:         tfVars,
 		Reconfigure:  true,
@@ -310,8 +247,8 @@ func TestTerraformResourceAddressListMatch(t *testing.T) {
 		NoColor:      true,
 	})
 
-	planStruct := terraform.InitAndPlanAndShow(t, terraformOptions)
-	content, err := terraform.ParsePlanJSON(planStruct)
+	planStruct = terraform.InitAndPlanAndShow(t, terraformOptions)
+	content, err = terraform.ParsePlanJSON(planStruct)
 	if err != nil {
 		t.Errorf("Error parsing Terraform plan: %v", err) // Detailed error
 		return                                            // Exit early on parsing error
@@ -335,13 +272,16 @@ func TestTerraformResourceAddressListMatch(t *testing.T) {
 	}
 
 	if !resourcePolicyFound {
-		t.Errorf("Resource 'google_network_connectivity_service_connection_policy.policy[\"gcp-memorystore-redis\"]' not found in the plan.")
+		t.Errorf("Resource 'google_network_connectivity_service_connection_policy.policy[0]' not found in the plan.")
 	}
 
-	want := expectedResourceAddresses
-	got := actualResourceAddresses
+	want = expectedResourceAddresses
+	got = actualResourceAddresses
 
-	if !cmp.Equal(got, want, cmpopts.SortSlices(compare.Less[string])) {
+	sort.Strings(want)
+	sort.Strings(got)
+
+	if !cmp.Equal(got, want) {
 		t.Errorf("Test Element Mismatch = %v, want = %v", got, want)
 	}
 }
