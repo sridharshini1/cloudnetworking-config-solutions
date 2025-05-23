@@ -23,7 +23,7 @@ GREEN='\033[0;32m'
 NC='\033[0m'
 
 # Define valid stages to be accepted by the -s flag
-valid_stages="all organization networking security/alloydb security/mrc security/cloudsql security/gce security/mig security/workbench producer/alloydb producer/mrc producer/cloudsql producer/gke producer/vectorsearch producer/onlineendpoint producer-connectivity consumer/gce consumer/serverless/cloudrun/job consumer/serverless/cloudrun/service consumer/serverless/appengine/standard consumer/serverless/appengine/flexible consumer/mig consumer/workbench load-balancing/application/external load-balancing/network/passthrough/external"
+valid_stages="all organization networking security/firewall/firewallpolicy security/alloydb security/mrc security/cloudsql security/gce security/mig security/workbench producer/alloydb producer/mrc producer/cloudsql producer/gke producer/vectorsearch producer/onlineendpoint producer-connectivity consumer/gce consumer/serverless/cloudrun/job consumer/serverless/cloudrun/service consumer/serverless/appengine/standard consumer/serverless/appengine/flexible consumer/mig consumer/workbench load-balancing/application/external load-balancing/network/passthrough/external"
 
 # Define valid Terraform commands to be accepted by the -tf or --tfcommand flag
 valid_tf_commands="init apply apply-auto-approve destroy destroy-auto-approve init-apply init-apply-auto-approve"
@@ -32,6 +32,7 @@ valid_tf_commands="init apply apply-auto-approve destroy destroy-auto-approve in
 stage_path_map=(
     "organization=01-organization"
     "networking=02-networking"
+    "security/firewall/firewallpolicy=03-security/Firewall/FirewallPolicy"
     "security/alloydb=03-security/AlloyDB"
     "security/mrc=03-security/MRC"
     "security/cloudsql=03-security/CloudSQL"
@@ -61,6 +62,7 @@ stage_path_map=(
 stagewise_tfvar_path_map=(
     "01-organization=../../configuration/organization.tfvars"
     "02-networking=../../configuration/networking.tfvars"
+    "03-security/Firewall/FirewallPolicy=../../../../configuration/security/Firewall/FirewallPolicy/firewallpolicy.tfvars"
     "03-security/AlloyDB=../../../configuration/security/alloydb.tfvars"
     "03-security/MRC=../../../configuration/security/mrc.tfvars"
     "03-security/CloudSQL=../../../configuration/security/cloudsql.tfvars"
@@ -99,6 +101,7 @@ stage_wise_description_map=(
   "all=Progresses through each stage individually."
   "organization=Executes 01-organization stage, manages Google Cloud APIs."
   "networking=Executes 02-networking stage, manages network resources."
+   "security/firewall/firewallpolicy=03-security/Firewall/FirewallPolicy, manages firewall policies."
   "security/alloydb=Executes 03-security/AlloyDB stage, manages AlloyDB firewall rules."
   "security/mrc=Executes 03-security/MRC stage, manages MRC firewall rules."
   "security/cloudsql=Executes 03-security/CloudSQL stage, manages CloudSQL firewall rules."

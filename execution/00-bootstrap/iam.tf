@@ -84,7 +84,8 @@ module "security" {
   }
   iam_project_roles = {
     (var.network_hostproject_id) = [
-      "roles/compute.securityAdmin"
+      "roles/compute.securityAdmin",
+      "roles/compute.orgFirewallPolicyAdmin"
     ]
   }
   iam_storage_roles = {
