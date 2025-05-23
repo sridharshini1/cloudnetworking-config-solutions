@@ -1,0 +1,19 @@
+name      : "regional-firewallpolicy"
+parent_id : dummy-project-id # project_id incase of global/regional firewall
+region : us-central1
+attachments :
+  vpc : "projects/dummy-project-id/global/networks/vpc4" # vpc-self-link
+egress_rules :
+  - smtp :
+    priority : 1000
+    match :
+      destination_ranges :
+      - "10.1.1.0/24"
+      layer4_configs :
+       - protocol : tcp
+         ports :
+         - 25
+         - 26
+       - protocol : udp
+         ports :
+         - 25
