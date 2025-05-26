@@ -54,6 +54,10 @@ This directory serves as a centralized repository for all Terraform configuratio
     - mig.tfvars
     - config
       - instance.yaml.example
+  - UMIG
+    - umig.tfvars
+    - config
+      - instance.yaml.example
   - Serverless
     - AppEngine
       - Flexible
@@ -157,6 +161,7 @@ producer_connectivity_administrator = ["user:connectivity-user-example@example.c
 consumer_gce_administrator          = ["user:gce-user-example@example.com"]
 consumer_cloudrun_administrator     = ["user:cloudrun-user-example@example.com"]
 consumer_mig_administrator          = ["user:mig-user-example@example.com"]
+consumer_umig_administrator         = ["user:umig-user-example@example.com"]
 consumer_lb_administrator           = ["user:lb-user-example@example.com"]
 ```
 

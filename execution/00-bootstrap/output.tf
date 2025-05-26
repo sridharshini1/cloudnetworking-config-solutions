@@ -97,3 +97,9 @@ output "consumer_lb_email" {
   description = "Consumer Load Balancing stage service account IAM email."
   value       = module.consumer_load_balancing.iam_email
 }
+
+output "consumer_umig_email" {
+  description = "UMIG consumer stage service account IAM email."
+  value       = module.umig_consumer.iam_email
+}
+

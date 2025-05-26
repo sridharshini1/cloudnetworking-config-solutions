@@ -242,3 +242,15 @@ variable "consumer_lb_administrator" {
   description = "List of LB administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
   default     = [""]
 }
+
+variable "consumer_umig_sa_name" {
+  type        = string
+  description = "Name of the service account to create for UMIG consumer stage."
+  default     = "consumer-umig-sa"
+}
+
+variable "consumer_umig_administrator" {
+  type        = list(string)
+  description = "List of UMIG administrative members to be granted an IAM role. e.g. (group:my-group@example.com),(user:my-user@example.com)"
+  default     = [""]
+}
