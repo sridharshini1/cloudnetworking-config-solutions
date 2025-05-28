@@ -1,0 +1,6 @@
+name      : "lite-regional-firewallpolicy"
+parent_id : dummy-project-id # project_id incase of global/regional firewall
+region : us-central1
+attachments :
+  vpc : "projects/dummy-project-id/global/networks/vpc3" # vpc-self-link
+

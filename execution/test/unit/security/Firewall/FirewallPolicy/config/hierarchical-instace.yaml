@@ -1,0 +1,14 @@
+name      : "instance-hierarchicalpolicy"
+parent_id : "folders/dummy-folder-id"
+attachments :
+  test : "folders/dummy-folder-id"
+egress_rules :
+  - smtp :
+    priority : 900
+    match :
+      destination_ranges :
+      - "10.1.1.0/24"
+      layer4_configs :
+       - protocol : tcp
+         ports :
+         - 25
