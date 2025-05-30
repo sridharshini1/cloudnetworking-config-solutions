@@ -1,12 +1,12 @@
-# Google Cloud Managed SSL Certificate
+# Google Compute Managed SSL Certificate
 
 ## Overview
 
-This Terraform module facilitates the creation and management of Google Cloud Managed SSL Certificates. Google Cloud Managed SSL Certificates are SSL/TLS certificates that you can provision, deploy, and manage for your domains. These certificates are obtained and renewed automatically by Google, simplifying the lifecycle management of your SSL/TLS configurations.
+This Terraform module facilitates the creation and management of Google Compute Managed SSL Certificate. Google Compute Managed SSL Certificate are SSL/TLS certificates that you can provision, deploy, and manage for your domains. These certificates are obtained and renewed automatically by Google, simplifying the lifecycle management of your SSL/TLS configurations.
 
 Managed SSL certificates are essential for enabling HTTPS traffic for your applications served via Google Cloud External HTTP(S) Load Balancers. By using Google-managed certificates, you delegate the complexities of certificate issuance and renewal to Google, ensuring your applications remain secure and accessible over HTTPS.
 
-### Key Features of Google Cloud Managed SSL Certificates:
+### Key Features of Google Compute Managed SSL Certificate:
 
 * **Automated Provisioning and Renewal:** Google handles the entire lifecycle, from initial issuance to timely renewal, reducing administrative overhead.
 * **Multiple Domain (SAN) Support:** Secure multiple domain names (Subject Alternative Names) with a single certificate.
@@ -16,9 +16,9 @@ Managed SSL certificates are essential for enabling HTTPS traffic for your appli
 
 ### Public Documentation References:
 
-* **Google Cloud SSL Certificates Overview:** [https://cloud.google.com/load-balancing/docs/ssl-certificates/managed-ssl-certificates](https://cloud.google.com/load-balancing/docs/ssl-certificates/managed-ssl-certificates)
+* **Google Compute Managed SSL Certificate:** [https://cloud.google.com/load-balancing/docs/ssl-certificates/managed-ssl-certificates](https://cloud.google.com/load-balancing/docs/ssl-certificates/managed-ssl-certificates)
 * **Terraform `google_compute_managed_ssl_certificate` Resource:** [https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_managed_ssl_certificate](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_managed_ssl_certificate)
-* **Using Google-managed SSL certificates:** [https://cloud.google.com/load-balancing/docs/ssl-certificates/google-managed-certs](https://cloud.google.com/load-balancing/docs/ssl-certificates/google-managed-certs)
+* **Using Google Compute Managed SSL Certificate:** [https://cloud.google.com/load-balancing/docs/ssl-certificates/google-managed-certs](https://cloud.google.com/load-balancing/docs/ssl-certificates/google-managed-certs)
 
 ## Purpose
 
@@ -29,15 +29,14 @@ This implementaion simplifies the process of defining and deploying `google_comp
 Before using this stage, ensure you have the following:
 
 1.  **Google Cloud Project:** A Google Cloud Project with billing enabled.
-2.  **Terraform:** Terraform (version 1.0.0 or later recommended) installed on your local machine or CI/CD environment.
-3.  **Google Cloud SDK (gcloud):** Authenticated with appropriate permissions to manage Compute Engine resources, specifically SSL certificates. Alternatively, a service account key with the necessary roles (e.g., "Compute Admin" - `roles/compute.admin`, or more granularly "Compute Security Admin" - `roles/compute.securityAdmin` and "Compute Network Admin" - `roles/compute.networkAdmin` if you are also managing related Load Balancing components).
-    * Ensure the service account or user has permissions like `compute.managedSslCertificates.create`, `compute.managedSslCertificates.get`, `compute.managedSslCertificates.list`, and `compute.managedSslCertificates.delete`.
+2.  **Terraform:** Terraform installed on your local machine or CI/CD environment.
+3.  **Google Cloud SDK (gcloud):** Authenticated with appropriate permissions to manage Compute Engine resources, specifically SSL certificates. Alternatively, a service account key with the necessary role of a Security Admin. (`roles.SecurityAdmin`)
 4.  **Domain Ownership:** You must own or control the domain names you intend to secure. Google will perform domain validation to confirm your control before the certificate can be successfully provisioned and activated. This typically involves ensuring your domain's DNS records point to the IP address of the Google Cloud Load Balancer that will use this certificate.
 5.  **Configured Load Balancer (Recommended):** While this module provisions the certificate, the certificate itself becomes fully active and useful once associated with a Google Cloud External HTTP(S) Load Balancer's Target Proxy. Ensure your DNS A/AAAA records for the specified domains point to the load balancer's IP address.
 
 ## Usage and Execution Steps
 
-Follow these steps to use this Terraform module to create a Google Cloud Managed SSL Certificate:
+Follow these steps to use this Terraform module to create a Google Compute Managed SSL Certificate:
 
 1. **Create your configuration .tfvars files:**
 
@@ -59,7 +58,7 @@ Follow these steps to use this Terraform module to create a Google Cloud Managed
     * Use the terraform plan command to generate an execution plan. This will show you the changes Terraform will make to your Google Cloud infrastructure:
 
     ```
-    terraform plan
+    terraform plan --var-file=../../../../../configuration/security/Certificates/Compute-SSL-Certs/Google-Managed/google_managed_ssl.tfvars
     ```
 
 Carefully review the plan to ensure it aligns with your intended configuration.
@@ -69,7 +68,7 @@ Carefully review the plan to ensure it aligns with your intended configuration.
     Once you're satisfied with the plan, execute the terraform apply command to provision your Cloud SQL instances:
 
     ```
-    terraform apply -var-file="../../../configuration/security/compute_ssl_certs/google_managed/google_managed_ssl.tfvars"
+    terraform apply --var-file=../../../../../configuration/security/Certificates/Compute-SSL-Certs/Google-Managed/google_managed_ssl.tfvars
     ```
 
 <!-- BEGIN_TF_DOCS -->

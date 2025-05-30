@@ -84,6 +84,8 @@ The deployment is divided into seven logically isolated stages, each handled by 
 
 4. **03-security:**
    - Defines and manages firewall rules.
+   - Defines and manages firewall policies.
+   - Helps with creation of Compute Google Managed SSL Certificates.
    - Secures communication between producer and consumer services.
 
 5. **04-producer:**
