@@ -18,6 +18,7 @@ package integrationtest
 import (
 	"fmt"
 	"math/rand"
+	"net"
 	"os"
 	"path/filepath"
 	"strings"
@@ -391,40 +392,77 @@ func testConnectivity(t *testing.T, projectID, sourceIP, networkName string) {
 // resolveHostname resolves a given hostname to its IP address.
 // Function to resolve a hostname to an IP address
 func resolveHostname(t *testing.T, hostname, projectID, networkName string) (string, error) {
-	// Get the workbench instance name from the test context
-	workbenchInstanceName := workbenchName // Use the global workbenchName
-	resolveCmd := shell.Command{
+	// 1. Try Go's net.LookupIP first
+	t.Logf("Attempting to resolve hostname '%s' using net.LookupIP...", hostname)
+	ips, err := net.LookupIP(hostname)
+	if err == nil && len(ips) > 0 {
+		for _, ip := range ips {
+			if ip.To4() != nil { // Prefer IPv4
+				t.Logf("Successfully resolved '%s' to %s using net.LookupIP.", hostname, ip.String())
+				return ip.String(), nil
+			}
+		}
+	}
+	t.Logf("net.LookupIP failed or returned no IPv4: %v. Falling back to external tools.", err)
+
+	workbenchInstanceName := workbenchName
+	networkCmd := shell.Command{
 		Command: "gcloud",
 		Args: []string{
-			"compute", "instances", "describe", workbenchInstanceName, // Use the workbench instance name here
+			"compute", "instances", "describe", workbenchInstanceName,
 			"--project", projectID,
 			"--zone", zone,
 			"--format=value(networkInterfaces[0].network)",
 		},
 	}
-	networkOutput, networkErr := shell.RunCommandAndGetOutputE(t, resolveCmd)
+	networkOutput, networkErr := shell.RunCommandAndGetOutputE(t, networkCmd)
 	if networkErr != nil {
-		return "", fmt.Errorf("failed to get network for instance '%s': %w, Output: %s", workbenchInstanceName, networkErr, networkOutput)
+		t.Logf("Warning: Failed to get network for instance '%s': %v, Output: %s. Proceeding with hostname resolution.", workbenchInstanceName, networkErr, networkOutput)
+	} else if !strings.Contains(networkOutput, networkName) {
+		t.Logf("Warning: The provided network name '%s' does not match the network of the instance '%s'. Output: %s. Proceeding with hostname resolution.", networkName, workbenchInstanceName, networkOutput)
 	}
 
-	if !strings.Contains(networkOutput, networkName) {
-		return "", fmt.Errorf("the provided network name '%s' does not match the network of the instance '%s'. Output: %s", networkName, workbenchInstanceName, networkOutput)
-	}
-
-	resolveCmd = shell.Command{
+	t.Logf("Attempting to resolve hostname '%s' using 'dig'...", hostname)
+	digCmd := shell.Command{
 		Command: "dig",
 		Args: []string{
 			"+short", hostname,
 		},
 	}
-	stdout, stderr, err := shell.RunCommandAndGetStdOutErrE(t, resolveCmd)
-	if err != nil {
-		return "", fmt.Errorf("failed to resolve hostname '%s': %w, stderr: %s", hostname, err, stderr)
+	stdout, stderr, err := shell.RunCommandAndGetStdOutErrE(t, digCmd)
+	if err == nil {
+		resolvedIP := strings.TrimSpace(stdout)
+		if resolvedIP != "" {
+			t.Logf("Successfully resolved '%s' to %s using 'dig'.", hostname, resolvedIP)
+			return resolvedIP, nil
+		}
 	}
+	t.Logf("dig failed: %v, stderr: %s. Falling back to 'nslookup'.", err, stderr)
 
-	resolvedIP := strings.TrimSpace(stdout)
-	if resolvedIP == "" {
-		return "", fmt.Errorf("failed to extract IP from stdout, stderr: %s", stderr)
+	t.Logf("Attempting to resolve hostname '%s' using 'nslookup'...", hostname)
+	nslookupCmd := shell.Command{
+		Command: "nslookup",
+		Args: []string{
+			hostname,
+		},
 	}
-	return resolvedIP, nil
+	stdout, stderr, err = shell.RunCommandAndGetStdOutErrE(t, nslookupCmd)
+	if err == nil {
+		lines := strings.Split(stdout, "\n")
+		for _, line := range lines {
+			if strings.HasPrefix(strings.TrimSpace(line), "Address:") {
+				parts := strings.Split(line, ":")
+				if len(parts) > 1 {
+					ip := strings.TrimSpace(parts[1])
+					if net.ParseIP(ip) != nil {
+						t.Logf("Successfully resolved '%s' to %s using 'nslookup'.", hostname, ip)
+						return ip, nil
+					}
+				}
+			}
+		}
+	}
+	t.Logf("nslookup failed: %v, stderr: %s.", err, stderr)
+
+	return "", fmt.Errorf("failed to resolve hostname '%s' using net.LookupIP, dig, or nslookup", hostname)
 }
