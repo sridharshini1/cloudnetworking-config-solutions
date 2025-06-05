@@ -13,7 +13,7 @@
 # limitations under the License.
 
 module "ssl_certificate" {
-  source = "../../../../modules/google_compute_managed_ssl_certificate"
+  source = "../../../../../modules/google_compute_managed_ssl_certificate"
 
   certificate_id = var.ssl_certificate_id
   description    = var.ssl_certificate_description

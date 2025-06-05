@@ -42,6 +42,10 @@ The project is structured into the following folders:
                     ├── service
                 ├── vpcaccessconnector
           ├──security
+              ├── certificates
+                ├── compute-ssl-certs
+                    ├── google-managed
+                        ├── google_managed_ssl.tfvars
               ├── alloydb.tfvars
               ├── cloudsql.tfvars
               ├── gce.tfvars
@@ -76,7 +80,7 @@ The project is structured into the following folders:
   * `00-bootstrap`: Sets up foundational resources like service accounts and Terraform state storage.
   * `01-organization`:  Manages organization-level policies for network resources.
   * `02-networking`: Manages VPCs, subnets, Cloud HA VPN and other core networking components like PSA, SCP, Cloud NAT.
-  * `03-security`:  Configures firewalls and other security measures.
+  * `03-security`:  Configures firewalls rules, firewall policies and Google Managed SSL certificates.
   * `04-producer`: Implements producer services like AlloyDB, Memorystore for Redis clusters, and Cloud SQL.
   * `05-producer-connectivity`: Implements networking services like Private Service Connectivity.
   * `06-consumer`: Implements consumer services like Google Compute Engine instances, Cloud Run, Workbench, AppEngine and Managed Instance Groups.

@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	terraformSSLCertificateDirectoryPath = "../../../../../03-security/Compute-SSL-Certs/Google-Managed/"
+	terraformSSLCertificateDirectoryPath = "../../../../../../03-security/Certificates/Compute-SSL-Certs/Google-Managed/"
 	sslCertificateName                   = "test-managed-ssl-cert"
 )
 
