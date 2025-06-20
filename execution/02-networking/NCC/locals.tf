@@ -59,10 +59,15 @@ locals {
         spoke.name => spoke
         if spoke.type == "linked_producer_vpc_network" && spoke.hub_name == hub.name
       }
-      hybrid_spokes = {
+      linked_vpn_tunnels = {
         for spoke in local.all_spokes :
         spoke.name => spoke
-        if spoke.type == "hybrid_spoke" && spoke.hub_name == hub.name
+        if spoke.type == "linked_vpn_tunnels" && spoke.hub_name == hub.name
+      }
+      linked_interconnect_attachments = {
+        for spoke in local.all_spokes :
+        spoke.name => spoke
+        if spoke.type == "linked_interconnect_attachments" && spoke.hub_name == hub.name
       }
       router_appliance_spokes = {
         for spoke in local.all_spokes :

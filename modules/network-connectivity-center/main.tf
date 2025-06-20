@@ -83,7 +83,7 @@ resource "google_network_connectivity_spoke" "producer_vpc_spoke" {
 }
 
 resource "google_network_connectivity_spoke" "hybrid_spoke" {
-  for_each    = var.hybrid_spokes
+  for_each    = merge(var.linked_vpn_tunnels, var.linked_interconnect_attachments)
   project     = each.value.project_id
   name        = each.key
   location    = each.value.location
@@ -92,7 +92,7 @@ resource "google_network_connectivity_spoke" "hybrid_spoke" {
   labels      = merge(var.spoke_labels, lookup(each.value, "labels", {}))
 
   dynamic "linked_interconnect_attachments" {
-    for_each = each.value.spoke_type == "interconnect" ? [1] : []
+    for_each = each.value.type == "linked_interconnect_attachments" ? [1] : []
     content {
       uris                       = each.value.uris
       site_to_site_data_transfer = each.value.site_to_site_data_transfer
@@ -100,7 +100,7 @@ resource "google_network_connectivity_spoke" "hybrid_spoke" {
   }
 
   dynamic "linked_vpn_tunnels" {
-    for_each = each.value.spoke_type == "vpn" ? [1] : []
+    for_each = each.value.type == "linked_vpn_tunnels" ? [1] : []
     content {
       uris                       = each.value.uris
       site_to_site_data_transfer = each.value.site_to_site_data_transfer
@@ -111,7 +111,6 @@ resource "google_network_connectivity_spoke" "hybrid_spoke" {
     google_network_connectivity_spoke.vpc_spoke
   ]
 }
-
 
 resource "google_network_connectivity_spoke" "router_appliance_spoke" {
   for_each    = var.router_appliance_spokes

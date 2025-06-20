@@ -124,13 +124,27 @@ variable "producer_vpc_spokes" {
   default = {}
 }
 
-variable "hybrid_spokes" {
-  description = "A map of Hybrid spokes (VPN/Interconnect) to be created."
+variable "linked_vpn_tunnels" {
+  description = "A map of Hybrid spokes (VPN) to be created."
   type = map(object({
     project_id                 = string
     location                   = optional(string, "global")
     description                = optional(string)
-    spoke_type                 = string # "vpn" or "interconnect"
+    type                       = string # "linked_vpn_tunnels"
+    uris                       = list(string)
+    site_to_site_data_transfer = optional(bool, false)
+    labels                     = optional(map(string))
+  }))
+  default = {}
+}
+
+variable "linked_interconnect_attachments" {
+  description = "A map of Hybrid spokes (Interconnect) to be created."
+  type = map(object({
+    project_id                 = string
+    location                   = optional(string, "global")
+    description                = optional(string)
+    type                       = string # "linked_interconnect_attachments"
     uris                       = list(string)
     site_to_site_data_transfer = optional(bool, false)
     labels                     = optional(map(string))

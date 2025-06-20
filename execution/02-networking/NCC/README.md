@@ -22,7 +22,7 @@ Key features of this configuration include:
 
 Before creating NCC resources, ensure you have completed the following prerequisites:
 
-1. **Completed Prior Stages:**  
+1. **Completed Prior Stages:**
    - **01-organization:** This stage handles the activation of required Google Cloud APIs.
 
 2. **Enable the following APIs:**
@@ -133,7 +133,7 @@ spokes:
       env: "prod"
 ```
 
-### 2. Use an existing NCC hub to create new spokes and a producer VPC spoke
+### 2. Use an Existing NCC hub to create new spokes and a new producer VPC spoke
 
 ```yaml
 hubs:
@@ -174,7 +174,7 @@ spokes:
       env: "prod"
 ```
 
-### 3. Use an existing NCC hub and spoke to create a producer VPC spoke
+### 3. Use an Existing NCC hub and spoke to create a new producer VPC spoke
 
 ```yaml
 hubs:
@@ -195,7 +195,7 @@ hubs:
     group_decription: "Auto-accept group"
     spoke_labels:
       team: network
-spokes: 
+spokes:
   - type: "producer_vpc_spoke"
     name: "producer-spoke-1"
     project_id: "producerspoke1-project-id"
@@ -248,6 +248,48 @@ spokes:
     labels:
       env: "prod"
 ```
+
+### 4. Create a new NCC Hub,a new VPC spoke and a new hybrid spoke (Interconnect VLAN attachment)
+
+```yaml
+hubs:
+  - name: <hub_name>
+    project_id: <hub_project_id>
+    description: "Example NCC Hub"
+    labels:
+      env: prod
+    export_psc: true
+    policy_mode: PRESET
+    preset_topology: MESH
+    auto_accept_projects:
+      - <hub_project_id>
+      - <secondary_project_id>
+    create_new_hub: true
+    existing_hub_uri: ""
+    group_name: default
+    group_decription: "Auto-accept group"
+    spoke_labels:
+      team: network
+spokes:
+  - type: "vpc_spoke"
+    name: "spoke-1"
+    project_id: "<spoke1_project_id>"
+    uri: "projects/<spoke1_project_id>/global/networks/spoke-1-vpc"
+    description: "Primary VPC spoke for production"
+    labels:
+      env: "prod"
+  - type: linked_interconnect_attachments
+    name: <linked_interconnect_attachments_name>
+    project_id: <spoke_project_id>
+    location: <region>
+    uris:
+    - projects/<spoke_project_id>/regions/<region>/interconnectAttachments/<linked_interconnect_attachments_name>
+    - projects/<spoke_project_id>/regions/<region>/interconnectAttachments/<linked_interconnect_attachments_name>
+    description: interconnect-attachment
+    labels:
+      env: dev
+```
+
 ## Usage
 
 **NOTE** : run the terraform commands with the `-var-file` referencing the networking.tfvars present under the /configuration folder.
@@ -263,7 +305,6 @@ spokes:
 - For advanced topologies, refer to the [Google Cloud NCC documentation](https://cloud.google.com/network-connectivity/docs/network-connectivity-center).
 
 <!-- BEGIN_TF_DOCS -->
-## Requirements
 
 ## Modules
 

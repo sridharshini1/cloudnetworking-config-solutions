@@ -13,27 +13,24 @@
 # limitations under the License.
 
 module "network_connectivity_center" {
-  for_each = local.instance_list
-  source   = "../../../modules/network-connectivity-center"
-
-  # Hub configuration
-  project_id           = each.value.project_id
-  create_new_hub       = each.value.create_new_hub
-  existing_hub_uri     = each.value.existing_hub_uri
-  spoke_labels         = each.value.spoke_labels
-  export_psc           = each.value.export_psc
-  ncc_hub_name         = each.value.ncc_hub_name
-  ncc_hub_description  = each.value.ncc_hub_description
-  ncc_hub_labels       = each.value.ncc_hub_labels
-  policy_mode          = each.value.policy_mode
-  preset_topology      = each.value.preset_topology
-  auto_accept_projects = each.value.auto_accept_projects
-  group_name           = each.value.group_name
-  group_decription     = each.value.group_decription
-
-  # Pass the spoke maps to the module
-  vpc_spokes              = each.value.vpc_spokes
-  producer_vpc_spokes     = each.value.producer_vpc_spokes
-  hybrid_spokes           = each.value.hybrid_spokes
-  router_appliance_spokes = each.value.router_appliance_spokes
+  for_each                        = local.instance_list
+  source                          = "../../../modules/network-connectivity-center"
+  project_id                      = each.value.project_id
+  create_new_hub                  = each.value.create_new_hub
+  existing_hub_uri                = each.value.existing_hub_uri
+  spoke_labels                    = each.value.spoke_labels
+  export_psc                      = each.value.export_psc
+  ncc_hub_name                    = each.value.ncc_hub_name # Hub configuration
+  ncc_hub_description             = each.value.ncc_hub_description
+  ncc_hub_labels                  = each.value.ncc_hub_labels
+  policy_mode                     = each.value.policy_mode
+  preset_topology                 = each.value.preset_topology
+  auto_accept_projects            = each.value.auto_accept_projects
+  group_name                      = each.value.group_name
+  group_decription                = each.value.group_decription
+  vpc_spokes                      = each.value.vpc_spokes                      # VPC spoke configuration
+  producer_vpc_spokes             = each.value.producer_vpc_spokes             # Producer VPC spoke configuration
+  linked_interconnect_attachments = each.value.linked_interconnect_attachments # Hybrid spoke (Interconnect) configuration
+  linked_vpn_tunnels              = each.value.linked_vpn_tunnels              # Hybrid spoke (vpn  tunnel) configuration
+  router_appliance_spokes         = each.value.router_appliance_spokes         # Router Applicance configuration
 }
