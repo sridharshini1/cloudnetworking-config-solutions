@@ -1,0 +1,33 @@
+hubs:
+  - name: test-hub-interconnect
+    project_id: test-project-id
+    description: "Test hub for unit testing"
+    labels:
+      env: test
+    export_psc: true
+    policy_mode: PRESET
+    preset_topology: MESH
+    auto_accept_projects:
+      - test-project-id
+      - auto-accept-project-2
+    create_new_hub: true
+    existing_hub_uri: ""
+    group_name: default
+    group_decription: "Test group description"
+    spoke_labels:
+      team: networking
+spokes:
+  - type: linked_vpc_network
+    name: spoke1
+    project_id: spoke1-project
+    uri: spoke1-uri
+    description: "First spoke for testing"
+    labels:
+      env: dev
+  - type: linked_interconnect_attachments
+    name: spoke2
+    project_id: spoke2-project
+    location: us-central1
+    uris:
+    - projects/spoke2-project/regions/us-central1/interconnectAttachments/vlan_attachment1
+    - projects/spoke2-project/regions/us-central1/interconnectAttachments/vlan_attachment2

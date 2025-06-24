@@ -35,16 +35,24 @@ const (
 )
 
 var (
-	projectID          = os.Getenv("TF_VAR_project_id")
-	uniqueID           = rand.Int()
-	networkName        = fmt.Sprintf("test-vpc-ncc-%d", uniqueID)
-	subnetworkName     = fmt.Sprintf("test-subnet-ncc-%d", uniqueID)
-	subnetworkIPCIDR   = "10.0.2.0/24"
-	psaRangeName       = "testpsarange-ncc-1"
-	psaRange           = "10.0.64.0/20"
-	testHubName        = fmt.Sprintf("ncc-hub-test-%d", uniqueID)
-	testHubDescription = "Test NCC Hub for integration"
-	testHubLabels      = map[string]string{
+	projectID            = os.Getenv("TF_VAR_project_id")
+	uniqueID             = rand.Int()
+	networkName          = fmt.Sprintf("test-vpc-ncc-%d", uniqueID)
+	subnetworkName       = fmt.Sprintf("test-subnet-ncc-%d", uniqueID)
+	secondNetworkName    = fmt.Sprintf("test-second-vpc-ncc-%d", uniqueID)
+	secondSubnetworkName = fmt.Sprintf("test-second-subnet-ncc-%d", uniqueID)
+	firstTunnel          = fmt.Sprintf("test-first-tunnel-%d", uniqueID)
+	secondTunnel         = fmt.Sprintf("test-second-tunnel-%d", uniqueID)
+	firstGatewayName     = fmt.Sprintf("test-first-gateway-%d", uniqueID)
+	secondGatewayName    = fmt.Sprintf("test-second-gateway-%d", uniqueID)
+	subnetworkIPCIDR     = "10.0.2.0/24"
+	psaRangeName         = fmt.Sprintf("testpsarange-ncc1-%d", uniqueID)
+	secondPSARangeName   = fmt.Sprintf("testpsarange-ncc2-%d", uniqueID)
+	psaRange             = "10.0.64.0/20"
+	secondPSARange       = "10.10.10.0/24"
+	testHubName          = fmt.Sprintf("ncc-hub-test-%d", uniqueID)
+	testHubDescription   = "Test NCC Hub for integration"
+	testHubLabels        = map[string]string{
 		"environment": "testing",
 	}
 	testSpokeLabels = map[string]string{
@@ -53,6 +61,7 @@ var (
 
 	testVPCSpokeName      = "spoke1-test"
 	testProducerSpokeName = "prodspoke1-test"
+	testVPNSpokeName      = "vpntestspoke1-test"
 	groupName             = "default"
 	groupDescription      = "Test group"
 
@@ -69,7 +78,7 @@ var (
 // NCCConfig struct to match the new YAML structure
 type NCCConfig struct {
 	Hubs   []HubConfig   `yaml:"hubs"`
-	Spokes []SpokeConfig `yaml:"spokes"`
+	Spokes []SpokeConfig `yaml:"spokes,omitempty"`
 }
 
 type HubConfig struct {
@@ -93,7 +102,8 @@ type SpokeConfig struct {
 	Name                string            `yaml:"name"`
 	ProjectID           string            `yaml:"project_id"`
 	Location            string            `yaml:"location,omitempty"`
-	URI                 string            `yaml:"uri"`
+	URI                 any               `yaml:"uri,omitempty"`
+	URIS                any               `yaml:"uris,omitempty"`
 	Description         string            `yaml:"description"`
 	Labels              map[string]string `yaml:"labels"`
 	Peering             string            `yaml:"peering,omitempty"`
@@ -103,13 +113,19 @@ type SpokeConfig struct {
 
 func TestNCC(t *testing.T) {
 	if projectID == "" {
-		t.Skip("Skipping test because TF_VAR_project_id is not set.")
+		t.Skipf("Skipping test because TF_VAR_project_id is not set %s.", projectID)
 	}
 
 	// Setup: create YAML config and VPC/subnet/PSA
 	createConfigYAMLNCC(t, true, "", false, testHubName)
 	createVPCAndSubnetWithPSA(t, projectID, networkName, subnetworkName, region, psaRangeName, psaRange)
-
+	createVPCAndSubnetWithPSA(t, projectID, secondNetworkName, secondSubnetworkName, region, secondPSARangeName, secondPSARange)
+	firstIPGateway1, secondIPGateway1 := createHAVPNGateway(t, projectID, networkName, firstGatewayName, "65417")
+	firstIPGateway2, secondIPGateway2 := createHAVPNGateway(t, projectID, secondNetworkName, secondGatewayName, "65416")
+	t.Logf("IP address for Interface0 : %s, Interface1: %s for gateway1.", firstIPGateway1, secondIPGateway1)
+	t.Logf("IP address for Interface0 : %s, Interface1: %s for gateway2.", firstIPGateway2, secondIPGateway2)
+	createHAVPNTunnel(t, projectID, firstGatewayName, secondGatewayName, firstTunnel)
+	createHAVPNTunnel(t, projectID, secondGatewayName, firstGatewayName, secondTunnel)
 	tfVars := map[string]interface{}{
 		"config_folder_path":   configFolderPathNCC,
 		"create_new_hub":       true,
@@ -133,7 +149,10 @@ func TestNCC(t *testing.T) {
 		NoColor:      true,
 	})
 
-	defer deleteVPCAndSubnet(t, projectID, networkName, subnetworkName, region)
+	defer deleteVPCAndSubnet(t, projectID, networkName, subnetworkName, region, psaRangeName)
+	defer deleteVPCAndSubnet(t, projectID, secondNetworkName, secondSubnetworkName, region, secondPSARangeName)
+	defer deleteHAVPNGatewayAndTunnel(t, projectID, networkName, firstGatewayName, firstTunnel)
+	defer deleteHAVPNGatewayAndTunnel(t, projectID, secondNetworkName, secondGatewayName, secondTunnel)
 	defer terraform.Destroy(t, terraformOptions)
 
 	terraform.InitAndApply(t, terraformOptions)
@@ -166,6 +185,13 @@ func createConfigYAMLNCC(t *testing.T, createNewHub bool, existingHubURI string,
 			IncludeExportRanges: []string{psaRange},
 			Labels:              testSpokeLabels,
 			Description:         "Test Producer VPC Spoke",
+		},
+		{
+			Type:      "linked_vpn_tunnels",
+			Name:      testVPNSpokeName,
+			ProjectID: projectID,
+			Location:  region,
+			URIS:      []string{fmt.Sprintf("projects/%s/regions/%s/vpnTunnels/%s", projectID, region, firstTunnel)},
 		},
 	}
 	hubs := []HubConfig{
@@ -279,7 +305,7 @@ func createVPCAndSubnetWithPSA(t *testing.T, projectID, networkName, subnetworkN
 	time.Sleep(60 * time.Second)
 }
 
-func deleteVPCAndSubnet(t *testing.T, projectID, networkName, subnetworkName, region string) {
+func deleteVPCAndSubnet(t *testing.T, projectID, networkName, subnetworkName, region, psaRangeName string) {
 	t.Helper()
 	text := "compute"
 	time.Sleep(60 * time.Second) // Wait for resources to be in a deletable state
@@ -381,13 +407,147 @@ func verifyNCCResources(t *testing.T, terraformOptions *terraform.Options, testH
 		t.Errorf("Producer VPC Spoke '%s' not found in NCC output", testProducerSpokeName)
 	} else {
 		gotProducerSpokeURI := producerSpoke.Get("linked_producer_vpc_network.0.network").String()
-		wantProducerSpokeURI := fmt.Sprintf("projects/%s/global/networks/%s", projectID, networkName)
-		if !strings.HasSuffix(gotProducerSpokeURI, wantProducerSpokeURI) {
+		wantProducerSpokeURI := fmt.Sprintf("https://www.googleapis.com/compute/v1/projects/%s/global/networks/%s", projectID, networkName)
+		if gotProducerSpokeURI != wantProducerSpokeURI {
 			t.Errorf("Producer VPC Spoke '%s' with invalid URI. Got: %v, Want: %v", testProducerSpokeName, gotProducerSpokeURI, wantProducerSpokeURI)
 		} else {
 			t.Logf("Verified NCC Producer VPC Spoke '%s' URI: %s", testProducerSpokeName, gotProducerSpokeURI)
 		}
 	}
 
-	t.Log("NCC Resources verification finished.")
+	// Verify Hybrid Spoke (HA VPN)
+	hybridSpokePath := fmt.Sprintf("%s.hybrid_spokes.%s", hubKey, testVPNSpokeName)
+	hybridSpoke := gjson.Get(resultNCC.String(), hybridSpokePath)
+	if !hybridSpoke.Exists() {
+		t.Errorf("Hybrid VPC Spoke '%s' not found in NCC output", testVPNSpokeName)
+	} else {
+		gotHybridSpokeURI := hybridSpoke.Get("linked_vpn_tunnels.0.uris.0").String()
+		wantHybridSpokeURI := fmt.Sprintf("https://www.googleapis.com/compute/v1/projects/%s/regions/%s/vpnTunnels/%s", projectID, region, firstTunnel)
+		if gotHybridSpokeURI != wantHybridSpokeURI {
+			t.Errorf("Hybrid Spoke '%s' with invalid URI. Got: %v, Want: %v", testVPNSpokeName, gotHybridSpokeURI, wantHybridSpokeURI)
+		} else {
+			t.Logf("Verified NCC Hybrid Spoke '%s' Got URI: %s, Want URI: %s", testVPNSpokeName, gotHybridSpokeURI, wantHybridSpokeURI)
+		}
+	}
+
+	t.Log("NCC Resources verification completed.")
+}
+
+// createHAVPNTunnel creates a havpn gateway.
+func createHAVPNGateway(t *testing.T, projectID, networkName string, gatewayName string, asnRouter string) (string, string) {
+
+	text := "compute"
+	// Create vpn-gateways
+	cmd := shell.Command{
+		Command: "gcloud",
+		Args:    []string{text, "vpn-gateways", "create", gatewayName, "--network=" + networkName, "--region=" + region, "--project=" + projectID, "--stack-type=IPV4_ONLY", "--quiet"},
+	}
+	_, err := shell.RunCommandAndGetOutputE(t, cmd)
+	if err != nil {
+		t.Errorf("Error creating vpn-gateways: %v", err)
+	}
+
+	// Create cloud router
+	cmd = shell.Command{
+		Command: "gcloud",
+		Args:    []string{text, "routers", "create", gatewayName + "-router", "--network=" + networkName, "--region=" + region, "--project=" + projectID, "--asn=" + asnRouter, "--quiet"},
+	}
+	_, err = shell.RunCommandAndGetOutputE(t, cmd)
+	if err != nil {
+		t.Errorf("Error creating Cloud Router: %v", err)
+	}
+
+	time.Sleep(60 * time.Second)
+
+	// retrieve ip details of interfaces
+	cmd = shell.Command{
+		Command: "gcloud",
+		Args:    []string{text, "vpn-gateways", "describe", gatewayName, "--region=" + region, "--project=" + projectID, "--format=json"},
+	}
+
+	outputJSON, err := shell.RunCommandAndGetOutputE(t, cmd)
+	if err != nil {
+		t.Errorf("Error retreiving json output: %v", err)
+	}
+
+	if !gjson.Valid(outputJSON) {
+		t.Fatalf("Error parsing gateway details output, invalid json: %s", outputJSON)
+	}
+	resultGateway := gjson.Parse(outputJSON)
+
+	firstIP := gjson.Get(resultGateway.String(), "vpnInterfaces.0.ipAddress").String()
+	secondIP := gjson.Get(resultGateway.String(), "vpnInterfaces.1.ipAddress").String()
+
+	if err == nil {
+		return firstIP, secondIP
+	}
+
+	return "", ""
+
+}
+
+// createHAVPNTunnel creates a havpn tunnel.
+func createHAVPNTunnel(t *testing.T, projectID, firstGatewayName, secondGatewayName string, tunnelName string) {
+
+	text := "compute"
+	// Create VPN tunnel
+	cmd := shell.Command{
+		Command: "gcloud",
+		Args: []string{text, "vpn-tunnels", "create", tunnelName,
+			"--peer-gcp-gateway=" + secondGatewayName,
+			"--interface=0",
+			"--ike-version=2",
+			"--shared-secret=testsecret",
+			"--vpn-gateway=" + firstGatewayName,
+			"--region=" + region,
+			"--project=" + projectID,
+			"--router=" + firstGatewayName + "-router",
+			"--format=json",
+			"--quiet"},
+	}
+	_, err := shell.RunCommandAndGetOutputE(t, cmd)
+	if err != nil {
+		t.Errorf("Error creating vpn-gateways: %v", err)
+	}
+
+	if err == nil {
+		t.Logf("Successfully created VPN tunnels with name '%s' in gateways %s.", tunnelName, firstGatewayName)
+	}
+
+	time.Sleep(60 * time.Second)
+}
+
+func deleteHAVPNGatewayAndTunnel(t *testing.T, projectID, networkName string, gatewayName string, tunnelName string) {
+	text := "compute"
+	// Delete vpn tunnel
+	cmd := shell.Command{
+		Command: "gcloud",
+		Args: []string{text, "vpn-tunnels", "delete", tunnelName,
+			"--region=" + region,
+			"--project=" + projectID, "--quiet"},
+	}
+	_, err := shell.RunCommandAndGetOutputE(t, cmd)
+	if err != nil {
+		t.Errorf("Error deleting vpn-tunnel: %v", err)
+	}
+	time.Sleep(60 * time.Second)
+	// Delete first vpn-gateways
+	cmd = shell.Command{
+		Command: "gcloud",
+		Args:    []string{text, "vpn-gateways", "delete", gatewayName, "--region=" + region, "--project=" + projectID, "--quiet"},
+	}
+	_, err = shell.RunCommandAndGetOutputE(t, cmd)
+	if err != nil {
+		t.Errorf("Error deleting vpn-gateways: %v", err)
+	}
+	time.Sleep(60 * time.Second)
+	//Delete cloud routers
+	cmd = shell.Command{
+		Command: "gcloud",
+		Args:    []string{text, "routers", "delete", gatewayName + "-router", "--region=" + region, "--project=" + projectID, "--quiet"},
+	}
+	_, err = shell.RunCommandAndGetOutputE(t, cmd)
+	if err != nil {
+		t.Errorf("Error deleting Cloud Router: %v", err)
+	}
 }
