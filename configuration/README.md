@@ -19,6 +19,7 @@ This directory serves as a centralized repository for all Terraform configuratio
     - Firewall
       - Firewall-Policy
     - Workbench (workbench.tfvars)
+    - Security-Profiles
 - 04-producer stage
     - AlloyDB
       - alloydb.tfvars
