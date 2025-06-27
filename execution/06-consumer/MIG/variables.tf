@@ -26,8 +26,11 @@ variable "create_nat" {
 
 variable "create_template" {
   description = "True or False to create a template"
-  default     = true
-  type        = bool
+  type = object({
+    regional = optional(bool, false)
+  })
+  nullable = true
+  default  = {}
 }
 
 variable "addresses" {

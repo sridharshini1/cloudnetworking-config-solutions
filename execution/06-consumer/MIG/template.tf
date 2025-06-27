@@ -14,7 +14,7 @@
 
 module "mig-template" {
   for_each = local.mig_map
-  source   = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/compute-vm?ref=v39.0.0"
+  source   = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/compute-vm"
 
   project_id = each.value.project_id
   name       = var.mig_template_name
@@ -35,7 +35,7 @@ module "mig-template" {
     }
   }
 
-  create_template = true
+  create_template = {}
   metadata = {
     startup-script = var.metadata
   }
