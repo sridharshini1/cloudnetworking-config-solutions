@@ -23,7 +23,7 @@ GREEN='\033[0;32m'
 NC='\033[0m'
 
 # Define valid stages to be accepted by the -s flag
-valid_stages="all organization networking networking/ncc security/firewall/firewallpolicy security/certificates/compute-ssl-certs/google-managed security/alloydb security/mrc security/cloudsql security/gce security/mig security/workbench producer/alloydb producer/mrc producer/cloudsql producer/gke producer/vectorsearch producer/onlineendpoint producer-connectivity consumer/gce consumer/serverless/cloudrun/job consumer/serverless/cloudrun/service consumer/serverless/appengine/standard consumer/serverless/appengine/flexible consumer/mig consumer/workbench load-balancing/application/external load-balancing/network/passthrough/external"
+valid_stages="all organization networking networking/ncc security/firewall/firewallpolicy security/certificates/compute-ssl-certs/google-managed security/alloydb security/mrc security/cloudsql security/gce security/mig security/workbench producer/alloydb producer/mrc producer/cloudsql producer/gke producer/vectorsearch producer/onlineendpoint producer-connectivity consumer/gce consumer/serverless/cloudrun/job consumer/serverless/cloudrun/service consumer/serverless/appengine/standard consumer/serverless/appengine/flexible consumer/mig consumer/workbench load-balancing/application/external load-balancing/network/passthrough/internal load-balancing/network/passthrough/external"
 
 # Define valid Terraform commands to be accepted by the -tf or --tfcommand flag
 valid_tf_commands="init apply apply-auto-approve destroy destroy-auto-approve init-apply init-apply-auto-approve"
@@ -56,6 +56,7 @@ stage_path_map=(
     "consumer/mig=06-consumer/MIG"
     "consumer/workbench=06-consumer/Workbench"
     "load-balancing/application/external=07-consumer-load-balancing/Application/External"
+    "load-balancing/network/passthrough/internal=07-consumer-load-balancing/Network/Passthrough/Internal"
     "load-balancing/network/passthrough/external=07-consumer-load-balancing/Network/Passthrough/External"
 
 )
@@ -88,6 +89,7 @@ stagewise_tfvar_path_map=(
     "06-consumer/MIG=../../../configuration/consumer/MIG/mig.tfvars"
     "06-consumer/Workbench=../../../configuration/consumer/Workbench/workbench.tfvars"
     "07-consumer-load-balancing/Application/External=../../../../configuration/consumer-load-balancing/Application/External/external-application-lb.tfvars"
+    "07-consumer-load-balancing/Network/Passthrough/Internal=../../../../../configuration/consumer-load-balancing/Network/Passthrough/Internal/internal-network-passthrough.tfvars"
     "07-consumer-load-balancing/Network/Passthrough/External=../../../../../configuration/consumer-load-balancing/Network/Passthrough/External/external-network-passthrough.tfvars"
 )
 
@@ -129,6 +131,7 @@ stage_wise_description_map=(
   "consumer/mig=Executes 06-consumer/MIG stage, manages MIG instances."
   "consumer/workbench=Executes 06-consumer/Workbench stage, manages Workbench instance."
   "load-balancing/application/external=Executes 07-consumer-load-balancing/Application/External stage, manages External Application Load Balancers."
+  "load-balancing/network/passthrough/internal=Executes 07-consumer-load-balancing/Network/Passthrough/Internal stage, manages Int Net Passthrough LBs."
   "load-balancing/network/passthrough/external=Executes 07-consumer-load-balancing/Network/Passthrough/External stage, manages Ext Net Passthrough LBs."
   )
 
