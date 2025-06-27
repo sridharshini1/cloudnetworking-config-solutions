@@ -1,0 +1,11 @@
+# This file creates only an association for an existing endpoint (1 resource).
+location: "us-central1-c"
+
+# --- Defines only the project-level Association ---
+firewall_endpoint_association:
+  create: true
+  name: "assoc-to-test-vpc-2"
+  association_project_id: "YOUR_VPC_PROJECT_ID" # <-- Replace
+  vpc_id: "projects/my-production-project/global/networks/test-vpc-2"
+  # This path is a placeholder for testing; it does not need to exist for the plan.
+  existing_firewall_endpoint_id: "organizations/YOUR_ORGANIZATION_ID/locations/us-central1-c/firewallEndpoints/some-pre-existing-endpoint"

@@ -1,0 +1,9 @@
+location: "zone-to-be-assocaited"
+
+firewall_endpoint_association:
+  create: true
+  association_project_id: "my-development-project"
+  name: "assoc-to-dev-vpc"
+  vpc_id: "projects/<project-id>/global/networks/<vpc-network>" # e.g., "projects/my-production-project/global/networks/prod-vpc-us-east"
+  # You must provide the full ID of the endpoint you want to link to.
+  existing_firewall_endpoint_id: "organizations/YOUR_ORGANIZATION_ID/locations/ZONE/firewallEndpoints/FIREWALL_ENDPOINT_NAME"  # e.g., "organizations/123456789012/locations/us-east1-b/firewallEndpoints/existing-endpoint-for-dev"
