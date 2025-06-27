@@ -240,31 +240,13 @@ func TestTerraformModuleINLBResourceAddressListMatch(t *testing.T) {
 	actualModuleAddresses := make(map[string]struct{})
 	for _, resourceChange := range content.ResourceChangesMap {
 		moduleAddr := resourceChange.ModuleAddress
-
-		if moduleAddr != "" {
-			parts := strings.Split(moduleAddr, ".")
-			// We are looking for module instances named "module.inlb_passthrough"
-			if len(parts) == 2 && parts[0] == "module" && strings.HasPrefix(parts[1], "internal_passthrough_nlb[") {
-				actualModuleAddresses[moduleAddr] = struct{}{}
-			}
+		if strings.HasPrefix(moduleAddr, "module.internal_passthrough_nlb[") {
+			actualModuleAddresses[moduleAddr] = struct{}{}
 		}
 	}
 
-	expectedSlice := make([]string, 0, len(expectedModuleAddresses))
-	for address := range expectedModuleAddresses {
-		expectedSlice = append(expectedSlice, address)
-	}
-
-	actualSlice := make([]string, 0, len(actualModuleAddresses))
-	for address := range actualModuleAddresses {
-		actualSlice = append(actualSlice, address)
-	}
-
-	if !assert.ElementsMatch(t, actualSlice, expectedSlice) {
-		t.Logf("Expected Module Addresses (from YAMLs): %v", expectedSlice)
-		t.Logf("Actual Module Addresses (from Plan): %v", actualSlice)
+	if !assert.Equal(t, expectedModuleAddresses, actualModuleAddresses) {
 		t.Logf("Full Plan JSON for TestTerraformModuleINLBResourceAddressListMatch: %s", planJSON)
-		t.Errorf("TestTerraformModuleINLBResourceAddressListMatch: Mismatch in module instance addresses.\nExpected: %v\nActual:   %v", expectedSlice, actualSlice)
 	}
 }
 
@@ -674,7 +656,14 @@ func createTestVM(t *testing.T, projectID, zone, vmName, network, subnet string)
 
 func deleteTestVM(t *testing.T, projectID, zone, vmName string) {
 	t.Logf("Deleting test VM '%s'", vmName)
-	shell.RunCommand(t, shell.Command{Command: "gcloud", Args: []string{"compute", "instances", "delete", vmName, "--project=" + projectID, "--zone=" + zone, "--quiet"}})
+	cmd := shell.Command{
+		Command: "gcloud",
+		Args:    []string{"compute", "instances", "delete", vmName, "--project=" + projectID, "--zone=" + zone, "--quiet"},
+	}
+
+	if err := shell.RunCommandE(t, cmd); err != nil {
+		t.Logf("Warning: failed to delete VM %s. Error: %v", vmName, err)
+	}
 }
 
 func getVmInternalIp(t *testing.T, projectID, zone, vmName string) string {
