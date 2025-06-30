@@ -29,7 +29,7 @@ output "id" {
 
 output "instance_template" {
   description = "The self-link of the instance template used for the MIG."
-  value       = { for k, v in module.mig-template : k => v.template.self_link }
+  value       = { for k, v in module.mig-template : k => try(v.template.self_link, null) }
 }
 
 output "autoscaler_config" {
