@@ -13,29 +13,24 @@
 # limitations under the License.
 
 module "mig-template" {
-  for_each = local.mig_map
-  source   = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/compute-vm?ref=v39.0.0"
-
+  for_each   = local.mig_map
+  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/compute-vm?ref=v41.0.0"
   project_id = each.value.project_id
   name       = var.mig_template_name
-  zone       = "${each.value.location}-b"
-
-  tags = var.tags
-
+  zone       = each.value.zone
+  tags       = var.tags
   network_interfaces = [{
     network    = local.vpc_self_links[each.key]
     subnetwork = local.subnetwork_self_links[each.key]
     nat        = var.create_nat
     addresses  = null
   }]
-
   boot_disk = {
     initialize_params = {
       image = var.mig_image
     }
   }
-
-  create_template = true
+  create_template = var.create_template
   metadata = {
     startup-script = var.metadata
   }

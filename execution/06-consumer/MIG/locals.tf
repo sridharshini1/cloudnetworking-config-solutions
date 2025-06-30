@@ -14,25 +14,21 @@
 
 locals {
   config_folder_path = var.config_folder_path
-
   # Reading YAML files for MIG configurations
   migs_config = [
     for file in fileset(local.config_folder_path, "[^_]*.yaml") :
     yamldecode(file("${local.config_folder_path}/${file}"))
   ]
-
   # Flattening the MIG configurations into a list
   mig_list = flatten([
     for mig in try(local.migs_config, []) : {
-      name        = mig.name
-      project_id  = mig.project_id
-      location    = mig.location
-      target_size = try(mig.target_size, var.target_size)
-
-      # Extracting VPC and Subnetwork names from YAML
-      vpc_name        = mig.vpc_name
+      name            = mig.name
+      project_id      = mig.project_id
+      location        = mig.location
+      zone            = mig.zone
+      target_size     = try(mig.target_size, var.target_size)
+      vpc_name        = mig.vpc_name # Extracting VPC and Subnetwork names from YAML
       subnetwork_name = mig.subnetwork_name
-
       autoscaler_config = {
         max_replicas    = try(mig.autoscaler_config.max_replicas, var.autoscaler_config.max_replicas)
         min_replicas    = try(mig.autoscaler_config.min_replicas, var.autoscaler_config.min_replicas)
@@ -44,9 +40,7 @@ locals {
           }
         }
       }
-
       auto_healing_policies = try(mig.auto_healing_policies, var.auto_healing_policies)
-
       health_check_config = (
         try(mig.health_check_config, null) != null ? {
           enable_logging = try(mig.health_check_config.enable_logging, var.health_check_default_enable_logging),
@@ -58,17 +52,12 @@ locals {
           ssl            = try(mig.health_check_config.ssl, null)    # SSL health check settings
         } : null                                                     # Set to null if health_check_config is not provided
       )
-
       description         = try(mig.description, "Terraform managed.")
       distribution_policy = try(mig.distribution_policy, var.distribution_policy)
       named_ports         = try(mig.named_ports, var.named_ports)
     }
   ])
-
-  # Creating a map for easy access to MIG configurations by name
-  mig_map = { for mig in local.mig_list : mig.name => mig }
-
-  # Constructing self-links for VPC and Subnetwork based on each MIG's configuration
+  mig_map               = { for mig in local.mig_list : mig.name => mig } # Creating a map for easy access to MIG configurations by name
   vpc_self_links        = { for mig in local.mig_list : mig.name => "projects/${mig.project_id}/global/networks/${mig.vpc_name}" }
   subnetwork_self_links = { for mig in local.mig_list : mig.name => "projects/${mig.project_id}/regions/${var.region}/subnetworks/${mig.subnetwork_name}" }
 }

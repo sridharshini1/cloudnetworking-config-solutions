@@ -25,9 +25,12 @@ variable "create_nat" {
 }
 
 variable "create_template" {
-  description = "True or False to create a template"
-  default     = true
-  type        = bool
+  description = "Create instance template instead of instances. Defaults to a global template."
+  type = object({
+    regional = optional(bool, false)
+  })
+  nullable = true
+  default  = {}
 }
 
 variable "addresses" {
