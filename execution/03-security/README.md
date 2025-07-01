@@ -2,7 +2,7 @@
 
 ## Overview
 
-This Terraform stage focuses on establishing essential security configurations for various Google Cloud Platform (GCP) resources, including AlloyDB, Memorystore for Redis Clusters (MRC), CloudSQL, and GCE (Google Compute Engine). The core component of this stage is setting up firewall rules to control inbound and outbound traffic to these resources.
+This Terraform stage focuses on establishing essential security configurations for various Google Cloud Platform (GCP) resources, including AlloyDB, Memorystore for Redis Clusters (MRC), CloudSQL, and GCE (Google Compute Engine). The core component of this stage is setting up firewall rules to control inbound and outbound traffic to these resources. This Stage also helps you deploy advanced security features such as firewall policies, firewall endpoints, firewall endpoint associations, security profiles and security profile groups.
 
 ## Prerequisites
 
@@ -15,6 +15,7 @@ Based on the producer (such as CloudSQL, MRC or AlloyDB) or consumer service (su
 - Cloud Logging API
 - Cloud Monitoring API
 - Notebooks API
+- Network Security API
 
 
 ### Permissions:
