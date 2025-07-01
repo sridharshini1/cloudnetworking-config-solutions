@@ -588,14 +588,21 @@ nohup python3 /echo_server.py > /dev/null 2>&1 &`
 	// Use --metadata-from-file to pass the script, which is more robust than passing a long string.
 	metadataFlag := fmt.Sprintf("startup-script=%s", scriptPath)
 
-	cmd := shell.Command{Command: "gcloud", Args: []string{"compute", "instance-templates", "create", templateName, "--project=" + projectID, "--machine-type=e2-small", "--image-family=debian-11", "--image-project=debian-cloud", "--network=" + network, "--subnet=" + subnet, "--region=" + region, "--tags=" + strings.Join(tags, ","), "--metadata-from-file", metadataFlag}}
+	cmd := shell.Command{Command: "gcloud", Args: []string{"compute", "instance-templates", "create", templateName, "--project=" + projectID, "--machine-type=e2-small", "--image-family=ubuntu-2204-lts", "--image-project=ubuntu-os-cloud", "--network=" + network, "--subnet=" + subnet, "--region=" + region, "--tags=" + strings.Join(tags, ","), "--metadata-from-file", metadataFlag}}
 	_, err = shell.RunCommandAndGetOutputE(t, cmd)
 	assert.NoError(t, err, "Failed to create Instance Template")
 }
 
 func deleteInstanceTemplate(t *testing.T, projectID, templateName string) {
 	t.Logf("Deleting instance template '%s'", templateName)
-	shell.RunCommand(t, shell.Command{Command: "gcloud", Args: []string{"compute", "instance-templates", "delete", templateName, "--project=" + projectID, "--quiet"}})
+	cmd := shell.Command{
+		Command: "gcloud",
+		Args:    []string{"compute", "instance-templates", "delete", templateName, "--project=" + projectID, "--quiet"},
+	}
+
+	if err := shell.RunCommandE(t, cmd); err != nil {
+		t.Logf("Warning: failed to delete instance template %s. Error: %v", templateName, err)
+	}
 }
 
 func createManagedInstanceGroup(t *testing.T, projectID, region, zone, migName, templateName string, size int) {
@@ -645,7 +652,7 @@ func createTestVM(t *testing.T, projectID, zone, vmName, network, subnet string)
 	t.Logf("Creating test VM '%s'", vmName)
 	// Startup script installs necessary tools for connectivity checks.
 	startupScript := "apt-get update -y && apt-get install -y curl dnsutils netcat-openbsd"
-	cmd := shell.Command{Command: "gcloud", Args: []string{"compute", "instances", "create", vmName, "--project=" + projectID, "--zone=" + zone, "--machine-type=e2-micro", "--image-family=debian-11", "--image-project=debian-cloud", "--network=" + network, "--subnet=" + subnet, "--tags=allow-iap-ssh", "--metadata=startup-script=" + startupScript}}
+	cmd := shell.Command{Command: "gcloud", Args: []string{"compute", "instances", "create", vmName, "--project=" + projectID, "--zone=" + zone, "--machine-type=e2-micro", "--image-family=ubuntu-2204-lts", "--image-project=ubuntu-os-cloud", "--network=" + network, "--subnet=" + subnet, "--tags=allow-iap-ssh", "--metadata=startup-script=" + startupScript}}
 	_, err := retry.DoWithRetryE(t, "Create Test VM", 2, 10*time.Second, func() (string, error) {
 		return shell.RunCommandAndGetOutputE(t, cmd)
 	})
