@@ -87,7 +87,7 @@ For the usage of this configuration solution, the following should be installed:
       networking_stage_administrator            = ["user:user-example@example.com"]
       security_stage_administrator              = ["user:user-example@example.com"]
       producer_stage_administrator              = ["user:user-example@example.com"]
-      producer_connectivity_stage_administrator = ["user:user-example@example.com"]
+      producer_connectivity_administrator       = ["user:user-example@example.com"]
       consumer_stage_administrator              = ["user:user-example@example.com"]
       consumer_workbench_administrator          = ["user:workbench-user-example@example.com"]
       ```
@@ -164,9 +164,6 @@ For the usage of this configuration solution, the following should be installed:
 
       create_interconnect = false # Set to true to create a Cloud Interconnect
 
-      ## NCC input variables
-
-      create_ncc = false
       ```
 
   * **03-security stage:**
