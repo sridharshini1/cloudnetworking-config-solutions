@@ -669,7 +669,7 @@ func getYamlFileForTest(lbName string) string {
 func verifyResponseFromGCS(t *testing.T, projectID, bucketName, objectName string) {
 	t.Logf("Waiting for test result from VM '%s' in GCS bucket '%s'...", objectName, bucketName)
 
-	maxRetries := 5
+	maxRetries := 10
 	sleepBetweenRetries := 60 * time.Second
 	objectPath := fmt.Sprintf("%s.txt", objectName)
 
