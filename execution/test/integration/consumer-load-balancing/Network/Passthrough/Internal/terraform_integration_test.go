@@ -17,7 +17,9 @@
 package integrationtest
 
 import (
+	"context"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -25,6 +27,8 @@ import (
 	"testing"
 	"time"
 
+	"cloud.google.com/go/storage"
+	"github.com/gruntwork-io/terratest/modules/gcp"
 	"github.com/gruntwork-io/terratest/modules/retry"
 	"github.com/gruntwork-io/terratest/modules/shell"
 	"github.com/gruntwork-io/terratest/modules/terraform"
@@ -69,6 +73,7 @@ var (
 	ilbFwTrafficRuleName = fmt.Sprintf("%s-fw-traffic", ilbNetworkName)
 	ilbTestVmName        = fmt.Sprintf("test-vm-%s", ilbInstanceName)
 	ilbInstanceTag       = "ilb-backend-instance"
+	ilbTestBucketName    = fmt.Sprintf("ilb-test-results-%s", strings.ToLower(ilbInstanceName))
 )
 
 const (
@@ -258,16 +263,20 @@ func TestCreateInternalLoadBalancer(t *testing.T) {
 		t.Fatal("TF_VAR_project_id must be set as an environment variable.")
 	}
 
+	bucketAttrs := &storage.BucketAttrs{
+		Location: "US",
+	}
+
 	// 1. SETUP: Generate dynamic YAML configs for different test cases.
 	createInternalLoadBalancerYAML(t)
+
+	// SETUP: Create a GCS bucket for test results
+	gcp.CreateStorageBucketE(t, ilbProjectID, ilbTestBucketName, bucketAttrs)
+	defer gcp.DeleteStorageBucketE(t, ilbTestBucketName)
 
 	// 2. SETUP: Create all prerequisite cloud resources using gcloud commands.
 	createVPC(t, ilbProjectID, ilbNetworkName, ilbRegion, ilbSubnetName, ilbSubnetCidr)
 	defer deleteVPC(t, ilbProjectID, ilbNetworkName, ilbRegion, ilbSubnetName)
-
-	ilbFwIapRuleName := fmt.Sprintf("%s-fw-iap-ssh", ilbNetworkName)
-	createFirewallRuleForIAP(t, ilbProjectID, ilbNetworkName, ilbFwIapRuleName, []string{"allow-iap-ssh"})
-	defer deleteFirewallRule(t, ilbProjectID, ilbFwIapRuleName)
 
 	createFirewallRuleForILBTraffic(t, ilbProjectID, ilbNetworkName, ilbFwTrafficRuleName, []string{apachePort}, []string{ilbInstanceTag}, ilbSubnetCidr)
 	defer deleteFirewallRule(t, ilbProjectID, ilbFwTrafficRuleName)
@@ -275,15 +284,12 @@ func TestCreateInternalLoadBalancer(t *testing.T) {
 	createFirewallRuleForNLBHealthChecks(t, ilbProjectID, ilbNetworkName, ilbFwHcRuleName, []string{ilbInstanceTag})
 	defer deleteFirewallRule(t, ilbProjectID, ilbFwHcRuleName)
 
-	createInstanceTemplate(t, ilbProjectID, ilbTemplateName, ilbNetworkName, ilbSubnetName, ilbRegion, []string{ilbInstanceTag, "allow-iap-ssh"})
+	createInstanceTemplate(t, ilbProjectID, ilbTemplateName, ilbNetworkName, ilbSubnetName, ilbRegion, []string{ilbInstanceTag})
 	defer deleteInstanceTemplate(t, ilbProjectID, ilbTemplateName)
 
 	createManagedInstanceGroup(t, ilbProjectID, ilbRegion, "", ilbMigName, ilbTemplateName, 2)
 	defer deleteManagedInstanceGroup(t, ilbProjectID, ilbRegion, "", ilbMigName)
 	setNamedPortsOnMIG(t, ilbProjectID, ilbRegion, "", ilbMigName, "http", apachePort)
-
-	createTestVM(t, ilbProjectID, ilbZone, ilbTestVmName, ilbNetworkName, ilbSubnetName)
-	defer deleteTestVM(t, ilbProjectID, ilbZone, ilbTestVmName)
 
 	// 3. EXECUTION: Run terraform init and apply.
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
@@ -310,33 +316,25 @@ func TestCreateInternalLoadBalancer(t *testing.T) {
 		t.FailNow()
 	}
 
-	// Get details needed for verification checks.
-	testVmIp := getVmInternalIp(t, ilbProjectID, ilbZone, ilbTestVmName)
-	backendInstances := getMigInstances(t, ilbProjectID, ilbRegion, ilbMigName)
-	if !assert.NotEmpty(t, backendInstances, "Could not retrieve backend instances from MIG") {
-		t.FailNow()
-	}
-
 	// Loop through each load balancer created by Terraform and verify it.
 	for lbNameFromOutput, fwdRules := range loadBalancersToTest {
 		t.Run(lbNameFromOutput, func(t *testing.T) {
 			t.Logf("--- Starting Verification for Internal Load Balancer: %s ---", lbNameFromOutput)
-
-			yamlFileName := getYamlFileForTest(lbNameFromOutput)
-			if !assert.NotEmpty(t, yamlFileName, "Could not determine YAML file for LB: %s", lbNameFromOutput) {
-				return
-			}
-
-			verifyInternalLoadBalancerConfiguration(t, lbNameFromOutput, yamlFileName, terraformOptions)
-
+			yamlFile := getYamlFileForTest(lbNameFromOutput)
+			verifyInternalLoadBalancerConfiguration(t, lbNameFromOutput, yamlFile, terraformOptions)
 			// Loop through each forwarding rule associated with the load balancer.
 			fwdRules.ForEach(func(ruleKey, ipAddress gjson.Result) bool {
-				t.Logf("Verifying rule '%s' with IP: %s", ruleKey.String(), ipAddress.String())
-				if !assert.NotEmpty(t, ipAddress.String(), "IP address for ILB %s (rule '%s') is empty", lbNameFromOutput, ruleKey.String()) {
+				lbIP := ipAddress.String()
+				t.Logf("Verifying rule '%s' with IP: %s", ruleKey.String(), lbIP)
+				if !assert.NotEmpty(t, lbIP, "IP address for ILB %s (rule '%s') is empty", lbNameFromOutput, ruleKey.String()) {
 					return true // continue to next rule
 				}
 
-				verifyPassthroughResponse(t, ilbProjectID, ilbZone, ilbTestVmName, testVmIp, ipAddress.String(), apachePort)
+				// Create a unique test VM for each forwarding rule to be tested
+				testVmName := fmt.Sprintf("test-vm-%s-%s", ilbInstanceName, ruleKey.String())
+				createTestVM(t, ilbProjectID, ilbZone, testVmName, ilbNetworkName, ilbSubnetName, lbIP, ilbTestBucketName, apachePort)
+				defer deleteTestVM(t, ilbProjectID, ilbZone, testVmName)
+				verifyResponseFromGCS(t, ilbProjectID, ilbTestBucketName, testVmName)
 				return true // continue ForEach
 			})
 			t.Logf("--- Finished Verification for Internal Load Balancer: %s ---", lbNameFromOutput)
@@ -440,57 +438,6 @@ func verifyInternalLoadBalancerConfiguration(t *testing.T, lbNameFromOutput stri
 	t.Logf("Successfully verified Forwarding Rule '%s' for ILB '%s' is INTERNAL.", frName, lbNameFromOutput)
 }
 
-// verifyPassthroughResponse connects from a test VM to the load balancer and asserts that
-// the response from the backend is the test VM's own internal IP address.
-// This elegantly verifies both connectivity and client IP preservation in a single check.
-func verifyPassthroughResponse(t *testing.T, projectID, zone, testVmName, testVmIp, lbIpAddress, port string) {
-	t.Logf("Verifying passthrough from VM %s (%s) to ILB IP %s", testVmName, testVmIp, lbIpAddress)
-
-	maxRetries := 3
-	sleepBetweenRetries := 15 * time.Second
-
-	// The command to run on the test VM
-	sshCommand := fmt.Sprintf("curl -s --fail -m 10 http://%s:%s", lbIpAddress, port)
-
-	// Use a retry loop to handle the time it takes for the LB and backends to become healthy.
-	_, err := retry.DoWithRetryE(t, "Check for client IP in response", maxRetries, sleepBetweenRetries, func() (string, error) {
-		cmd := shell.Command{
-			Command: "gcloud",
-			Args: []string{
-				"compute", "ssh", testVmName,
-				"--project=" + projectID, "--zone=" + zone, "--command=" + sshCommand,
-				"--tunnel-through-iap", "--quiet",
-			},
-		}
-		response, err := shell.RunCommandAndGetOutputE(t, cmd)
-		if err != nil {
-			if strings.Contains(response, "gcloud crashed") {
-				return "", fmt.Errorf("gcloud command crashed: %s", response)
-			}
-			return "", fmt.Errorf("command failed: %v. Output: %s", err, response)
-		}
-
-		// The gcloud ssh command includes warnings on stderr, which get combined with the response.
-		// We need to extract the actual response from the last line of the output string.
-		lines := strings.Split(strings.TrimSpace(response), "\n")
-		actualResponse := ""
-		if len(lines) > 0 {
-			// The last line of the output will be the actual response from curl.
-			actualResponse = lines[len(lines)-1]
-		}
-
-		// The response should be the client's (the test VM's) IP address.
-		if strings.TrimSpace(actualResponse) != testVmIp {
-			return "", fmt.Errorf("response did not match client IP. Expected: '%s', Got: '%s'. Full output: %s", testVmIp, actualResponse, response)
-		}
-
-		t.Logf("Success! Response from load balancer matched client IP: %s", actualResponse)
-		return actualResponse, nil
-	})
-
-	assert.NoError(t, err, "Failed to verify passthrough response after multiple retries.")
-}
-
 // Prerequisite Infrastructure Helper Functions (gcloud Wrappers)
 func createVPC(t *testing.T, projectID, networkName, region, subnetName, subnetCidr string) {
 	t.Logf("Creating VPC '%s' and subnet '%s'", networkName, subnetName)
@@ -537,14 +484,6 @@ func createFirewallRuleForNLBHealthChecks(t *testing.T, projectID, network, rule
 	cmd := shell.Command{Command: "gcloud", Args: []string{"compute", "firewall-rules", "create", ruleName, "--project=" + projectID, "--network=" + network, "--action=ALLOW", "--rules=tcp", "--source-ranges=" + hcRanges, "--target-tags=" + strings.Join(tags, ",")}}
 	_, err := shell.RunCommandAndGetOutputE(t, cmd)
 	assert.NoError(t, err, "Failed to create firewall rule for health checks")
-}
-
-func createFirewallRuleForIAP(t *testing.T, projectID, network, ruleName string, tags []string) {
-	t.Logf("Creating firewall rule '%s' for IAP SSH", ruleName)
-	iapRange := "35.235.240.0/20"
-	cmd := shell.Command{Command: "gcloud", Args: []string{"compute", "firewall-rules", "create", ruleName, "--project=" + projectID, "--network=" + network, "--action=ALLOW", "--direction=INGRESS", "--rules=tcp:22", "--source-ranges=" + iapRange, "--target-tags=" + strings.Join(tags, ",")}}
-	_, err := shell.RunCommandAndGetOutputE(t, cmd)
-	assert.NoError(t, err, "Failed to create firewall rule for IAP")
 }
 
 func deleteFirewallRule(t *testing.T, projectID, ruleName string) {
@@ -648,17 +587,59 @@ func setNamedPortsOnMIG(t *testing.T, projectID, region, zone, migName, portName
 	assert.NoError(t, err, "Failed to set named ports on MIG")
 }
 
-func createTestVM(t *testing.T, projectID, zone, vmName, network, subnet string) {
-	t.Logf("Creating test VM '%s'", vmName)
-	// Startup script installs necessary tools for connectivity checks.
-	startupScript := "apt-get update -y && apt-get install -y curl dnsutils netcat-openbsd"
-	cmd := shell.Command{Command: "gcloud", Args: []string{"compute", "instances", "create", vmName, "--project=" + projectID, "--zone=" + zone, "--machine-type=e2-micro", "--image-family=ubuntu-2204-lts", "--image-project=ubuntu-os-cloud", "--network=" + network, "--subnet=" + subnet, "--tags=allow-iap-ssh", "--metadata=startup-script=" + startupScript}}
-	_, err := retry.DoWithRetryE(t, "Create Test VM", 2, 10*time.Second, func() (string, error) {
+func createTestVM(t *testing.T, projectID, zone, vmName, network, subnet, lbIpToTest, bucketName, apachePort string) {
+	t.Logf("Creating test VM '%s' to test LB IP %s", vmName, lbIpToTest)
+
+	// This startup script curls the LB, checks the response, and writes the result to a GCS bucket.
+	startupScript := fmt.Sprintf(`#!/bin/bash
+apt-get update -y
+apt-get install -y curl google-cloud-sdk
+
+# Get the VM's own internal IP to check against the LB response
+MY_IP=$(curl -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/ip)
+LB_IP="%s"
+BUCKET_NAME="%s"
+RESULT_OBJECT_NAME="%s" # Use the VM name for a unique object name
+
+# Wait a bit for the LB to be ready, then curl it.
+sleep 20
+RESPONSE=$(curl -s --fail -m 10 http://${LB_IP}:%s)
+
+# Check if the response from the LB matches the VM's own IP
+if [ "$RESPONSE" == "$MY_IP" ]; then
+  echo "success" > /tmp/result.txt
+  echo "SUCCESS: Response from LB ($RESPONSE) matched client IP ($MY_IP)."
+else
+  echo "failure" > /tmp/result.txt
+  echo "FAILURE: Response from LB ($RESPONSE) did NOT match client IP ($MY_IP)."
+fi
+
+# Upload the result to GCS
+gsutil cp /tmp/result.txt gs://${BUCKET_NAME}/${RESULT_OBJECT_NAME}.txt
+`, lbIpToTest, bucketName, vmName, apachePort)
+
+	scriptFileName := fmt.Sprintf("startup-script-%s.sh", vmName)
+	scriptPath := filepath.Join(ilbConfigFolderPath, scriptFileName)
+	err := os.WriteFile(scriptPath, []byte(startupScript), 0755)
+	assert.NoError(t, err, "Failed to write startup script to file")
+
+	cmd := shell.Command{Command: "gcloud", Args: []string{
+		"compute", "instances", "create", vmName,
+		"--project=" + projectID,
+		"--zone=" + zone,
+		"--machine-type=e2-micro",
+		"--image-family=ubuntu-2204-lts",
+		"--image-project=ubuntu-os-cloud",
+		"--network=" + network,
+		"--subnet=" + subnet,
+		"--scopes=https://www.googleapis.com/auth/cloud-platform",            // Important: Scope for GCS access
+		"--metadata-from-file", fmt.Sprintf("startup-script=%s", scriptPath), // Use --metadata-from-file to safely pass the script.
+	}}
+
+	_, err = retry.DoWithRetryE(t, fmt.Sprintf("Create Test VM %s", vmName), 2, 10*time.Second, func() (string, error) {
 		return shell.RunCommandAndGetOutputE(t, cmd)
 	})
 	assert.NoError(t, err, "Failed to create test VM")
-	t.Logf("Waiting 60s for test VM to boot and run startup script...")
-	time.Sleep(60 * time.Second)
 }
 
 func deleteTestVM(t *testing.T, projectID, zone, vmName string) {
@@ -673,41 +654,6 @@ func deleteTestVM(t *testing.T, projectID, zone, vmName string) {
 	}
 }
 
-func getVmInternalIp(t *testing.T, projectID, zone, vmName string) string {
-	t.Logf("Getting internal IP for VM '%s'", vmName)
-	cmd := shell.Command{Command: "gcloud", Args: []string{"compute", "instances", "describe", vmName, "--project=" + projectID, "--zone=" + zone, "--format=get(networkInterfaces[0].networkIP)"}}
-	ip, err := shell.RunCommandAndGetOutputE(t, cmd)
-	assert.NoError(t, err, "Failed to get internal IP for VM")
-	t.Logf("Found internal IP for test VM %s: %s", vmName, ip)
-	return ip
-}
-
-func getMigInstances(t *testing.T, projectID, region, migName string) map[string]string {
-	t.Logf("Getting instance names and zones from MIG '%s'", migName)
-	args := []string{
-		"compute", "instance-groups", "managed", "list-instances", migName,
-		"--project=" + projectID,
-		"--region=" + region,
-		"--format=json",
-	}
-	output, err := shell.RunCommandAndGetOutputE(t, shell.Command{Command: "gcloud", Args: args})
-	assert.NoError(t, err, "Failed to list instances for MIG")
-
-	instanceDetails := make(map[string]string)
-	parsedOutput := gjson.Parse(output)
-	parsedOutput.ForEach(func(key, value gjson.Result) bool {
-		instanceURL := value.Get("instance").String()
-		parts := strings.Split(instanceURL, "/")
-		instanceName := parts[len(parts)-1]
-		zone := parts[len(parts)-3]
-		instanceDetails[instanceName] = zone
-		return true
-	})
-
-	t.Logf("Found instances in MIG %s: %v", migName, instanceDetails)
-	return instanceDetails
-}
-
 // getYamlFileForTest determines the source YAML filename based on the LB's name prefix.
 func getYamlFileForTest(lbName string) string {
 	if strings.Contains(lbName, "lite") {
@@ -717,4 +663,47 @@ func getYamlFileForTest(lbName string) string {
 		return maximalILBYamlFile
 	}
 	return ""
+}
+
+// verifyResponseFromGCS polls a GCS bucket to check for a success/failure result file.
+func verifyResponseFromGCS(t *testing.T, projectID, bucketName, objectName string) {
+	t.Logf("Waiting for test result from VM '%s' in GCS bucket '%s'...", objectName, bucketName)
+
+	maxRetries := 5
+	sleepBetweenRetries := 60 * time.Second
+	objectPath := fmt.Sprintf("%s.txt", objectName)
+
+	message, err := retry.DoWithRetryE(t, "Poll GCS for test result", maxRetries, sleepBetweenRetries, func() (string, error) {
+		ctx := context.Background()
+		client, err := storage.NewClient(ctx)
+		if err != nil {
+			return "", fmt.Errorf("failed to create storage client: %w", err)
+		}
+		defer client.Close()
+
+		rc, err := client.Bucket(bucketName).Object(objectPath).NewReader(ctx)
+		if err != nil {
+			// This is an expected error while we wait for the file to be created.
+			return "", fmt.Errorf("result object '%s' not yet available in bucket '%s'", objectPath, bucketName)
+		}
+		defer rc.Close()
+
+		// Read the content of the result file.
+		content, err := ioutil.ReadAll(rc)
+		if err != nil {
+			return "", fmt.Errorf("failed to read result object: %w", err)
+		}
+
+		result := strings.TrimSpace(string(content))
+		if result == "success" {
+			t.Logf("Success! Received 'success' status from VM %s.", objectName)
+			return "Verification successful", nil // Return success to stop retrying.
+		}
+
+		// If the result is "failure" or anything else, we have a definitive failure.
+		return "", retry.FatalError{Underlying: fmt.Errorf("received '%s' status from VM %s", result, objectName)}
+	})
+
+	assert.NoError(t, err, "Failed to verify passthrough response after multiple retries.")
+	t.Log(message)
 }
