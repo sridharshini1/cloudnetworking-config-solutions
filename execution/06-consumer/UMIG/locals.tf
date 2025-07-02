@@ -15,7 +15,7 @@
 locals {
   config_folder_path = var.config_folder_path
   umig_configs = [
-    for file in fileset(local.config_folder_path, "[^_]*.yaml") :
+    for file in fileset(local.config_folder_path, "*.yaml") :
     yamldecode(file("${local.config_folder_path}/${file}"))
   ]
 
@@ -26,11 +26,10 @@ locals {
       name        = umig.name
       description = umig.description
       network     = "https://www.googleapis.com/compute/v1/projects/${umig.project_id}/global/networks/${umig.network}"
-      named_ports = {
-        for np in try(umig.named_ports, var.named_ports) : np.name => np.port
-      }
+      named_ports = try({ for np in umig.named_ports : np.name => np.port }, var.named_ports)
       instances = try([
-        for inst in umig.instances : inst.name
+        for inst in umig.instances :
+        "projects/${umig.project_id}/zones/${umig.zone}/instances/${inst}"
       ], [])
     }
   }

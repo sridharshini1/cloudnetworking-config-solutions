@@ -18,12 +18,7 @@ resource "google_compute_instance_group" "unmanaged" {
   name        = var.name
   description = var.description
   network     = var.network
-
-  instances = [
-    for inst in var.instances :
-    "projects/${var.project_id}/zones/${var.zone}/instances/${inst}"
-  ]
-
+  instances   = var.instances
   dynamic "named_port" {
     for_each = var.named_ports
     iterator = np
