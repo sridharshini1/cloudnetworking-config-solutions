@@ -33,13 +33,14 @@ import (
 )
 
 var (
-	projectRootSP, _         = filepath.Abs("../../../../")
-	terraformDirectoryPathSP = filepath.Join(projectRootSP, "03-security/SecurityProfile")
-	configFolderPathSP       = filepath.Join(projectRootSP, "test/integration/security/SecurityProfile/config")
-	requiredGcpApis          = []string{
+	projectRoot, _         = filepath.Abs("../../../../")
+	terraformDirectoryPath = filepath.Join(projectRoot, "03-security/SecurityProfile")
+	configFolderPath       = filepath.Join(projectRoot, "test/integration/security/SecurityProfile/config")
+	requiredGcpApis        = []string{
 		"iam.googleapis.com",
 		"compute.googleapis.com",
 		"networksecurity.googleapis.com",
+		"cloudresourcemanager.googleapis.com",
 	}
 
 	testSaProjectRoles = []string{
@@ -54,15 +55,25 @@ var (
 		"roles/resourcemanager.organizationViewer",
 		"roles/networksecurity.securityProfileAdmin",
 	}
+	resourceVpcSubnetRange = "10.10.10.0/24"
+	sshFirewallRange       = "35.235.240.0/20"
 )
 
 func TestSecurityProfileIntegration(t *testing.T) {
 	t.Parallel()
 	projectID := os.Getenv("TF_VAR_project_id")
 	orgID := os.Getenv("TF_VAR_organization_id")
-	if projectID == "" || orgID == "" {
-		t.Fatal("TF_VAR_project_id and TF_VAR_organization_id environment variables must be set")
+	billingProjectID := os.Getenv("TF_VAR_billing_project_id")
+	require.NotEmpty(t, projectID, "TF_VAR_project_id env var must be set")
+	if orgID == "" {
+		t.Skip("SKIPPING TEST: TF_VAR_organization_id environment variable is not set.")
 	}
+	if billingProjectID == "" {
+		t.Skip("SKIPPING TEST: TF_VAR_billing_project_id environment variable is not set.")
+	}
+	err := setQuotaProjectE(t, billingProjectID)
+	require.NoError(t, err)
+	defer unsetQuotaProject(t)
 	currentUser := getCurrentGcloudUser(t)
 	instanceSuffix := strings.ToLower(random.UniqueId())
 	serviceAccountName := fmt.Sprintf("sa-sp-test-%s", instanceSuffix)
@@ -96,11 +107,11 @@ func TestSecurityProfileIntegration(t *testing.T) {
 	createFirewallPolicy(t, orgID, firewallPolicyName)
 	defer deleteFirewallPolicy(t, orgID, firewallPolicyName)
 	tfVars := map[string]interface{}{
-		"config_folder_path": configFolderPathSP,
+		"config_folder_path": configFolderPath,
 	}
 
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
-		TerraformDir: terraformDirectoryPathSP,
+		TerraformDir: terraformDirectoryPath,
 		Vars:         tfVars,
 		Reconfigure:  true,
 		NoColor:      true,
@@ -119,6 +130,29 @@ func TestSecurityProfileIntegration(t *testing.T) {
 	err = verifyConnectivity(t, projectID, zone, vmClientName, vmServerName, false)
 	require.NoError(t, err, "verifyConnectivity reported an unexpected error. It should have confirmed that the connection was blocked, but instead it saw a success or another error.")
 	t.Log("Validation successful: Traffic was correctly blocked by the security profile.")
+}
+
+func setQuotaProjectE(t *testing.T, projectID string) error {
+	t.Logf("Setting gcloud billing/quota_project to: %s", projectID)
+	cmd := shell.Command{
+		Command: "gcloud",
+		// This array translates to "gcloud config set billing/quota_project PROJECT_ID"
+		Args: []string{"config", "set", "billing/quota_project", projectID},
+	}
+	_, err := shell.RunCommandAndGetOutputE(t, cmd)
+	return err
+}
+
+func unsetQuotaProject(t *testing.T) {
+	t.Logf("Unsetting gcloud billing/quota_project.")
+	cmd := shell.Command{
+		Command: "gcloud",
+		// This array translates to "gcloud config unset billing/quota_project"
+		Args: []string{"config", "unset", "billing/quota_project"},
+	}
+	if _, err := shell.RunCommandAndGetOutputE(t, cmd); err != nil {
+		t.Logf("WARN: Failed to unset quota project. Manual cleanup may be required. Error: %v", err)
+	}
 }
 
 func createConfigYAML(t *testing.T, orgID, profileName, groupName string) {
@@ -161,11 +195,10 @@ func createConfigYAML(t *testing.T, orgID, profileName, groupName string) {
 	yamlData, err := yaml.Marshal(&config)
 	assert.NoError(t, err)
 
-	_ = os.RemoveAll(configFolderPathSP)
-	err = os.MkdirAll(configFolderPathSP, 0755)
+	err = os.MkdirAll(configFolderPath, 0755)
 	assert.NoError(t, err)
 
-	filePath := filepath.Join(configFolderPathSP, fmt.Sprintf("%s.yaml", profileName))
+	filePath := filepath.Join(configFolderPath, "instance.yaml")
 	err = os.WriteFile(filePath, yamlData, 0644)
 	assert.NoError(t, err)
 	t.Logf("Created test YAML config file: %s", filePath)
@@ -181,7 +214,7 @@ func addRuleAndAssociateFirewallPolicy(t *testing.T, orgID, policyName, vpcName,
 	vpcPath := fmt.Sprintf("projects/%s/global/networks/%s", projectID, vpcName)
 
 	t.Logf("Adding rule to policy '%s' to apply security profile group '%s'", policyName, profileGroupPath)
-	shell.RunCommand(t, shell.Command{Command: "gcloud", Args: []string{"compute", "firewall-policies", "rules", "create", "1000", "--firewall-policy=" + policyName, "--organization=" + orgID, "--action=apply_security_profile_group", "--security-profile-group=" + profileGroupPath, "--src-ip-ranges=10.10.10.0/24", "--layer4-configs=all", "--enable-logging", "--description=test-rule"}})
+	shell.RunCommand(t, shell.Command{Command: "gcloud", Args: []string{"compute", "firewall-policies", "rules", "create", "1000", "--firewall-policy=" + policyName, "--organization=" + orgID, "--action=apply_security_profile_group", "--security-profile-group=" + profileGroupPath, "--src-ip-ranges=" + resourceVpcSubnetRange, "--layer4-configs=all", "--enable-logging", "--description=test-rule"}})
 
 	t.Logf("Associating policy '%s' with VPC '%s'", policyName, vpcPath)
 	shell.RunCommand(t, shell.Command{Command: "gcloud", Args: []string{"compute", "firewall-policies", "associations", "create", "--firewall-policy=" + policyName, "--organization=" + orgID, fmt.Sprintf("--name=%s-association", policyName), "--replace-association-on-target"}})
@@ -343,9 +376,9 @@ func createVPC(t *testing.T, projectID, networkName, zone string) {
 	region := getRegionFromZone(t, zone)
 	subnetName := fmt.Sprintf("%s-subnet", networkName)
 	shell.RunCommand(t, shell.Command{Command: "gcloud", Args: []string{"compute", "networks", "create", networkName, "--project=" + projectID, "--subnet-mode=custom"}})
-	shell.RunCommand(t, shell.Command{Command: "gcloud", Args: []string{"compute", "networks", "subnets", "create", subnetName, "--project=" + projectID, "--network=" + networkName, "--range=10.10.10.0/24", "--region=" + region}})
-	shell.RunCommand(t, shell.Command{Command: "gcloud", Args: []string{"compute", "firewall-rules", "create", fmt.Sprintf("fw-allow-ssh-%s", networkName), "--project=" + projectID, "--network=" + networkName, "--allow=tcp:22", "--source-ranges=35.235.240.0/20"}})
-	shell.RunCommand(t, shell.Command{Command: "gcloud", Args: []string{"compute", "firewall-rules", "create", fmt.Sprintf("fw-allow-http-internal-%s", networkName), "--project=" + projectID, "--network=" + networkName, "--allow=tcp:80", "--source-ranges=10.10.10.0/24"}})
+	shell.RunCommand(t, shell.Command{Command: "gcloud", Args: []string{"compute", "networks", "subnets", "create", subnetName, "--project=" + projectID, "--network=" + networkName, "--range=" + resourceVpcSubnetRange, "--region=" + region}})
+	shell.RunCommand(t, shell.Command{Command: "gcloud", Args: []string{"compute", "firewall-rules", "create", fmt.Sprintf("fw-allow-ssh-%s", networkName), "--project=" + projectID, "--network=" + networkName, "--allow=tcp:22", "--source-ranges=" + sshFirewallRange}})
+	shell.RunCommand(t, shell.Command{Command: "gcloud", Args: []string{"compute", "firewall-rules", "create", fmt.Sprintf("fw-allow-http-internal-%s", networkName), "--project=" + projectID, "--network=" + networkName, "--allow=tcp:80", "--source-ranges=" + resourceVpcSubnetRange}})
 }
 
 func deleteVPC(t *testing.T, projectID, networkName, zone string) {
@@ -375,8 +408,7 @@ func createVM(t *testing.T, projectID, vmName, zone, networkName string) {
 		"--machine-type=e2-micro",
 		"--subnet=" + subnetName,
 		"--no-address",
-		"--image-family=debian-11",
-		"--image-project=debian-cloud",
+		"--image-family=ubuntu-2204-lts", "--image-project=ubuntu-os-cloud",
 		fmt.Sprintf("--metadata-from-file=startup-script=%s", createStartupScriptFile(t, startupScript)),
 	}}
 	shell.RunCommand(t, cmd)
