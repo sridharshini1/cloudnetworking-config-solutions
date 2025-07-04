@@ -107,13 +107,13 @@ To use this configuration solution, ensure the following are installed:
 3. Update the configuration files that gets loaded in the Cloud shell editor and run the cloud build job to create resources
 
     ```
-    gcloud builds submit . --config docs/AlloyDB/build/cloudbuild.yaml
+    gcloud builds submit . --config docs/AlloyDB/build/cloudbuild.yaml --ignore-file=".gcloudignore"
     ```
 
 4. [Optional] Run the Cloud Build Job to destroy resources
 
     ```
-    gcloud builds submit . --config docs/AlloyDB/build/cloudbuild-destroy.yaml
+    gcloud builds submit . --config docs/AlloyDB/build/cloudbuild-destroy.yaml --ignore-file=".gcloudignore"
     ```
 
 ### Deploy through terraform-cli
@@ -160,28 +160,53 @@ To use this configuration solution, ensure the following are installed:
      * Update configuration/networking.tfvars \- update the Google Cloud Project ID and the parameters for additional resources such as VPC, subnet, and NAT as outlined below.
 
         ```
-        project_id  = "your-project-id",
+        project_id  = "your-project-id"
         region      = "us-central1"
 
         ## VPC input variables
-        network_name = "CNCS_VPC"
+        network_name = "cncs-vpc"
         subnets = [
-          {
+        {
             ip_cidr_range = "10.0.0.0/24"
-            name          = "CNCS_VPC_Subnet_1"
-            region        = "us-central1-a"
-          }
+            name          = "cncs-vpc-subnet-1"
+            region        = "us-central1"
+        }
         ]
-        psa_range_name    = range1
-        psa_range         = "10.0.64.0/20"
 
-        ## PSC/Service Connectivity Variables
+        shared_vpc_host = false
+
+        ## PSC/Service Connectivity variable
         create_scp_policy  = false
 
         ## Cloud Nat input variables
         create_nat = true
+
         ## Cloud HA VPN input variables
+
         create_havpn = false
+        peer_gateways = {
+        default = {
+            gcp = "" # e.g. projects/<google-cloud-peer-projectid>/regions/<google-cloud-region>/vpnGateways/<peer-vpn-name>
+        }
+        }
+
+        tunnel_1_router_bgp_session_range = ""
+        tunnel_1_bgp_peer_asn             = 64514
+        tunnel_1_bgp_peer_ip_address      = ""
+        tunnel_1_shared_secret            = ""
+
+        tunnel_2_router_bgp_session_range = ""
+        tunnel_2_bgp_peer_asn             = 64514
+        tunnel_2_bgp_peer_ip_address      = ""
+        tunnel_2_shared_secret            = ""
+
+        ## Cloud Interconnect input variables
+
+        create_interconnect = false # Use true or false
+
+        ## NCC input variables
+
+        create_ncc = false
         ```
 
    * **03-security stage**
@@ -189,7 +214,7 @@ To use this configuration solution, ensure the following are installed:
 
         ```
         project_id = "your-project-id"
-        network    = "CNCS_VPC"
+        network    = "cncs-vpc"
         ingress_rules = [
           {
             name        = "allow-ssh-custom-ranges"
@@ -211,7 +236,7 @@ To use this configuration solution, ensure the following are installed:
 
         ```
         project_id   = "your-project-id",
-        network      = "CNCS_VPC"
+        network      = "cncs-vpc"
         egress_rules = {
           allow-egress-alloydb = {
             deny = false
@@ -223,6 +248,7 @@ To use this configuration solution, ensure the following are installed:
         }
         ```
         **NOTE** : Before moving forward, please delete the security/mrc.tfvars and security/cloudsql.tfvars files as our CUJ only involves AlloyDB and GCE.
+
   * **04-producer stage**
       * Update the execution/04-producer/AlloyDB/config/instance.yaml.example file and rename it to instance.yaml
         ```
@@ -230,7 +256,7 @@ To use this configuration solution, ensure the following are installed:
         cluster_display_name: cncs-alloydb-demo-cluster1
         project_id: "your-project-id"
         region: us-central1
-        network_id: projects/<your-project-id>/global/networks/CNCS_VPC
+        network_id: projects/<your-project-id>/global/networks/cncs-vpc
         allocated_ip_range: range1
         primary_instance:
           instance_id : cncs-alloydb-instance1
@@ -246,12 +272,12 @@ To use this configuration solution, ensure the following are installed:
      * Update the execution/06-consumer/GCE/config/instance.yaml.example file and rename it to instance.yaml
         ```
         project_id: your-project-id
-        name: CNCS-GCE
+        name: cncs-gce
         region : us-central1
         zone: us-central1-a
         image: ubuntu-os-cloud/ubuntu-2204-lts
-        network: projects/<your-project-id>/global/networks/CNCS_VPC
-        subnetwork: projects/<your-project-id>/regions/us-central1/subnetworks/CNCS_VPC_Subnet_1
+        network: projects/<your-project-id>/global/networks/cncs-vpc
+        subnetwork: projects/<your-project-id>/regions/us-central1/subnetworks/cncs-vpc-subnet-1
         ```
 
 3. **Execute the terraform script**

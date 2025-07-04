@@ -1,0 +1,22 @@
+name: expanded-ilb-test-6488
+project: your-project-id
+region: us-central1
+network: vpc-ilb-test-6488
+subnetwork: vpc-ilb-test-6488-subnet
+description: Expanded ILB with custom HC
+backends:
+- group_name: mig-ilb-test-6488-regional
+  group_region: us-central1
+health_check:
+  description: Custom Health Check for ILB
+  check_interval_sec: 10
+  timeout_sec: 5
+  enable_logging: true
+  tcp:
+    port_specification: USE_SERVING_PORT
+forwarding_rules:
+  expanded-rule:
+    description: Forwarding rule for HTTP traffic
+    ports:
+    - "80"
+    protocol: TCP

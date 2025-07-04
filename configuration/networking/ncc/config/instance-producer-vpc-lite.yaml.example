@@ -1,0 +1,38 @@
+hubs:
+  - name: <hub_name>
+    project_id: <hub_project_id>
+    description: "Example NCC Hub"
+    labels:
+      env: prod
+    export_psc: true
+    policy_mode: PRESET
+    preset_topology: MESH
+    auto_accept_projects:
+      - <hub_project_id>
+      - <secondary_project_id>
+    create_new_hub: false
+    existing_hub_uri: "projects/<hub_project_id>/locations/global/hubs/<hub_name>"
+    group_name: default
+    group_decription: "Auto-accept group"
+    spoke_labels:
+      team: network
+
+spokes:
+  - type: linked_vpc_network
+    name: spoke1
+    project_id: <spoke1_project_id>
+    uri: projects/<spoke1_project_id>/global/networks/<vpc1_name>
+    description: "VPC Spoke 1"
+    labels:
+      env: prod
+
+  - type: linked_producer_vpc_network
+    name: prodspoke1
+    project_id: <prodspoke1_project_id>
+    location: global
+    uri: projects/<prodspoke1_project_id>/global/networks/<vpc1_name>
+    description: "Producer VPC Spoke 1"
+    labels:
+      env: prod
+    peering: servicenetworking-googleapis-com
+    exclude_export_ranges: []

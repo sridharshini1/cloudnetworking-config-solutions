@@ -1,0 +1,45 @@
+name: expanded-nlb
+project_id: <your-project-id>
+region: <region> # e.g., us-central1
+description: Comprehensive NLB configured via YAML
+
+backend_service:
+  protocol: TCP
+  port_name: my-app-port
+  timeout_sec: 60
+  connection_draining_timeout_sec: 300
+  log_sample_rate: 0.75
+  locality_lb_policy: MAGLEV
+  session_affinity: CLIENT_IP_PORT_PROTO
+  connection_tracking:
+    persist_conn_on_unhealthy: ALWAYS_PERSIST
+    track_per_session: false
+  failover_config:
+    disable_conn_drain: true
+    drop_traffic_if_unhealthy: true
+    ratio: 0.8
+
+backends:
+  - group_name: regional-mig # region picked from value above
+  - group_name: zonal-mig
+    group_zone: zone # e.g. : us-central1-a
+
+health_check:
+  check_interval_sec: 8
+  timeout_sec: 8
+  healthy_threshold: 4
+  unhealthy_threshold: 4
+  enable_logging: true
+  description: Custom auto-created health check
+  tcp:
+    port: 80
+    port_specification: USE_FIXED_PORT
+    request: HEALTH_CHECK
+    response: OK
+
+forwarding_rules:
+  "fwd-rule":
+    protocol: TCP
+    ports: ["80", "443", "8080"]
+    description: Primary web traffic listener
+    ipv6: false

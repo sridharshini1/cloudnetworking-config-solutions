@@ -25,9 +25,12 @@ variable "create_nat" {
 }
 
 variable "create_template" {
-  description = "True or False to create a template"
-  default     = true
-  type        = bool
+  description = "Create instance template instead of instances. Defaults to a global template."
+  type = object({
+    regional = optional(bool, false)
+  })
+  nullable = true
+  default  = {}
 }
 
 variable "addresses" {
@@ -341,6 +344,12 @@ variable "metadata" {
     # Enable Apache2 to start on boot
     sudo update-rc.d apache2 enable
   EOF
+}
+
+variable "health_check_default_enable_logging" {
+  description = "Default value for enabling logging in health checks if not specified in MIG YAML."
+  type        = bool
+  default     = false
 }
 
 variable "config_folder_path" {

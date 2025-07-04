@@ -1,0 +1,9 @@
+name: lite-ilb-test-6488
+project: your-project-id
+region: us-central1
+network: vpc-ilb-test-6488
+subnetwork: vpc-ilb-test-6488-subnet
+backends:
+- group_name: mig-ilb-test-6488-regional
+  group_region: us-central1
+forwarding_rules: {}

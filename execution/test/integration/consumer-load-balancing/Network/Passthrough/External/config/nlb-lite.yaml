@@ -1,0 +1,6 @@
+name: lite-nlb
+project_id: project_id
+region: us-central1
+backends:
+- group_name: mig-nlb-regional
+  group_region: us-central1

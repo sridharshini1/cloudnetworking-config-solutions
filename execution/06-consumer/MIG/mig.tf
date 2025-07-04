@@ -13,22 +13,15 @@
 # limitations under the License.
 
 module "mig" {
-  for_each = local.mig_map
-  source   = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/compute-mig"
-
-  project_id = each.value.project_id
-  location   = each.value.location
-  name       = each.value.name
-
-  target_size       = each.value.target_size
-  instance_template = module.mig-template[each.key].template.self_link
-
-  # Handle auto_healing_policies
-  auto_healing_policies = each.value.auto_healing_policies
-
-  # Health check config handling
-  health_check_config = each.value.health_check_config
-
+  for_each              = local.mig_map
+  source                = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/compute-mig?ref=v41.0.0"
+  project_id            = each.value.project_id
+  location              = each.value.location
+  name                  = each.value.name
+  target_size           = each.value.target_size
+  instance_template     = module.mig-template[each.key].template.self_link
+  auto_healing_policies = each.value.auto_healing_policies # Handle auto_healing_policies
+  health_check_config   = each.value.health_check_config   # Health check config handling
   autoscaler_config = {
     max_replicas    = try(each.value.autoscaler_config.max_replicas, var.autoscaler_config.max_replicas)
     min_replicas    = try(each.value.autoscaler_config.min_replicas, var.autoscaler_config.min_replicas)
@@ -41,4 +34,5 @@ module "mig" {
       }
     }
   }
+  named_ports = try(each.value.named_ports, var.named_ports)
 }

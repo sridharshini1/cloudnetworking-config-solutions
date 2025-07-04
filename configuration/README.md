@@ -12,7 +12,14 @@ This directory serves as a centralized repository for all Terraform configuratio
     - MRC (mrc.tfvars)
     - Cloud SQL (sql.tfvars)
     - GCE (gce.tfvars)
+    - Certificates
+      - Compute-SSL-Certs
+        - Google-Managed
+          - google_managed_ssl.tfvars
+    - Firewall
+      - Firewall-Policy
     - Workbench (workbench.tfvars)
+    - Security-Profiles
 - 04-producer stage
     - AlloyDB
       - alloydb.tfvars
@@ -48,6 +55,10 @@ This directory serves as a centralized repository for all Terraform configuratio
     - mig.tfvars
     - config
       - instance.yaml.example
+  - UMIG
+    - umig.tfvars
+    - config
+      - instance.yaml.example
   - Serverless
     - AppEngine
       - Flexible
@@ -79,6 +90,13 @@ This directory serves as a centralized repository for all Terraform configuratio
       - config
         - instance1.yaml.example
         - instance2.yaml.example
+  - Network
+    - Passthrough
+      - External
+        - external-network-passthrough.tfvars
+        - config
+          - instance-expanded.yaml.example
+          - instance-lite.yaml.example
 
 
 # Usage
@@ -121,16 +139,31 @@ This would run the terraform plan based on the values for the variables declared
 
 **Example usage**
 
+## 00-bootstrap
+
 ```
-bootstrap_project_id                      = "test-bootstrap-project"
-network_hostproject_id                    = "host-project-id"
-network_serviceproject_id                 = "consumer-project-id"
-organization_stage_administrator          = ["example@example.com"]
-networking_stage_administrator            = ["example@example.com"]
-security_stage_administrator              = ["example@example.com"]
-producer_stage_administrator              = ["example@example.com"]
-producer_connectivity_stage_administrator = ["example@example.com"]
-consumer_stage_administrator              = ["example@example.com"]
+folder_id                             = ""
+bootstrap_project_id                  = ""
+network_hostproject_id                = ""
+network_serviceproject_id             = ""
+
+organization_administrator          = ["user:organization-user-example@example.com"]
+networking_administrator            = ["user:networking-user-example@example.com"]
+security_administrator              = ["user:security-user-example@example.com"]
+
+producer_cloudsql_administrator     = ["user:cloudsql-user-example@example.com"]
+producer_gke_administrator          = ["user:gke-user-example@example.com"]
+producer_alloydb_administrator      = ["user:alloydb-user-example@example.com"]
+producer_vertex_administrator       = ["user:vertex-user-example@example.com"]
+producer_mrc_administrator          = ["user:mrc-user-example@example.com"]
+
+producer_connectivity_administrator = ["user:connectivity-user-example@example.com"]
+
+consumer_gce_administrator          = ["user:gce-user-example@example.com"]
+consumer_cloudrun_administrator     = ["user:cloudrun-user-example@example.com"]
+consumer_mig_administrator          = ["user:mig-user-example@example.com"]
+consumer_umig_administrator         = ["user:umig-user-example@example.com"]
+consumer_lb_administrator           = ["user:lb-user-example@example.com"]
 ```
 
 ## 01-organization

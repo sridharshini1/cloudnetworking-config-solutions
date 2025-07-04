@@ -33,6 +33,7 @@ The project is structured into the following folders:
               ├── gce
               ├── mig
               ├── workbench
+              ├── umig
               ├── severless
                 ├── appengine
                     ├── flexible
@@ -42,12 +43,23 @@ The project is structured into the following folders:
                     ├── service
                 ├── vpcaccessconnector
           ├──security
+              ├── certificates
+                ├── compute-ssl-certs
+                    ├── google-managed
+                        ├── google_managed_ssl.tfvars
               ├── alloydb.tfvars
               ├── cloudsql.tfvars
               ├── gce.tfvars
               ├── mig.tfvars
               ├── mrc.tfvars
               └── workbench.tfvars
+          └──consumer-load-balancing
+              ├── application load balancers
+                ├── external
+              ├── network load balancers
+                ├── passthrough
+                    ├── internal
+                    └── external
       ├──execution
           ├── 00-bootstrap
           ├── 01-organization
@@ -56,12 +68,17 @@ The project is structured into the following folders:
           ├── 04-producer
           ├── 05-producer-connectivity
           ├── 06-consumer
-          └── 07-consumer-load-balancing
-      └──modules
-          ├── net-vpc
-          └── psc_forwarding_rule
-          └── vector-search
-          └── vertex-ai-online-endpoints
+        └── 07-consumer-load-balancing
+      ├──modules
+            ├── net-vpc
+            ├── psc_forwarding_rule
+            ├── vector-search
+            ├── vertex-ai-online-endpoints
+            ├── umig
+            ├── lb_http
+            ├── google_compute_managed_ssl_certificate
+            ├── network-connectivity-center
+            └── app_engine
   ```
 * `configuration`: This folder contains Terraform configuration files (*.tfvars) that hold variables used for multiple stages. These **.tfvars** files would include configurable variables such as project IDs, region or other values that you want to customize for your specific environment.
 
@@ -70,11 +87,11 @@ The project is structured into the following folders:
   * `00-bootstrap`: Sets up foundational resources like service accounts and Terraform state storage.
   * `01-organization`:  Manages organization-level policies for network resources.
   * `02-networking`: Manages VPCs, subnets, Cloud HA VPN and other core networking components like PSA, SCP, Cloud NAT.
-  * `03-security`:  Configures firewalls and other security measures.
+  * `03-security`:  Configures firewalls rules, firewall policies and Google Managed SSL certificates.
   * `04-producer`: Implements producer services like AlloyDB, Memorystore for Redis clusters, and Cloud SQL.
   * `05-producer-connectivity`: Implements networking services like Private Service Connectivity.
-  * `06-consumer`: Implements consumer services like Google Compute Engine instances, Cloud Run, Workbench, AppEngine and Managed Instance Groups.
-  * `07-consumer-load-balancing`: Implements load balancing services.
+  * `06-consumer`: Implements consumer services like Google Compute Engine instances, Cloud Run, Workbench, AppEngine, Managed and Unmanaged Instance Groups.
+  * `07-consumer-load-balancing`: Implements load balancing services. As a part of Load Balancing, the following Load Balancers are presently supported : External Application Load Balancer, External and Internal Network Passthrough Load Balancer.
 
 * `modules`: contains reusable Terraform modules.
 

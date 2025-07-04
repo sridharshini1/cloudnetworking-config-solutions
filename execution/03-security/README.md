@@ -2,7 +2,7 @@
 
 ## Overview
 
-This Terraform stage focuses on establishing essential security configurations for various Google Cloud Platform (GCP) resources, including AlloyDB, Memorystore for Redis Clusters (MRC), CloudSQL, and GCE (Google Compute Engine). The core component of this stage is setting up firewall rules to control inbound and outbound traffic to these resources.
+This Terraform stage focuses on establishing essential security configurations for various Google Cloud Platform (GCP) resources, including AlloyDB, Memorystore for Redis Clusters (MRC), CloudSQL, and GCE (Google Compute Engine). The core component of this stage is setting up firewall rules to control inbound and outbound traffic to these resources. This Stage also helps you deploy advanced security features such as firewall policies, firewall endpoints, firewall endpoint associations, security profiles and security profile groups.
 
 ## Prerequisites
 
@@ -15,6 +15,7 @@ Based on the producer (such as CloudSQL, MRC or AlloyDB) or consumer service (su
 - Cloud Logging API
 - Cloud Monitoring API
 - Notebooks API
+- Network Security API
 
 
 ### Permissions:
@@ -37,6 +38,8 @@ The user or service account running Terraform should have sufficient IAM permiss
 4. GCE Firewall (03-security/GCE): Defines firewall rules for GCE instances, specifically focusing on SSH access.
 5. MIG Firewall (03-security/MIG) : Defines firewall rules for MIGs to allow health checks for the instance groups.
 6. Workbench Firewall (03-security/Workbench): Configures firewall rules for Workbench instances, ensuring secure SSH access and enabling access to necessary resources.
+7. Google Managed Compute SSL Certificates (03-security/Certificates/Compute-SSL-Certs/Google-Managed) : Configures Google Managed Compute SSL Certificates which can be used with Load Balancing for secure communication.
+8. Security Profile (03-security/SecurityProfile): Defines firewall rules to simplify the process of creating and managing Google Cloud Security Profiles and Security Profile Groups
 
 ## Configuration
 
@@ -56,6 +59,7 @@ Ensure that you modify these values within each file to match your environment's
 - AlloyDB : alloydb.tfvars
 - MIG : mig.tfvars
 - Workbench : workbench.tfvars
+- SecurityProfile : securityprofile.tfvars
 
 ## Usage
 

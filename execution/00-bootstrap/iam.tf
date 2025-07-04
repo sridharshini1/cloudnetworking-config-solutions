@@ -84,7 +84,16 @@ module "security" {
   }
   iam_project_roles = {
     (var.network_hostproject_id) = [
-      "roles/compute.securityAdmin"
+      "roles/compute.securityAdmin",
+      "roles/compute.orgFirewallPolicyAdmin",
+      "roles/networksecurity.securityProfileAdmin",
+    ]
+  }
+  iam_organization_roles = {
+    (var.organization_id) = [
+      "roles/compute.orgFirewallPolicyAdmin",
+      "roles/resourcemanager.organizationViewer",
+      "roles/networksecurity.securityProfileAdmin",
     ]
   }
   iam_storage_roles = {
@@ -426,6 +435,33 @@ module "appengine_consumer" {
       "roles/compute.networkViewer",    // Compute Engine Network Viewer
       "roles/storage.objectViewer",     // Storage Object Viewer
       "roles/vpcaccess.user",           // VPC access connector User
+    ]
+  }
+  iam_storage_roles = {
+    (module.google_storage_bucket.name) = [
+      "roles/storage.objectAdmin"
+    ]
+  }
+}
+
+/********************************************
+ Service Account used to run UMIG Consumer Stage
+*********************************************/
+
+module "umig_consumer" {
+  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account?ref=v31.1.0"
+  project_id = var.bootstrap_project_id
+  name       = var.consumer_umig_sa_name
+  iam = {
+    "roles/iam.serviceAccountTokenCreator" = var.consumer_umig_administrator
+  }
+  iam_project_roles = {
+    (var.network_hostproject_id) = [
+      "roles/compute.networkUser",
+    ]
+    (var.network_serviceproject_id) = [
+      "roles/compute.instanceAdmin.v1",
+      "roles/iam.serviceAccountUser",
     ]
   }
   iam_storage_roles = {

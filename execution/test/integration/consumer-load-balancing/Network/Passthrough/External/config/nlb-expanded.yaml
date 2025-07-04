@@ -1,0 +1,29 @@
+name: expanded-nlb
+project_id: project_id
+region: us-central1
+description: Expanded NLB pointing to a Zonal MIG
+backends:
+- group_name: mig-nlb-zonal
+  group_zone: us-central1-a
+  description: Zonal MIG backend for expanded NLB
+health_check:
+  check_interval_sec: 10
+  timeout_sec: 5
+  healthy_threshold: 2
+  unhealthy_threshold: 3
+  enable_logging: true
+  description: Custom TCP Health Check for NLB
+  tcp:
+    port: 80
+    port_specification: USE_FIXED_PORT
+forwarding_rules:
+  rule-custom-port:
+    description: Forwarding rule for custom port 9000 traffic to Zonal MIG
+    ports:
+    - "9000"
+    protocol: TCP
+  rule-http:
+    description: Forwarding rule for HTTP traffic to Zonal MIG
+    ports:
+    - "80"
+    protocol: TCP

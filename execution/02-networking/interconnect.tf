@@ -81,4 +81,3 @@ module "vlan_attachment_b" {
     google_compute_router.interconnect-router
   ]
 }
-
