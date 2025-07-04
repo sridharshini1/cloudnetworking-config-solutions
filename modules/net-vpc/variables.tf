@@ -381,3 +381,9 @@ variable "vpc_create" {
   type        = bool
   default     = true
 }
+
+variable "create_psa" {
+  description = "Set to true to create PSA resources (ranges and connections)."
+  type        = bool
+  default     = true
+}

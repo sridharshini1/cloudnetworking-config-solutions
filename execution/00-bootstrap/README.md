@@ -49,13 +49,14 @@ This minimal example includes only the essential fields required to execute the 
   producer_mrc_administrator          = ["user:mrc-user-example@example.com"]
   producer_connectivity_administrator = ["user:connectivity-user-example@example.com"]
 
-  consumer_gce_administrator          = ["user:gce-user-example@example.com"]
-  consumer_cloudrun_administrator     = ["user:cloudrun-user-example@example.com"]
-  consumer_mig_administrator          = ["user:mig-user-example@example.com"]  
-  consumer_workbench_administrator    = ["user:workbench-user-example@example.com"]
+  consumer_gce_administrator           = ["user:gce-user-example@example.com"]
+  consumer_cloudrun_administrator      = ["user:cloudrun-user-example@example.com"]
+  consumer_mig_administrator           = ["user:mig-user-example@example.com"]
+  consumer_umig_administrator          = ["user:umig-user-example@example.com"]  
+  consumer_workbench_administrator     = ["user:workbench-user-example@example.com"]
   consumer_vpc_connector_administrator = ["user:user-example@example.com"]
   consumer_appengine_administrator     = ["user:user-example@example.com"]
-  consumer_lb_administrator           = ["user:lb-user-example@example.com"]
+  consumer_lb_administrator            = ["user:lb-user-example@example.com"]
   ```
 
 
@@ -70,15 +71,7 @@ This minimal example includes only the essential fields required to execute the 
  **Distinct user IDs** : we strongly discourage using the same user ID for all stages and highly recommend users to follow the principle of least privilege for separate service accounts for the stages.
 
 <!-- BEGIN_TF_DOCS -->
-## Requirements
-
-No requirements.
-
-## Providers
-
-No providers.
-
-## Modules
+ ## Modules
 
 | Name | Source | Version |
 |------|--------|---------|
@@ -97,12 +90,9 @@ No providers.
 | <a name="module_organization"></a> [organization](#module\_organization) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account | v34.1.0 |
 | <a name="module_producer_connectivity"></a> [producer\_connectivity](#module\_producer\_connectivity) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account | v31.1.0 |
 | <a name="module_security"></a> [security](#module\_security) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account | v31.1.0 |
+| <a name="module_umig_consumer"></a> [umig\_consumer](#module\_umig\_consumer) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account | v31.1.0 |
 | <a name="module_vertex_producer"></a> [vertex\_producer](#module\_vertex\_producer) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account | v31.1.0 |
 | <a name="module_workbench_consumer"></a> [workbench\_consumer](#module\_workbench\_consumer) | github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account | v31.1.0 |
-
-## Resources
-
-No resources.
 
 ## Inputs
 
@@ -157,6 +147,7 @@ No resources.
 | <a name="output_consumer_gce_email"></a> [consumer\_gce\_email](#output\_consumer\_gce\_email) | GCE consumer stage service account IAM email. |
 | <a name="output_consumer_lb_email"></a> [consumer\_lb\_email](#output\_consumer\_lb\_email) | Consumer Load Balancing stage service account IAM email. |
 | <a name="output_consumer_mig_email"></a> [consumer\_mig\_email](#output\_consumer\_mig\_email) | MIG consumer stage service account IAM email. |
+| <a name="output_consumer_umig_email"></a> [consumer\_umig\_email](#output\_consumer\_umig\_email) | UMIG consumer stage service account IAM email. |
 | <a name="output_consumer_vpc_access_connector_email"></a> [consumer\_vpc\_access\_connector\_email](#output\_consumer\_vpc\_access\_connector\_email) | VPC Access Connector consumer stage service account IAM email. |
 | <a name="output_consumer_workbench_email"></a> [consumer\_workbench\_email](#output\_consumer\_workbench\_email) | Workbench consumer stage service account IAM email. |
 | <a name="output_networking_email"></a> [networking\_email](#output\_networking\_email) | Networking stage service account IAM email. |

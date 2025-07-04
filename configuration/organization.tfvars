@@ -17,6 +17,7 @@ activate_api_identities = {
       # "artifactregistry.googleapis.com",
       # "notebooks.googleapis.com",
       # "vpcaccess.googleapis.com",
+      # "networksecurity.googleapis.com",
     ],
   },
 }

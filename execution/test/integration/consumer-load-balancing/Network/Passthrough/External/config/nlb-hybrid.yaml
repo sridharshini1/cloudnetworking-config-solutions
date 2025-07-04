@@ -1,0 +1,19 @@
+name: hybrid-nlb
+project_id: project_id
+region: us-central1
+description: Hybrid NLB with Regional and Zonal MIGs
+backends:
+- group_name: mig-nlb-nlb-regional
+  group_region: us-central1
+  description: Regional backend for hybrid NLB
+- group_name: mig-nlb-zonal
+  group_zone: us-central1-a
+  description: Zonal backend for hybrid NLB
+health_check:
+  tcp:
+    port_specification: USE_SERVING_PORT
+forwarding_rules:
+  main-hybrid-rule:
+    ports:
+    - "80"
+    protocol: TCP

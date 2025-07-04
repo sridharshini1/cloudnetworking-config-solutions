@@ -1,0 +1,6 @@
+name: nlb-zonal
+project_id: your-project-id
+region: us-central1
+backends:
+  - group_name: my-zmig-zone-a
+    group_zone: us-central1-a

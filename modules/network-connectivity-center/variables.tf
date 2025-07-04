@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Google LLC
+ * Copyright 2024-25 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,74 +15,154 @@
  */
 
 variable "project_id" {
-  description = "Project ID of the project that holds the network."
+  description = "Project ID for NCC Hub resources."
   type        = string
 }
 
+variable "create_new_hub" {
+  type        = bool
+  description = "Indicates if a new hub should be created."
+  default     = false
+}
+
+variable "existing_hub_uri" {
+  type        = string
+  description = "URI of an existing NCC hub to use, if null a new one is created."
+  default     = null
+}
+
 variable "ncc_hub_name" {
-  description = "The Name of the NCC Hub"
+  description = "The Name of the NCC Hub."
   type        = string
 }
 
 variable "ncc_hub_description" {
-  description = "The description of the NCC Hub"
+  description = "This can be used to provide additional context or details about the purpose or usage of the hub."
   type        = string
-  default     = null
+  default     = "Network Connectivity Center hub for managing and connecting multiple network resources."
 }
+
+variable "group_decription" {
+  description = "Description for the network connectivity group."
+  type        = string
+  default     = "Used for auto-accepting projects"
+}
+
 variable "ncc_hub_labels" {
-  description = "These labels will be added the NCC hub"
+  description = "Labels to be attached to network connectivity center hub resource."
   type        = map(string)
-  default     = {}
+  default = {
+    environment = "prod"
+    owner       = "network-team"
+  }
+}
+
+variable "spoke_labels" {
+  description = "Default labels to be merged with spoke-specific labels."
+  type        = map(string)
+  default = {
+    environment = "prod"
+    owner       = "network-team"
+  }
 }
 
 variable "export_psc" {
-  description = "Whether Private Service Connect transitivity is enabled for the hub"
+  description = "Whether Private Service Connect transitivity is enabled for the hub."
   type        = bool
   default     = false
 }
 
+variable "group_name" {
+  description = "Name of the network connectivity group."
+  type        = string
+  default     = "default"
+}
+
+variable "policy_mode" {
+  description = "Policy mode for the NCC hub."
+  type        = string
+  default     = "PRESET"
+}
+
+variable "preset_topology" {
+  description = "Preset topology for the NCC hub."
+  type        = string
+  default     = "MESH"
+}
+
+variable "auto_accept_projects" {
+  description = "List of projects to auto-accept."
+  type        = list(string)
+  default     = []
+}
+
 variable "vpc_spokes" {
-  description = "VPC network that is associated with the spoke"
+  description = "A map of VPC spokes to be created. The key should be the spoke name."
   type = map(object({
+    project_id            = string
     uri                   = string
-    exclude_export_ranges = optional(set(string), [])
-    include_export_ranges = optional(set(string), [])
     description           = optional(string)
     labels                = optional(map(string))
+    exclude_export_ranges = optional(list(string))
+    include_export_ranges = optional(list(string))
   }))
   default = {}
 }
 
-variable "hybrid_spokes" {
-  description = "VLAN attachments and VPN Tunnels that are associated with the spoke. Type must be one of `interconnect` and `vpn`."
+variable "producer_vpc_spokes" {
+  description = "A map of Producer VPC spokes to be created."
   type = map(object({
-    location                   = string
-    uris                       = set(string)
-    site_to_site_data_transfer = optional(bool, false)
-    type                       = string
+    project_id            = string
+    location              = optional(string, "global")
+    description           = optional(string)
+    uri                   = string # In this context, it's the network URI
+    peering               = string
+    labels                = optional(map(string))
+    exclude_export_ranges = optional(list(string))
+    include_export_ranges = optional(list(string))
+  }))
+  default = {}
+}
+
+variable "linked_vpn_tunnels" {
+  description = "A map of Hybrid spokes (VPN) to be created."
+  type = map(object({
+    project_id                 = string
+    location                   = optional(string, "global")
     description                = optional(string)
+    type                       = string # "linked_vpn_tunnels"
+    uris                       = list(string)
+    site_to_site_data_transfer = optional(bool, false)
+    labels                     = optional(map(string))
+  }))
+  default = {}
+}
+
+variable "linked_interconnect_attachments" {
+  description = "A map of Hybrid spokes (Interconnect) to be created."
+  type = map(object({
+    project_id                 = string
+    location                   = optional(string, "global")
+    description                = optional(string)
+    type                       = string # "linked_interconnect_attachments"
+    uris                       = list(string)
+    site_to_site_data_transfer = optional(bool, false)
     labels                     = optional(map(string))
   }))
   default = {}
 }
 
 variable "router_appliance_spokes" {
-  description = "Router appliance instances that are associated with the spoke."
+  description = "A map of Router Appliance spokes to be created."
   type = map(object({
-    instances = set(object({
+    location    = string
+    description = optional(string)
+    instances = list(object({
       virtual_machine = string
       ip_address      = string
     }))
-    location                   = string
-    site_to_site_data_transfer = optional(bool, false)
-    description                = optional(string)
+    site_to_site_data_transfer = bool
     labels                     = optional(map(string))
   }))
   default = {}
-}
-
-variable "spoke_labels" {
-  description = "These labels will be added to all NCC spokes"
-  type        = map(string)
-  default     = {}
 }

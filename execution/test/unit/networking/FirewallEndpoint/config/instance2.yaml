@@ -1,0 +1,16 @@
+# This file creates both an endpoint and an association (2 resources).
+location: "us-east1-b"
+
+# --- Defines the organization-level Firewall Endpoint ---
+firewall_endpoint:
+  create: true
+  name: "test-fw-endpoint-use1-b"
+  organization_id: "YOUR_ORGANIZATION_ID"
+  billing_project_id: "YOUR_BILLING_PROJECT_ID" # <-- Replace
+
+# --- Defines the project-level Association ---
+firewall_endpoint_association:
+  create: true
+  name: "assoc-to-test-vpc-1"
+  association_project_id: "YOUR_VPC_PROJECT_ID" # <-- Replace
+  vpc_id: "projects/my-production-project/global/networks/test-vpc-1"

@@ -1,0 +1,31 @@
+name      : "instance-hierarchicalpolicy"
+parent_id : <Replace with Folder ID or Organisation ID> #e.g. folder/11111222 or organization/111111222
+attachments :
+  attachment1 : <Replace with Folder ID or Organisation ID> #e.g. folder/11111222 or organization/111111222
+egress_rules :
+  - smtp :
+    priority : 900
+    match :
+      destination_ranges :
+      - "10.1.1.0/24"
+      - "10.1.2.0/24"
+      layer4_configs :
+       - protocol : tcp
+         ports :
+         - 25
+         - 26
+       - protocol : udp
+         ports :
+         - 251
+         - 261
+  - http :
+    priority : 901
+    match :
+      destination_ranges :
+      - "10.1.1.0/24"
+      - "10.1.2.0/24"
+      layer4_configs :
+       - protocol : tcp
+         ports :
+         - 25
+         - 26

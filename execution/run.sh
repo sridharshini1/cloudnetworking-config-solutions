@@ -23,7 +23,7 @@ GREEN='\033[0;32m'
 NC='\033[0m'
 
 # Define valid stages to be accepted by the -s flag
-valid_stages="all organization networking security/alloydb security/mrc security/cloudsql security/gce security/mig security/workbench producer/alloydb producer/mrc producer/cloudsql producer/gke producer/vectorsearch producer/onlineendpoint producer-connectivity consumer/gce consumer/serverless/cloudrun/job consumer/serverless/cloudrun/service consumer/serverless/cloudrun/job consumer/serverless/appengine/standard consumer/serverless/appengine/flexible consumer/mig consumer/workbench load-balancing/application/external"
+valid_stages="all organization networking networking/ncc networking/firewallendpoint security/firewall/firewallpolicy security/securityprofile security/certificates/compute-ssl-certs/google-managed security/alloydb security/mrc security/cloudsql security/gce security/mig security/workbench producer/alloydb producer/mrc producer/cloudsql producer/gke producer/vectorsearch producer/onlineendpoint producer-connectivity consumer/gce consumer/serverless/cloudrun/job consumer/serverless/cloudrun/service consumer/serverless/appengine/standard consumer/serverless/appengine/flexible consumer/mig consumer/workbench consumer/umig load-balancing/application/external load-balancing/network/passthrough/external load-balancing/network/passthrough/external"
 
 # Define valid Terraform commands to be accepted by the -tf or --tfcommand flag
 valid_tf_commands="init apply apply-auto-approve destroy destroy-auto-approve init-apply init-apply-auto-approve"
@@ -32,6 +32,11 @@ valid_tf_commands="init apply apply-auto-approve destroy destroy-auto-approve in
 stage_path_map=(
     "organization=01-organization"
     "networking=02-networking"
+    "networking/ncc=02-networking/NCC"
+    "networking/firewallendpoint=02-networking/FirewallEndpoint"
+    "security/firewall/firewallpolicy=03-security/Firewall/FirewallPolicy"
+    "security/securityprofile=03-security/SecurityProfile"
+    "security/certificates/compute-ssl-certs/google-managed=03-security/Certificates/Compute-SSL-Certs/Google-Managed"
     "security/alloydb=03-security/AlloyDB"
     "security/mrc=03-security/MRC"
     "security/cloudsql=03-security/CloudSQL"
@@ -52,7 +57,10 @@ stage_path_map=(
     "consumer/serverless/appengine/flexible=06-consumer/Serverless/AppEngine/Flexible"
     "consumer/mig=06-consumer/MIG"
     "consumer/workbench=06-consumer/Workbench"
+    "consumer/umig=06-consumer/UMIG"
     "load-balancing/application/external=07-consumer-load-balancing/Application/External"
+    "load-balancing/network/passthrough/internal=07-consumer-load-balancing/Network/Passthrough/Internal"
+    "load-balancing/network/passthrough/external=07-consumer-load-balancing/Network/Passthrough/External"
 
 )
 
@@ -60,6 +68,11 @@ stage_path_map=(
 stagewise_tfvar_path_map=(
     "01-organization=../../configuration/organization.tfvars"
     "02-networking=../../configuration/networking.tfvars"
+    "02-networking/NCC=../../../configuration/networking/ncc/ncc.tfvars"
+    "02-networking/FirewallEndpoint=../../../configuration/networking/FirewallEndpoint/firewallendpoint.tfvars"
+    "03-security/Firewall/FirewallPolicy=../../../../configuration/security/Firewall/FirewallPolicy/firewallpolicy.tfvars"
+    "03-security/SecurityProfile=../../../configuration/security/SecurityProfile/securityprofile.tfvars"
+    "03-security/Certificates/Compute-SSL-Certs/Google-Managed=../../../../../configuration/security/Certificates/Compute-SSL-Certs/Google-Managed/google_managed_ssl.tfvars"
     "03-security/AlloyDB=../../../configuration/security/alloydb.tfvars"
     "03-security/MRC=../../../configuration/security/mrc.tfvars"
     "03-security/CloudSQL=../../../configuration/security/cloudsql.tfvars"
@@ -80,7 +93,10 @@ stagewise_tfvar_path_map=(
     "06-consumer/Serverless/AppEngine/Flexible=../../../../../configuration/consumer/Serverless/AppEngine/Flexible/flexibleappengine.tfvars"
     "06-consumer/MIG=../../../configuration/consumer/MIG/mig.tfvars"
     "06-consumer/Workbench=../../../configuration/consumer/Workbench/workbench.tfvars"
+    "06-consumer/UMIG=../../../configuration/consumer/UMIG/umig.tfvars"
     "07-consumer-load-balancing/Application/External=../../../../configuration/consumer-load-balancing/Application/External/external-application-lb.tfvars"
+    "07-consumer-load-balancing/Network/Passthrough/Internal=../../../../../configuration/consumer-load-balancing/Network/Passthrough/Internal/internal-network-passthrough.tfvars"
+    "07-consumer-load-balancing/Network/Passthrough/External=../../../../../configuration/consumer-load-balancing/Network/Passthrough/External/external-network-passthrough.tfvars"
 )
 
 security_config_map=(
@@ -97,6 +113,11 @@ stage_wise_description_map=(
   "all=Progresses through each stage individually."
   "organization=Executes 01-organization stage, manages Google Cloud APIs."
   "networking=Executes 02-networking stage, manages network resources."
+  "networking/ncc=Executes 02-networking/NCC stage, manages NCC network resources."
+  "networking/firewallendpoint=02-networking/FirewallEndpoint, manages Firewall Endpoints and Firewall Endpoint Associations."
+  "security/firewall/firewallpolicy=03-security/Firewall/FirewallPolicy, manages firewall policies."
+  "security/securityprofile=03-security/SecurityProfile, manages Security Profiles and Security Profile Groups."
+  "security/certificates/compute-ssl-certs/google-managed=03-security/certificates/compute-ssl-certs/google-managed, manages ssl certificates"
   "security/alloydb=Executes 03-security/AlloyDB stage, manages AlloyDB firewall rules."
   "security/mrc=Executes 03-security/MRC stage, manages MRC firewall rules."
   "security/cloudsql=Executes 03-security/CloudSQL stage, manages CloudSQL firewall rules."
@@ -117,7 +138,10 @@ stage_wise_description_map=(
   "consumer/serverless/appengine/standard=Executes 06-consumer/Serverless/AppEngine/StandardAppEngine, manages Standard App Engine"
   "consumer/mig=Executes 06-consumer/MIG stage, manages MIG instances."
   "consumer/workbench=Executes 06-consumer/Workbench stage, manages Workbench instance."
-  "load-balancing/application/external=Executes 07-consumer-load-balancing/Application/External stage, manages external application load balancers."
+  "consumer/umig=Executes 06-consumer/UMIG stage, manages UMIG instances."
+  "load-balancing/application/external=Executes 07-consumer-load-balancing/Application/External stage, manages External Application Load Balancers."
+  "load-balancing/network/passthrough/internal=Executes 07-consumer-load-balancing/Network/Passthrough/Internal stage, manages Int Net Passthrough LBs."
+  "load-balancing/network/passthrough/external=Executes 07-consumer-load-balancing/Network/Passthrough/External stage, manages Ext Net Passthrough LBs."
   )
 
 # Define tfcommand to description mapping.
@@ -175,7 +199,7 @@ populate_valid_producers_consumers
 # Displays the table formatting.
 tableprint() {
     printf "\t\t "
-    printf "~%.0s" {1..153}
+    printf "~%.0s" {1..154}
     printf "\n"
 }
 

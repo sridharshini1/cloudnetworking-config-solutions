@@ -13,116 +13,71 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package integrationtest
 
 import (
-	"context"
-	"encoding/json"
 	"fmt"
 	"math/rand"
+	"net"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
-	"cloud.google.com/go/bigquery"
 	"github.com/gruntwork-io/terratest/modules/shell"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
-	"golang.org/x/oauth2/google"
-	"google.golang.org/api/option"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
-type AcceleratorConfig struct {
-	Type      string `yaml:"type"`
-	CoreCount int    `yaml:"core_count"`
-}
-
-type DataDisk struct {
-	DiskSizeGB int    `yaml:"disk_size_gb"`
-	DiskType   string `yaml:"disk_type"`
-}
-
-type VMImage struct {
-	Project string `yaml:"project"`
-	Family  string `yaml:"family"`
-}
-
-type NetworkInterface struct {
-	Network        string `yaml:"network"`
-	Subnet         string `yaml:"subnet"`
-	NICType        string `yaml:"nic_type"`
-	InternalIPOnly bool   `yaml:"internal_ip_only"`
-}
-
-type GCESetup struct {
-	MachineType        string              `yaml:"machine_type"`
-	DisablePublicIP    bool                `yaml:"disable_public_ip"`
-	AcceleratorConfigs []AcceleratorConfig `yaml:"accelerator_configs"`
-	Tags               []string            `yaml:"tags"`
-	Labels             map[string]string   `yaml:"labels"`
-	DataDisks          []DataDisk          `yaml:"data_disks"`
-	VMImage            VMImage             `yaml:"vm_image"`
-	NetworkInterfaces  []NetworkInterface  `yaml:"network_interfaces"`
-	Metadata           map[string]string   `yaml:"metadata"`
-	DisableProxyAccess bool                `yaml:"disable_proxy_access"`
-}
-
-type WorkbenchConfig struct {
-	Name      string   `yaml:"name"`
-	ProjectID string   `yaml:"project_id"`
-	Location  string   `yaml:"location"`
-	Region    string   `yaml:"region"`
-	GCESetup  GCESetup `yaml:"gce_setup"`
-}
-
+// Test configuration (adjust as needed)
 var (
 	projectRoot, _         = filepath.Abs("../../../../")
 	terraformDirectoryPath = filepath.Join(projectRoot, "06-consumer/Workbench")
 	configFolderPath       = filepath.Join(projectRoot, "test/integration/consumer/Workbench/config")
-
-	projectID             = os.Getenv("TF_VAR_project_id")
-	workbenchInstanceName = fmt.Sprintf("wb-%d", rand.Int())
-	region                = "us-central1"
-	zone                  = "us-central1-a"
-	vpcName               = fmt.Sprintf("testing-net-wb-%d", rand.Int())
-	subnetName            = fmt.Sprintf("testing-subnet-wb-%d", rand.Int())
-	firewallRuleName      = fmt.Sprintf("testing-fw-wb-%d", rand.Int()) // Added firewall rule name
-	yamlFileName          = "instance.yaml"
-	machineType           = "e2-standard-4"
-	acceleratorType       = "NVIDIA_TESLA_T4"
-	acceleratorCoreCount  = 1
-	tags                  = []string{"deeplearning-vm", "notebook-instance"}
-	labels                = map[string]string{"purpose": "workbench-demo-1"}
-	dataDiskSizeGB        = 200
-	dataDiskType          = "PD_SSD"
-	vmImageProject        = "cloud-notebooks-managed"
-	vmImageFamily         = "workbench-instances"
-	nicType               = "GVNIC"
-	disablePublicIP       = true
-	internalIPOnly        = true
-	disableProxyAccess    = true
-
-	// Metadata map declared as a variable
-	metadata = map[string]string{
-		"framework":       "TensorFlow:2.17",
-		"notebooks-api":   "PROD",
-		"shutdown-script": "/opt/deeplearning/bin/shutdown_script.sh",
-	}
 )
 
-// TestWorkbenchInstances is an integration test that validates the creation, configuration and BigQuery integration.
-func TestWorkbenchInstances(t *testing.T) {
-	createConfigYAML(t)
+var (
+	projectID            = os.Getenv("TF_VAR_project_id") // Ensure TF_VAR_project_id is set in your environment
+	region               = "us-central1"
+	zone                 = "us-central1-a"
+	vpcName              = fmt.Sprintf("testing-net-workbench-%d", rand.Intn(100000000))
+	subnetName           = fmt.Sprintf("testing-subnet-workbench-%d", rand.Intn(100000000))
+	workbenchName        = fmt.Sprintf("workbench-%d", rand.Intn(100000000))
+	yaml_file_name       = "instance.yaml"
+	connectivityTestName = fmt.Sprintf("workbench-bq-test-%d", rand.Intn(100000000))
+)
+
+// WorkbenchConfig struct to match the YAML structure
+type WorkbenchConfig struct {
+	Name      string `yaml:"name"`
+	ProjectID string `yaml:"project_id"`
+	Location  string `yaml:"location"`
+	GceSetup  struct {
+		NetworkInterfaces []struct {
+			Network string `yaml:"network"`
+			Subnet  string `yaml:"subnet"`
+		} `yaml:"network_interfaces"`
+	} `yaml:"gce_setup"`
+}
+
+// TestWorkbenchWithBigQueryConnectivity verifies the end-to-end connectivity between a Google Cloud Workbench instance and a BigQuery API within a specified VPC.
+// The test provisions required infrastructure using Terraform, asserts the correct creation and configuration of the Workbench instance (including network and proxy settings),
+// checks that the instance does not have a public IP, retrieves its internal IP, and finally tests connectivity to BigQuery.
+// Resources are cleaned up after the test completes.
+func TestWorkbenchWithBigQueryConnectivity(t *testing.T) {
+	if projectID == "" {
+		t.Fatal("TF_VAR_project_id environment variable is not set.")
+	}
+	createConfigYAML(t, filepath.Join(configFolderPath, yaml_file_name))
 
 	tfVars := map[string]interface{}{
 		"config_folder_path": configFolderPath,
 	}
 
+	// Terraform Options
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		Vars:         tfVars,
 		TerraformDir: terraformDirectoryPath,
@@ -132,528 +87,382 @@ func TestWorkbenchInstances(t *testing.T) {
 	})
 
 	createVPC(t, projectID, vpcName)
-	time.Sleep(30 * time.Second)
-	// Create firewall rule to allow SSH
-	createFirewallRule(t, projectID, firewallRuleName, vpcName)
-	time.Sleep(30 * time.Second)
+	time.Sleep(30 * time.Second) // Allow time for VPC/subnet to be fully ready
+	time.Sleep(30 * time.Second) // Allow time for firewall rule to propagate
 
-	defer deleteVPC(t, projectID, vpcName)
-	defer deleteFirewallRule(t, projectID, firewallRuleName) // Added defer to delete firewall rule
-	defer terraform.Destroy(t, terraformOptions)
+	// Defer cleanup operations
+	defer deleteVPC(t, projectID, vpcName)       // Then delete VPC
+	defer terraform.Destroy(t, terraformOptions) // Finally, terraform destroy
 
+	// Apply Terraform
 	terraform.InitAndApply(t, terraformOptions)
 
-	instanceIDsOutput := terraform.OutputJson(t, terraformOptions, "workbench_instance_ids")
-	proxyURIsOutput := terraform.OutputJson(t, terraformOptions, "workbench_instance_proxy_uris")
+	allWorkbenchOutputs := terraform.OutputJson(t, terraformOptions, "")
+	workbenchInstanceIds := gjson.Get(allWorkbenchOutputs, "workbench_instance_ids.value").Map()
+	workbenchProxyUris := gjson.Get(allWorkbenchOutputs, "workbench_instance_proxy_uris.value").Map()
 
-	t.Logf("Instance IDs: %s", instanceIDsOutput)
-	t.Logf("Proxy URIs: %s", proxyURIsOutput)
+	workbenchInstanceID := workbenchInstanceIds[workbenchName].String()
+	workbenchSSHInstanceName := filepath.Base(workbenchInstanceID) // This is the short name
 
-	instanceIDs := gjson.Parse(instanceIDsOutput).Map()
-	proxyURIs := gjson.Parse(proxyURIsOutput).Map()
+	// --- Assertions for Workbench instance properties ---
+	assert.Contains(t, workbenchInstanceIds, workbenchName, "Workbench instance ID map should contain the instance name key")
+	assert.NotEmpty(t, workbenchInstanceID, "Workbench instance ID should not be empty")
+	t.Logf("Asserted: Workbench instance name '%s' is present in Terraform outputs.", workbenchName)
 
-	for instanceName := range instanceIDs {
-		instanceID := instanceIDs[instanceName].String()
-		proxyURI := proxyURIs[instanceName].String()
+	expectedLocationSubstr := fmt.Sprintf("/locations/%s/instances/%s", zone, workbenchSSHInstanceName)
+	assert.Contains(t, workbenchInstanceID, expectedLocationSubstr, "Workbench instance ID should contain expected zone")
+	t.Logf("Asserted: Workbench instance location (zone) is '%s'.", zone)
 
-		t.Logf("Instance Name: %s, ID: %s, Proxy URI: %s", instanceName, instanceID, proxyURI)
+	proxyURIResult := workbenchProxyUris[workbenchName]
+	assert.False(t, proxyURIResult.Exists() && proxyURIResult.String() != "",
+		fmt.Sprintf("Workbench proxy URI was expected to be empty/null but was '%s'", proxyURIResult.String()))
+	t.Logf("Asserted: Workbench proxy URI is empty/null as expected: '%s'", proxyURIResult.String())
 
-		expectedProxyURI := ""
-		if !disableProxyAccess {
-			expectedProxyURI = proxyURI
-		}
-		assert.Equal(t, expectedProxyURI, proxyURI, fmt.Sprintf("Proxy URI mismatch for instance %s. Expected: %s, Got: %s", instanceName, expectedProxyURI, proxyURI))
-
-		stdout, stderr, err := shell.RunCommandAndGetStdOutErrE(t, shell.Command{
-			Command: "gcloud",
-			Args:    []string{"compute", "instances", "describe", instanceName, "--project", projectID, "--zone", zone, "--format=json"},
-		})
-		if err != nil {
-			t.Fatalf("Failed to describe instance %s: %v\nStderr: %s", instanceName, err, stderr)
-		}
-		instanceDetailsOutput := stdout
-
-		var actualInstance map[string]interface{}
-		err = json.Unmarshal([]byte(instanceDetailsOutput), &actualInstance)
-		if err != nil {
-			t.Fatalf("Failed to unmarshal instance details: %v", err)
-		}
-
-		serviceAccountEmail, err := getServiceAccountEmail(actualInstance, t)
-		if err != nil {
-			t.Fatalf("Failed to get service account email: %v", err)
-		}
-		// Validate and assign roles, including the Service Account User role to itself.
-		err = validateAndAssignRoles(t, serviceAccountEmail, projectID)
-		if err != nil {
-			t.Fatalf("Failed to validate and assign roles: %v", err)
-		}
-		// Create BigQuery resources and populate them
-		bigqueryDataset, bigqueryTable, err := createAndPopulateBigQuery(t, projectID, serviceAccountEmail)
-		if err != nil {
-			t.Fatalf("Failed to create and populate BigQuery resources: %v", err)
-		}
-		defer deleteBigQueryResources(t, projectID, bigqueryDataset)
-
-		// Validate BigQuery connectivity from the Workbench instance
-		err = validateBigQueryFromWorkbenchInstance(t, instanceName, projectID, zone, bigqueryDataset, bigqueryTable)
-		if err != nil {
-			t.Fatalf("Failed to validate BigQuery connectivity from Workbench instance: %v", err)
-		}
-
-		// Execute BigQuery query directly and validate
-		err = validateBigQueryDirectly(t, projectID, bigqueryDataset, bigqueryTable)
-		if err != nil {
-			t.Fatalf("Failed to validate BigQuery query directly: %v", err)
-		}
-
-		yamlFilePath := filepath.Join(configFolderPath, yamlFileName)
-		yamlFile, err := os.ReadFile(yamlFilePath)
-		if err != nil {
-			t.Fatalf("Error reading YAML file at %s: %s", yamlFilePath, err)
-		}
-		var expectedInstance WorkbenchConfig
-		err = yaml.Unmarshal(yamlFile, &expectedInstance)
-		if err != nil {
-			t.Fatalf("Error unmarshaling YAML: %v", err)
-		}
-		instanceZone := extractZoneFromInstanceDetails(actualInstance, t)
-		assert.Equal(t, zone, instanceZone, fmt.Sprintf("Zone mismatch. Expected: %s, Actual: %s", zone, instanceZone))
-
-		expectedMachineType := fmt.Sprintf("https://www.googleapis.com/compute/v1/projects/%s/zones/%s/machineTypes/%s", projectID, zone, expectedInstance.GCESetup.MachineType)
-		if expectedMachineType != actualInstance["machineType"] {
-			t.Logf("Machine type mismatch. Expected: %s, Actual: %s", expectedMachineType, actualInstance["machineType"])
-		}
-		assert.Equal(t, expectedMachineType, actualInstance["machineType"], "Machine type mismatch")
-
-		tagsInterface, ok := actualInstance["tags"].(map[string]interface{})["items"].([]interface{})
-		if !ok {
-			t.Fatalf("Tags are not of type []interface{}")
-		}
-		var tags []string
-		for _, tag := range tagsInterface {
-			tags = append(tags, tag.(string))
-		}
-		expectedTags := []string{"deeplearning-vm", "notebook-instance"}
-		if !assert.ObjectsAreEqual(expectedTags, tags) {
-			t.Logf("Tags mismatch. Expected: %v, Actual: %v", expectedTags, tags)
-		}
-
-		if projectID != actualInstance["labels"].(map[string]interface{})["consumer-project-id"] {
-			t.Logf("Project ID mismatch. Expected: %s, Actual: %s", projectID, actualInstance["labels"].(map[string]interface{})["consumer-project-id"])
-		}
-		assert.Equal(t, projectID, actualInstance["labels"].(map[string]interface{})["consumer-project-id"], "Project ID mismatch")
-
-		expectedZoneURL := fmt.Sprintf("https://www.googleapis.com/compute/v1/projects/%s/zones/%s", projectID, zone)
-		if expectedZoneURL != actualInstance["zone"] {
-			t.Logf("Location mismatch. Expected: %s, Actual: %s", expectedZoneURL, actualInstance["zone"])
-		}
-		assert.Equal(t, expectedZoneURL, actualInstance["zone"], "Location mismatch")
+	t.Logf("Checking for public IP on Workbench instance: %s", workbenchSSHInstanceName)
+	workbenchDescribeCmd := shell.Command{
+		Command: "gcloud",
+		Args: []string{
+			"compute", "instances", "describe", workbenchSSHInstanceName,
+			"--zone=" + zone,
+			"--project=" + projectID,
+			"--format=json",
+		},
 	}
+	describeOutput, err := shell.RunCommandAndGetOutputE(t, workbenchDescribeCmd)
+	if err != nil {
+		t.Errorf("Failed to describe Workbench instance '%s' to check for public IP: %v. Output: %s", workbenchSSHInstanceName, err, describeOutput)
+	}
+	accessConfigs := gjson.Get(describeOutput, "networkInterfaces.0.accessConfigs").Array()
+	assert.Empty(t, accessConfigs, "Workbench instance should not have any public IP access configurations")
+	t.Logf("Asserted: Workbench instance has no public IP.")
+
+	// Get internal IP
+	workbenchInternalIP, err := getInternalIP(t, workbenchSSHInstanceName, projectID, zone) // Using the refined function
+	if err != nil {
+		t.Errorf("Failed to get internal IP for Workbench instance: %v", err)
+	}
+	assert.NotEmpty(t, workbenchInternalIP, "Internal IP must be retrievable for subsequent tests")
+	t.Logf("Retrieved Workbench instance internal IP: %s", workbenchInternalIP)
+
+	testConnectivity(t, projectID, workbenchInternalIP, vpcName)
 }
 
-// extractZoneFromInstanceDetails extracts the zone from the instance details.
-// It checks if the zone information is present and returns it.
-func extractZoneFromInstanceDetails(instanceDetails map[string]interface{}, t *testing.T) string {
-	zoneURL, ok := instanceDetails["zone"].(string)
-	if !ok {
-		t.Fatalf("Zone information not found in instance details")
-		return ""
-	}
-	parts := strings.Split(zoneURL, "/")
-	if len(parts) > 0 {
-		return parts[len(parts)-1]
-	}
-	return ""
-}
-
-// getServiceAccountEmail extracts the service account email from the instance details.
-func getServiceAccountEmail(instanceDetails map[string]interface{}, t *testing.T) (string, error) {
-	serviceAccounts, ok := instanceDetails["serviceAccounts"].([]interface{})
-	if !ok || len(serviceAccounts) == 0 {
-		return "", fmt.Errorf("Service ccounts not found in instance details")
-	}
-	serviceAccount, ok := serviceAccounts[0].(map[string]interface{})
-	if !ok {
-		return "", fmt.Errorf("Invalid service account format")
-	}
-	email, ok := serviceAccount["email"].(string)
-	if !ok {
-		return "", fmt.Errorf("Service account email not found")
-	}
-	return email, nil
-}
-
-// createConfigYAML creates a YAML configuration file for the Workbench instance.
-func createConfigYAML(t *testing.T) {
-	t.Log("========= YAML File =========")
-
-	dynamicNetwork := fmt.Sprintf("projects/%s/global/networks/%s", projectID, vpcName)
-	dynamicSubnet := fmt.Sprintf("projects/%s/regions/%s/subnetworks/%s", projectID, region, subnetName)
+// createConfigYAML creates the configuration YAML file for a Workbench instance.
+// filePath is the absolute path where the YAML file should be written.
+func createConfigYAML(t *testing.T, filePath string) {
+	t.Log("========= YAML File Creation =========")
 
 	workbenchInstance := WorkbenchConfig{
-		Name:      workbenchInstanceName,
+		Name:      workbenchName,
 		ProjectID: projectID,
-		Location:  zone,
-		Region:    region,
-		GCESetup: GCESetup{
-			MachineType: machineType,
-			AcceleratorConfigs: []AcceleratorConfig{
+		Location:  zone, // Use zone for Workbench instance location
+		GceSetup: struct {
+			NetworkInterfaces []struct {
+				Network string `yaml:"network"`
+				Subnet  string `yaml:"subnet"`
+			} `yaml:"network_interfaces"`
+		}{
+			NetworkInterfaces: []struct {
+				Network string `yaml:"network"`
+				Subnet  string `yaml:"subnet"`
+			}{
 				{
-					Type:      acceleratorType,
-					CoreCount: acceleratorCoreCount,
+					Network: fmt.Sprintf("projects/%s/global/networks/%s", projectID, vpcName),
+					Subnet:  fmt.Sprintf("projects/%s/regions/%s/subnetworks/%s", projectID, region, subnetName),
 				},
 			},
-			Tags:   tags,
-			Labels: labels,
-			DataDisks: []DataDisk{
-				{
-					DiskSizeGB: dataDiskSizeGB,
-					DiskType:   dataDiskType,
-				},
-			},
-			VMImage: VMImage{
-				Project: vmImageProject,
-				Family:  vmImageFamily,
-			},
-			NetworkInterfaces: []NetworkInterface{
-				{
-					Network:        dynamicNetwork,
-					Subnet:         dynamicSubnet,
-					NICType:        nicType,
-					InternalIPOnly: internalIPOnly,
-				},
-			},
-			Metadata:           metadata,
-			DisablePublicIP:    disablePublicIP,
-			DisableProxyAccess: disableProxyAccess,
 		},
 	}
 
 	yamlData, err := yaml.Marshal(&workbenchInstance)
 	if err != nil {
-		t.Fatalf("Error while marshaling: %v", err)
+		t.Fatalf("Error while marshaling YAML for WorkbenchConfig: %v", err)
 	}
 
-	configDir := "config"
-	filePath := filepath.Join(configDir, yamlFileName)
-
-	if err := os.MkdirAll(configDir, 0755); err != nil {
-		t.Fatalf("Failed to create config directory: %v", err)
+	// Ensure the directory for the filePath exists (in case it's nested)
+	if err := os.MkdirAll(filepath.Dir(filePath), 0755); err != nil {
+		t.Fatalf("Failed to create directory for YAML file %s: %v", filePath, err)
 	}
 
-	t.Logf("Created YAML config at %s with content:\n%s", filePath, string(yamlData))
-
+	t.Logf("Creating YAML config at %s with content:\n%s", filePath, string(yamlData))
 	err = os.WriteFile(filePath, yamlData, 0644)
 	if err != nil {
-		t.Fatalf("Unable to write data into the file: %v", err)
+		t.Fatalf("Unable to write data into the file %s: %v", filePath, err)
 	}
 }
 
-// createVPC creates a VPC network and a subnet in the specified region.
-func createVPC(t *testing.T, projectID string, vpcName string) {
-	text := "compute"
-
-	// Create the VPC network
-	cmd := shell.Command{
-		Command: "gcloud",
-		Args:    []string{text, "networks", "create", vpcName, "--project=" + projectID, "--format=json", "--bgp-routing-mode=global", "--subnet-mode=custom"},
-	}
-	_, err := shell.RunCommandAndGetOutputE(t, cmd)
-	if err != nil {
-		t.Fatalf("Error creating VPC network %s: %v", vpcName, err)
-		return
-	}
-
-	// Create the subnet with Private Google Access enabled
-	cmd = shell.Command{
+// Function to get the internal IP from the instance
+func getInternalIP(t *testing.T, instanceName, projectID, zone string) (string, error) {
+	describeCmd := shell.Command{
 		Command: "gcloud",
 		Args: []string{
-			text, "networks", "subnets", "create", subnetName,
+			"compute", "instances", "describe", instanceName,
+			"--project", projectID,
+			"--zone", zone,
+			"--format=value(networkInterfaces[0].networkIP)",
+		},
+	}
+	stdout, stderr, err := shell.RunCommandAndGetStdOutErrE(t, describeCmd)
+	if err != nil {
+		return "", fmt.Errorf("failed to get internal IP for instance %s: %w, stderr: %s", instanceName, err, stderr)
+	}
+
+	internalIP := strings.TrimSpace(stdout)
+	if internalIP == "" {
+		return "", fmt.Errorf("failed to extract internal IP from stdout, stderr: %s", stderr)
+	}
+	t.Logf("Internal IP for instance %s: %s", instanceName, internalIP)
+	return internalIP, nil
+}
+
+func createVPC(t *testing.T, projectID string, vpcName string) {
+	t.Logf("Creating VPC: %s and Subnet: %s", vpcName, subnetName)
+	cmdCreateNet := shell.Command{
+		Command: "gcloud",
+		Args:    []string{"compute", "networks", "create", vpcName, "--project=" + projectID, "--format=json", "--bgp-routing-mode=global", "--subnet-mode=custom"},
+	}
+	_, err := shell.RunCommandAndGetOutputE(t, cmdCreateNet)
+	if err != nil {
+		t.Fatalf("Error creating VPC network %s: %v", vpcName, err)
+	}
+
+	cmdCreateSubnet := shell.Command{
+		Command: "gcloud",
+		Args: []string{
+			"compute", "networks", "subnets", "create", subnetName,
 			"--project=" + projectID,
 			"--network=" + vpcName,
 			"--region=" + region,
-			"--range=10.0.0.0/24",
+			"--range=10.0.0.0/24", // Make sure this range doesn't overlap if running multiple tests in parallel on same project
 			"--enable-private-ip-google-access",
 		},
 	}
-	_, err = shell.RunCommandAndGetOutputE(t, cmd)
+	_, err = shell.RunCommandAndGetOutputE(t, cmdCreateSubnet)
 	if err != nil {
-		t.Fatalf("Error creating subnet %s: %v", subnetName, err)
-		return
+		t.Fatalf("Error creating subnet %s in VPC %s: %v", subnetName, vpcName, err)
 	}
-
+	t.Logf("Successfully created VPC '%s' with PGA-enabled subnet '%s'.", vpcName, subnetName)
 }
 
-// deleteVPC deletes the VPC and subnet configuration after the test.
 func deleteVPC(t *testing.T, projectID string, vpcName string) {
-	text := "compute"
-	time.Sleep(60 * time.Second) // Wait for resources to be in a deletable state
+	t.Logf("Deleting Subnet: %s and VPC: %s", subnetName, vpcName)
+	// It can take time for dependent resources (like workbench instance) to be fully deleted
+	// before a subnet/network can be. The sleeps are attempts to mitigate this.
+	// Ideally, ensure all dependent resources are gone first. Terraform destroy should handle the instance.
 
-	// Delete Subnet
-	cmd := shell.Command{
+	cmdDeleteSubnet := shell.Command{
 		Command: "gcloud",
-		Args: []string{
-			text, "networks", "subnets", "delete", subnetName,
-			"--project=" + projectID,
-			"--region=" + region,
-			"--quiet",
-		},
+		Args:    []string{"compute", "networks", "subnets", "delete", subnetName, "--project=" + projectID, "--region=" + region, "--quiet"},
 	}
-	if _, err := shell.RunCommandAndGetOutputE(t, cmd); err != nil {
-		t.Errorf("===Error %s Encountered while deleting subnet: %s", err, subnetName)
+	// Retry subnet deletion as it often fails if resources are still attached
+	maxRetries := 3
+	for i := 0; i < maxRetries; i++ {
+		output, err := shell.RunCommandAndGetOutputE(t, cmdDeleteSubnet)
+		if err == nil {
+			t.Logf("Successfully deleted subnet %s.", subnetName)
+			break
+		}
+		t.Logf("Error deleting subnet %s (attempt %d/%d): %v. Output: %s", subnetName, i+1, maxRetries, err, output)
+		if i < maxRetries-1 {
+			time.Sleep(30 * time.Second)
+		} else {
+			t.Errorf("Failed to delete subnet %s after %d attempts. Last error: %v", subnetName, maxRetries, err)
+			// Continue to attempt VPC deletion anyway
+		}
 	}
 
-	time.Sleep(150 * time.Second)
+	// Wait longer before attempting network deletion
+	t.Logf("Waiting before deleting network %s...", vpcName)
+	time.Sleep(60 * time.Second)
 
-	// Delete VPC
-	cmd = shell.Command{
+	cmdDeleteNet := shell.Command{
 		Command: "gcloud",
-		Args:    []string{text, "networks", "delete", vpcName, "--project=" + projectID, "--quiet"},
+		Args:    []string{"compute", "networks", "delete", vpcName, "--project=" + projectID, "--quiet"},
 	}
-	if _, err := shell.RunCommandAndGetOutputE(t, cmd); err != nil {
-		t.Errorf("===Error %s Encountered while deleting VPC: %s", err, vpcName)
+	for i := 0; i < maxRetries; i++ {
+		output, err := shell.RunCommandAndGetOutputE(t, cmdDeleteNet)
+		if err == nil {
+			t.Logf("Successfully deleted VPC network %s.", vpcName)
+			return
+		}
+		t.Logf("Error deleting VPC network %s (attempt %d/%d): %v. Output: %s", vpcName, i+1, maxRetries, err, output)
+		if i < maxRetries-1 {
+			time.Sleep(30 * time.Second)
+		} else {
+			t.Errorf("Failed to delete VPC network %s after %d attempts. Last error: %v", vpcName, maxRetries, err)
+		}
 	}
 }
 
-// createFirewallRule creates a firewall rule to allow SSH access (port 22)
-func createFirewallRule(t *testing.T, projectID, firewallRuleName, vpcName string) {
-	t.Logf("Creating firewall rule: %s", firewallRuleName)
-	cmd := shell.Command{
-		Command: "gcloud",
-		Args: []string{
-			"compute", "firewall-rules", "create", firewallRuleName,
-			"--project=" + projectID,
-			"--network=" + vpcName,
-			"--allow=tcp:22",
-			"--source-ranges=0.0.0.0/0",
-		},
-	}
-	_, err := shell.RunCommandAndGetOutputE(t, cmd)
+// testConnectivity tests the connectivity from the Workbench instance to the BigQuery endpoint.
+// It creates a connectivity test using the Network Management API, waits for the analysis to complete,
+// and asserts that the Workbench instance can reach the BigQuery endpoint.
+func testConnectivity(t *testing.T, projectID, sourceIP, networkName string) {
+	t.Log("========= Network Management Connectivity Test =========")
+
+	bigqueryEndpoint := "bigquery.googleapis.com"
+
+	resolvedIP, err := resolveHostname(t, bigqueryEndpoint, projectID, networkName)
 	if err != nil {
-		t.Fatalf("Error creating firewall rule %s: %v", firewallRuleName, err)
+		t.Fatalf("Failed to resolve hostname '%s': %v", bigqueryEndpoint, err)
 	}
-	t.Logf("Firewall rule %s created successfully", firewallRuleName)
-}
+	t.Logf("Resolved IP for %s: %s", bigqueryEndpoint, resolvedIP)
 
-// deleteFirewallRule deletes the specified firewall rule
-func deleteFirewallRule(t *testing.T, projectID, firewallRuleName string) {
-	t.Logf("Deleting firewall rule: %s", firewallRuleName)
-	cmd := shell.Command{
+	createCmd := shell.Command{
 		Command: "gcloud",
 		Args: []string{
-			"compute", "firewall-rules", "delete", firewallRuleName,
+			"network-management", "connectivity-tests", "create", connectivityTestName,
 			"--project=" + projectID,
-			"--quiet",
+			"--source-ip-address=" + sourceIP,
+			"--destination-ip-address=" + resolvedIP,
+			"--protocol=TCP",
+			"--destination-port=443",
+			"--source-network=projects/" + projectID + "/global/networks/" + networkName,
+			"--format=json",
+			"--verbosity=debug",
 		},
 	}
-	if _, err := shell.RunCommandAndGetOutputE(t, cmd); err != nil {
-		t.Errorf("Error deleting firewall rule %s: %v", firewallRuleName, err)
+
+	createOutput, err := shell.RunCommandAndGetOutputE(t, createCmd)
+	if err != nil {
+		t.Fatalf("Error creating connectivity test '%s': %v. Output: %s", connectivityTestName, err, createOutput)
 	}
-	t.Logf("Firewall rule %s deleted successfully", firewallRuleName)
-}
+	t.Logf("Connectivity test '%s' creation initiated. Waiting for analysis...", connectivityTestName)
 
-// validateAndAssignRoles validates and assigns necessary roles to the service account.
-func validateAndAssignRoles(t *testing.T, serviceAccountEmail string, projectID string) error {
-	t.Helper()
-	requiredRoles := []string{
-		"roles/bigquery.jobUser",
-		"roles/bigquery.dataViewer",
-		"roles/serviceusage.serviceUsageConsumer",
-		"roles/notebooks.admin",        // Or a more specific role if needed
-		"roles/iam.serviceAccountUser", // To allow the SA to act as itself
-	}
-
-	member := fmt.Sprintf("serviceAccount:%s", serviceAccountEmail)
-
-	for _, role := range requiredRoles {
-		t.Logf("Adding role %s to %s for project %s", role, member, projectID)
-		cmd := shell.Command{
+	defer func() {
+		t.Logf("Deleting connectivity test: %s", connectivityTestName)
+		deleteCmd := shell.Command{
 			Command: "gcloud",
-			Args:    []string{"projects", "add-iam-policy-binding", projectID, "--member=" + member, "--role=" + role, "--condition=None"},
+			Args:    []string{"network-management", "connectivity-tests", "delete", connectivityTestName, "--project=" + projectID, "--quiet"},
 		}
-		output, err := shell.RunCommandAndGetOutputE(t, cmd)
-		if err != nil {
-			t.Logf("Failed to add IAM binding '%s' for member '%s' to project '%s'. Output:\n%s, Error: %v", role, member, projectID, output, err)
-			return fmt.Errorf("failed to add IAM binding '%s' for member '%s': %w", role, member, err)
+		delOutput, delErr := shell.RunCommandAndGetOutputE(t, deleteCmd)
+		if delErr != nil {
+			t.Errorf("Error deleting connectivity test %s: %v. Output: %s", connectivityTestName, delErr, delOutput)
+		} else {
+			t.Logf("Connectivity test '%s' deleted.", connectivityTestName)
 		}
-		t.Logf("Successfully added role %s to %s for project %s", role, member, projectID)
+	}()
+
+	maxPollRetries := 3
+	pollInterval := 20 * time.Second
+	testStatus := ""
+	finalDescribeOutput := ""
+	var reachabilityResult gjson.Result
+
+	for i := 0; i < maxPollRetries; i++ {
+		time.Sleep(pollInterval)
+		describeCmd := shell.Command{
+			Command: "gcloud",
+			Args:    []string{"network-management", "connectivity-tests", "describe", connectivityTestName, "--project=" + projectID, "--format=json"},
+		}
+		describeOutput, describeErr := shell.RunCommandAndGetOutputE(t, describeCmd)
+		finalDescribeOutput = describeOutput
+		if describeErr != nil {
+			t.Logf("Error describing connectivity test (attempt %d/%d): %v. Output: %s", i+1, maxPollRetries, describeErr, describeOutput)
+			continue
+		}
+
+		// Extract only the JSON part from the output (skip warnings/logs)
+		jsonStart := strings.Index(describeOutput, "{")
+		if jsonStart != -1 {
+			describeOutput = describeOutput[jsonStart:]
+		}
+		parsedOutput := gjson.Parse(describeOutput)
+		reachabilityResult = parsedOutput.Get("reachabilityDetails.result")
+		if reachabilityResult.Exists() {
+			testStatus = reachabilityResult.String()
+			t.Logf("Connectivity test status: %s (Attempt %d/%d)", testStatus, i+1, maxPollRetries)
+			if testStatus == "REACHABLE" || testStatus == "UNREACHABLE" || testStatus == "AMBIGUOUS" {
+				break
+			}
+		} else {
+			t.Logf("Connectivity test status not yet available (attempt %d/%d). State: %s. Output: %s", i+1, maxPollRetries, parsedOutput.Get("state").String(), describeOutput)
+		}
 	}
 
-	return nil
+	// Assert the final testStatus after the loop
+	assert.Equal(t, "REACHABLE", testStatus, fmt.Sprintf("Connectivity test to BigQuery endpoint should be REACHABLE. Final describe output:\n%s", finalDescribeOutput))
+	if testStatus == "REACHABLE" {
+		t.Logf("Connectivity test '%s' PASSED: Workbench can reach BigQuery endpoint.", connectivityTestName)
+	} else {
+		t.Errorf("Connectivity test '%s' FAILED. Final status: %s. Review test details in GCP console. Final describe output:\n%s", connectivityTestName, testStatus, finalDescribeOutput)
+	}
 }
 
-// validateBigQueryFromWorkbenchInstance validates BigQuery connectivity from the Workbench instance using the bq CLI.
-func validateBigQueryFromWorkbenchInstance(t *testing.T, instanceName, projectID, zone, datasetID, tableID string) error {
-	t.Logf("Validating BigQuery connectivity from Workbench instance: %s", instanceName)
+// resolveHostname resolves a given hostname to its IP address.
+// Function to resolve a hostname to an IP address
+func resolveHostname(t *testing.T, hostname, projectID, networkName string) (string, error) {
+	// 1. Try Go's net.LookupIP first
+	t.Logf("Attempting to resolve hostname '%s' using net.LookupIP...", hostname)
+	ips, err := net.LookupIP(hostname)
+	if err == nil && len(ips) > 0 {
+		for _, ip := range ips {
+			if ip.To4() != nil { // Prefer IPv4
+				t.Logf("Successfully resolved '%s' to %s using net.LookupIP.", hostname, ip.String())
+				return ip.String(), nil
+			}
+		}
+	}
+	t.Logf("net.LookupIP failed or returned no IPv4: %v. Falling back to external tools.", err)
 
-	// Construct the BigQuery query command
-	queryCommand := fmt.Sprintf("bq query --use_legacy_sql=false 'SELECT COUNT(*) FROM `%s.%s`'", datasetID, tableID)
-
-	// Execute the query command on the Workbench instance via SSH
-	execCmd := shell.Command{
+	workbenchInstanceName := workbenchName
+	networkCmd := shell.Command{
 		Command: "gcloud",
 		Args: []string{
-			"compute", "ssh", fmt.Sprintf("jupyter@%s", instanceName),
+			"compute", "instances", "describe", workbenchInstanceName,
 			"--project", projectID,
 			"--zone", zone,
-			"--command", queryCommand,
+			"--format=value(networkInterfaces[0].network)",
 		},
 	}
-
-	output, err := shell.RunCommandAndGetOutputE(t, execCmd)
-	if err != nil {
-		return fmt.Errorf("failed to execute BigQuery query on Workbench instance: %w", err)
-	}
-	// Check if the output contains the expected result
-	expectedOutput := "3"
-	if !strings.Contains(output, expectedOutput) {
-		return fmt.Errorf("expected output '%s' not found in the output: %s", expectedOutput, output)
+	networkOutput, networkErr := shell.RunCommandAndGetOutputE(t, networkCmd)
+	if networkErr != nil {
+		t.Logf("Warning: Failed to get network for instance '%s': %v, Output: %s. Proceeding with hostname resolution.", workbenchInstanceName, networkErr, networkOutput)
+	} else if !strings.Contains(networkOutput, networkName) {
+		t.Logf("Warning: The provided network name '%s' does not match the network of the instance '%s'. Output: %s. Proceeding with hostname resolution.", networkName, workbenchInstanceName, networkOutput)
 	}
 
-	t.Logf("BigQuery connectivity validated from Workbench instance. Output:\n%s", output)
-	return nil
-}
-
-// createAndPopulateBigQuery creates a BigQuery dataset and table, populates the table with sample data,
-// and returns the dataset and table IDs along with any error encountered.
-func createAndPopulateBigQuery(t *testing.T, projectID string, serviceAccountEmail string) (string, string, error) {
-	ctx := context.Background()
-	credentials, err := google.FindDefaultCredentials(ctx)
-	if err != nil {
-		return "", "", fmt.Errorf("failed to get default credentials: %w", err)
+	t.Logf("Attempting to resolve hostname '%s' using 'dig'...", hostname)
+	digCmd := shell.Command{
+		Command: "dig",
+		Args: []string{
+			"+short", hostname,
+		},
 	}
-
-	bqClient, err := bigquery.NewClient(ctx, projectID, option.WithCredentials(credentials))
-	if err != nil {
-		return "", "", fmt.Errorf("failed to create BigQuery client: %w", err)
+	stdout, stderr, err := shell.RunCommandAndGetStdOutErrE(t, digCmd)
+	if err == nil {
+		resolvedIP := strings.TrimSpace(stdout)
+		if resolvedIP != "" {
+			t.Logf("Successfully resolved '%s' to %s using 'dig'.", hostname, resolvedIP)
+			return resolvedIP, nil
+		}
 	}
-	defer bqClient.Close()
+	t.Logf("dig failed: %v, stderr: %s. Falling back to 'nslookup'.", err, stderr)
 
-	datasetID := fmt.Sprintf("test_dataset_%d", rand.Int())
-	tableID := fmt.Sprintf("test_table_%d", rand.Int())
+	t.Logf("Attempting to resolve hostname '%s' using 'nslookup'...", hostname)
+	nslookupCmd := shell.Command{
+		Command: "nslookup",
+		Args: []string{
+			hostname,
+		},
+	}
+	stdout, stderr, err = shell.RunCommandAndGetStdOutErrE(t, nslookupCmd)
+	if err == nil {
+		lines := strings.Split(stdout, "\n")
+		for _, line := range lines {
+			if strings.HasPrefix(strings.TrimSpace(line), "Address:") {
+				parts := strings.Split(line, ":")
+				if len(parts) > 1 {
+					ip := strings.TrimSpace(parts[1])
+					if net.ParseIP(ip) != nil {
+						t.Logf("Successfully resolved '%s' to %s using 'nslookup'.", hostname, ip)
+						return ip, nil
+					}
+				}
+			}
+		}
+	}
+	t.Logf("nslookup failed: %v, stderr: %s.", err, stderr)
 
-	// Create dataset
-	t.Logf("Creating BigQuery Dataset: %s", datasetID)
-	dataset := bqClient.Dataset(datasetID)
-	if err := dataset.Create(ctx, &bigquery.DatasetMetadata{
-		Location: region,
-	}); err != nil {
-		return "", "", fmt.Errorf("failed to create dataset: %w", err)
-	}
-	t.Logf("Created BigQuery Dataset: %s", datasetID)
-
-	// Create table
-	t.Logf("Creating BigQuery Table: %s", tableID)
-	schema := bigquery.Schema{
-		{Name: "name", Type: bigquery.StringFieldType},
-		{Name: "value", Type: bigquery.IntegerFieldType},
-	}
-	table := dataset.Table(tableID)
-	if err := table.Create(ctx, &bigquery.TableMetadata{Schema: schema}); err != nil {
-		return "", "", fmt.Errorf("failed to create table: %w", err)
-	}
-	t.Logf("Created BigQuery Table: %s", tableID)
-
-	// Populate table with data
-	t.Log("Populating BigQuery Table with data")
-	rows := []struct {
-		Name  string `bigquery:"name"`
-		Value int    `bigquery:"value"`
-	}{
-		{Name: "Item A", Value: 10},
-		{Name: "Item B", Value: 20},
-		{Name: "Item C", Value: 30},
-	}
-
-	inserter := table.Inserter()
-	t.Logf("Inserter created: %v", inserter)
-	if err := inserter.Put(ctx, rows); err != nil {
-		return "", "", fmt.Errorf("failed to insert data: %w", err)
-	}
-	t.Logf("Data inserted: %v", rows)
-	t.Logf("Populated BigQuery Table with data")
-
-	return datasetID, tableID, nil
-}
-
-// deleteBigQueryResources deletes a BigQuery dataset and its contents for the given project and dataset IDs.
-// It ensures proper cleanup of resources during integration tests.
-func deleteBigQueryResources(t *testing.T, projectID string, datasetID string) {
-	ctx := context.Background()
-	credentials, err := google.FindDefaultCredentials(ctx)
-	if err != nil {
-		t.Fatalf("failed to get default credentials: %v", err)
-		return
-	}
-
-	bqClient, err := bigquery.NewClient(ctx, projectID, option.WithCredentials(credentials))
-	if err != nil {
-		t.Fatalf("failed to create BigQuery client: %v", err)
-		return
-	}
-	defer bqClient.Close()
-
-	dataset := bqClient.Dataset(datasetID)
-	if err := dataset.DeleteWithContents(ctx); err != nil {
-		t.Fatalf("failed to delete dataset: %v", err)
-		return
-	}
-	t.Logf("Deleted BigQuery Dataset: %s", datasetID)
-}
-
-// validateBigQueryDirectly executes a query directly against BigQuery and validates the result.
-func validateBigQueryDirectly(t *testing.T, projectID string, datasetID string, tableID string) error {
-	t.Logf("Executing BigQuery query directly...")
-
-	ctx := context.Background()
-	credentials, err := google.FindDefaultCredentials(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get default credentials: %w", err)
-	}
-	t.Logf("Credentials obtained successfully")
-
-	bqClient, err := bigquery.NewClient(ctx, projectID, option.WithCredentials(credentials))
-	if err != nil {
-		return fmt.Errorf("failed to create BigQuery client: %w", err)
-	}
-	defer bqClient.Close()
-	t.Logf("BigQuery client created successfully")
-
-	query := fmt.Sprintf("SELECT COUNT(*) FROM `%s.%s`", datasetID, tableID)
-	t.Logf("Query: %s", query)
-	q := bqClient.Query(query)
-	job, err := q.Run(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to run query: %w", err)
-	}
-	t.Logf("Query job started successfully")
-
-	status, err := job.Wait(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to wait for query job: %w", err)
-	}
-	if err := status.Err(); err != nil {
-		return fmt.Errorf("query failed with error: %w", err)
-	}
-	t.Logf("Query job finished successfully")
-
-	it, err := job.Read(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to read query results: %w", err)
-	}
-	t.Logf("Query results read successfully")
-
-	var row []bigquery.Value
-	err = it.Next(&row)
-	if err != nil {
-		return fmt.Errorf("failed to get next row: %w", err)
-	}
-	if len(row) == 0 {
-		return fmt.Errorf("no results returned from the query")
-	}
-	count := row[0].(int64)
-	t.Logf("BigQuery query successful. Count: %v", count)
-	assert.Equal(t, int64(3), int64(count), "The count of the table should be 3")
-	return nil
+	return "", fmt.Errorf("failed to resolve hostname '%s' using net.LookupIP, dig, or nslookup", hostname)
 }

@@ -1,0 +1,6 @@
+name      : "lite-global-firewallpolicy"
+parent_id : <Replace with Project Id> # project_id incase of global/regional firewall policy.
+region : global
+attachments :
+  vpc : <Replace with VPC Self Link> # e.g."projects/project-id/global/networks/vpc-name"
+

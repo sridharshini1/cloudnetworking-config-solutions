@@ -1,0 +1,5 @@
+name      : "lite-instance-hierarchicalpolicy"
+parent_id : "folders/dummy-folder-id"
+attachments :
+  test : "folders/dummy-folder-id"  # folder id or org id
+description : "test description"
