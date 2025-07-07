@@ -1,0 +1,6 @@
+project_id: {{ projectId }}
+region: {{ instance.region }}
+name: {{ instance.name }}
+containers:
+  {{ instance.container_name | default('container-0') }}:
+    image: {{ instance.image }}

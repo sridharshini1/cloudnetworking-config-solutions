@@ -1,0 +1,16 @@
+{
+  "priority": 1000,
+  "direction": "INGRESS",
+  "disabled": false,
+  "description": "Default INGRESS firewall rule settings. Customize as needed for specific rules.",
+  "logConfig": {
+    "enable": true
+  },
+  "allowed": [
+    {
+      "IPProtocol": "tcp",
+      "ports": ["_SPECIFY_TCP_PORTS_HERE_"]
+    }
+  ],
+  "denied": []
+}

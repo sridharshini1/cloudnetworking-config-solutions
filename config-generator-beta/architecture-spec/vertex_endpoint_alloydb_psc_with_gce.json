@@ -1,0 +1,64 @@
+{
+    "description": "This reference architecture provides a secure, enterprise-grade pattern for serving real-time predictions from a machine learning model using a private Vertex AI Online Endpoint. The setup employs a Shared VPC model to enforce centralized network control and security boundaries. A Vertex AI Online Endpoint (producer), which serves a deployed ML model, is located in a dedicated ML services project. This endpoint is securely exposed within the network using a Private Service Connect (PSC) endpoint, which resides in a specialized subnet within the Shared VPC host project. A GCE VM instance (consumer), representing an application that requires real-time inference, is deployed in a separate subnet but within the same Shared VPC. This allows the application to send prediction requests to the Vertex AI model and receive responses with low latency, ensuring the entire inference workflow and the model's intellectual property are protected from the public internet. This pattern is a critical component of MLOps best practices, enabling organizations to integrate powerful AI/ML models into their internal applications while meeting strict security and data privacy requirements.",
+    "defaultRegion": "us-central1",
+    "namePrefix" : "",
+    "projects": [
+      {
+        "projectId": "network-host-project",
+        "vpc": [
+          {
+            "type": "vpc",
+            "name": "vertex-shared-vpc",
+            "subnets": [
+              {
+                "name": "vertex-app-subnet",
+                "ipCidrRange": "10.80.0.0/20",
+                "region": "us-central1"
+              },
+              {
+                "name": "vertex-psc-subnet",
+                "ipCidrRange": "10.80.16.0/24",
+                "region": "us-central1"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "projectId": "vertex-services-project",
+        "pscSettings": {
+          "networkForPsc": "vertex-shared-vpc",
+          "subnetForPsc": "vertex-psc-subnet"
+        },
+        "producers": [
+          {
+            "type": "vertex_ai_endpoint",
+            "name": "my-prediction-endpoint",
+            "region": "us-central1",
+            "allowedConsumersTags": ["tag-1"]
+          },
+          {
+            "type": "alloydb",
+            "count": 5,
+            "name": "main-alloydb-cluster",
+            "region": "us-central1",
+            "createRequiredFwRules": true,
+            "allowedConsumersTags": ["db-accessor"]
+          }
+        ],
+        "consumers": [
+          {
+            "type": "vm",
+            "name": "prediction-client-gce",
+            "zone": "us-central1-a",
+            "networkInterfaces": [
+              {
+                "network": "projects/network-host-project/global/networks/vertex-shared-vpc",
+                "subnetwork": "projects/network-host-project/regions/us-central1/subnetworks/vertex-app-subnet"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+}

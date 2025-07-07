@@ -1,0 +1,23 @@
+{
+    "databaseVersion": "MYSQL_8_0",
+    "region": "us-central1",
+    "settings": {
+      "tier": "db-f1-micro",
+      "dataDiskSizeGb": "10",
+      "ipConfiguration": {
+        "ipv4Enabled": false,
+        "privateNetwork": "",
+        "pscConfig": {
+            "pscEnabled": true,
+            "allowedConsumerProjects": [],
+            "pscAutoConnections": []
+          }
+      },
+      "backupConfiguration": {
+        "enabled": true,
+        "startTime": "05:00",
+        "binaryLogEnabled": true
+      },
+      "availabilityType": "REGIONAL"
+    }
+  }

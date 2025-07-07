@@ -1,0 +1,24 @@
+project_id = "{{ projectId }}"
+network    = "{{ networkPath }}"
+
+ingress_rules = {
+  fw-allow-health-check = {
+    deny             = false
+    description      = "Allow health checks"
+    destination_ranges = []
+    disabled         = false
+    enable_logging = {
+      include_metadata = true
+    }
+    priority = 1000
+    source_ranges = [
+      "130.211.0.0/22",
+      "35.191.0.0/16"
+    ]
+    targets = ["allow-health-checks"]
+    rules = [{
+      protocol = "tcp"
+      ports    = ["80"]
+    }]
+  }
+}

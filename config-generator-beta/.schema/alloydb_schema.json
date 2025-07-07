@@ -1,0 +1,238 @@
+{
+  "id": "Cluster",
+  "description": "A cluster is a collection of regional AlloyDB resources. It can include a primary instance and one or more read pool instances. All cluster resources share a storage layer, which scales as needed.",
+  "type": "object",
+  "properties": {
+    "backupSource": {
+      "description": "Output only. Cluster created from backup.",
+      "readOnly": true,
+      "$ref": "BackupSource"
+    },
+    "migrationSource": {
+      "description": "Output only. Cluster created via DMS migration.",
+      "readOnly": true,
+      "$ref": "MigrationSource"
+    },
+    "cloudsqlBackupRunSource": {
+      "description": "Output only. Cluster created from CloudSQL snapshot.",
+      "readOnly": true,
+      "$ref": "CloudSQLBackupRunSource"
+    },
+    "name": {
+      "description": "Output only. The name of the cluster resource with the format: * projects/{project}/locations/{region}/clusters/{cluster_id} where the cluster ID segment should satisfy the regex expression `[a-z0-9-]+`. For more details see https://google.aip.dev/122. The prefix of the cluster resource name is the name of the parent resource: * projects/{project}/locations/{region}",
+      "readOnly": true,
+      "type": "string"
+    },
+    "displayName": {
+      "description": "User-settable and human-readable display name for the Cluster.",
+      "type": "string"
+    },
+    "uid": {
+      "description": "Output only. The system-generated UID of the resource. The UID is assigned when the resource is created, and it is retained until it is deleted.",
+      "readOnly": true,
+      "type": "string"
+    },
+    "createTime": {
+      "description": "Output only. Create time stamp",
+      "readOnly": true,
+      "type": "string",
+      "format": "google-datetime"
+    },
+    "updateTime": {
+      "description": "Output only. Update time stamp",
+      "readOnly": true,
+      "type": "string",
+      "format": "google-datetime"
+    },
+    "deleteTime": {
+      "description": "Output only. Delete time stamp",
+      "readOnly": true,
+      "type": "string",
+      "format": "google-datetime"
+    },
+    "labels": {
+      "description": "Labels as key value pairs",
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "state": {
+      "description": "Output only. The current serving state of the cluster.",
+      "readOnly": true,
+      "type": "string",
+      "enumDescriptions": [
+        "The state of the cluster is unknown.",
+        "The cluster is active and running.",
+        "The cluster is stopped. All instances in the cluster are stopped. Customers can start a stopped cluster at any point and all their instances will come back to life with same names and IP resources. In this state, customer pays for storage. Associated backups could also be present in a stopped cluster.",
+        "The cluster is empty and has no associated resources. All instances, associated storage and backups have been deleted.",
+        "The cluster is being created.",
+        "The cluster is being deleted.",
+        "The creation of the cluster failed.",
+        "The cluster is bootstrapping with data from some other source. Direct mutations to the cluster (e.g. adding read pool) are not allowed.",
+        "The cluster is under maintenance. AlloyDB regularly performs maintenance and upgrades on customer clusters. Updates on the cluster are not allowed while the cluster is in this state.",
+        "The cluster is being promoted."
+      ],
+      "enum": [
+        "STATE_UNSPECIFIED",
+        "READY",
+        "STOPPED",
+        "EMPTY",
+        "CREATING",
+        "DELETING",
+        "FAILED",
+        "BOOTSTRAPPING",
+        "MAINTENANCE",
+        "PROMOTING"
+      ]
+    },
+    "clusterType": {
+      "description": "Output only. The type of the cluster. This is an output-only field and it's populated at the Cluster creation time or the Cluster promotion time. The cluster type is determined by which RPC was used to create the cluster (i.e. `CreateCluster` vs. `CreateSecondaryCluster`",
+      "readOnly": true,
+      "type": "string",
+      "enumDescriptions": [
+        "The type of the cluster is unknown.",
+        "Primary cluster that support read and write operations.",
+        "Secondary cluster that is replicating from another region. This only supports read."
+      ],
+      "enum": [
+        "CLUSTER_TYPE_UNSPECIFIED",
+        "PRIMARY",
+        "SECONDARY"
+      ]
+    },
+    "databaseVersion": {
+      "description": "Optional. The database engine major version. This is an optional field and it is populated at the Cluster creation time. If a database version is not supplied at cluster creation time, then a default database version will be used.",
+      "type": "string",
+      "enumDescriptions": [
+        "This is an unknown database version.",
+        "DEPRECATED - The database version is Postgres 13.",
+        "The database version is Postgres 14.",
+        "The database version is Postgres 15.",
+        "The database version is Postgres 16."
+      ],
+      "enumDeprecated": [
+        false,
+        true,
+        false,
+        false,
+        false
+      ],
+      "enum": [
+        "DATABASE_VERSION_UNSPECIFIED",
+        "POSTGRES_13",
+        "POSTGRES_14",
+        "POSTGRES_15",
+        "POSTGRES_16"
+      ]
+    },
+    "networkConfig": {
+      "$ref": "NetworkConfig"
+    },
+    "network": {
+      "description": "Required. The resource link for the VPC network in which cluster resources are created and from which they are accessible via Private IP. The network must belong to the same project as the cluster. It is specified in the form: `projects/{project}/global/networks/{network_id}`. This is required to create a cluster. Deprecated, use network_config.network instead.",
+      "deprecated": true,
+      "type": "string"
+    },
+    "etag": {
+      "description": "For Resource freshness validation (https://google.aip.dev/154)",
+      "type": "string"
+    },
+    "annotations": {
+      "description": "Annotations to allow client tools to store small amount of arbitrary data. This is distinct from labels. https://google.aip.dev/128",
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "reconciling": {
+      "description": "Output only. Reconciling (https://google.aip.dev/128#reconciliation). Set to true if the current state of Cluster does not match the user's intended state, and the service is actively updating the resource to reconcile them. This can happen due to user-triggered updates or system actions like failover or maintenance.",
+      "readOnly": true,
+      "type": "boolean"
+    },
+    "initialUser": {
+      "description": "Input only. Initial user to setup during cluster creation. Required. If used in `RestoreCluster` this is ignored.",
+      "$ref": "UserPassword"
+    },
+    "automatedBackupPolicy": {
+      "description": "The automated backup policy for this cluster. If no policy is provided then the default policy will be used. If backups are supported for the cluster, the default policy takes one backup a day, has a backup window of 1 hour, and retains backups for 14 days. For more information on the defaults, consult the documentation for the message type.",
+      "$ref": "AutomatedBackupPolicy"
+    },
+    "sslConfig": {
+      "description": "SSL configuration for this AlloyDB cluster.",
+      "deprecated": true,
+      "$ref": "SslConfig"
+    },
+    "encryptionConfig": {
+      "description": "Optional. The encryption config can be specified to encrypt the data disks and other persistent data resources of a cluster with a customer-managed encryption key (CMEK). When this field is not specified, the cluster will then use default encryption scheme to protect the user data.",
+      "$ref": "EncryptionConfig"
+    },
+    "encryptionInfo": {
+      "description": "Output only. The encryption information for the cluster.",
+      "readOnly": true,
+      "$ref": "EncryptionInfo"
+    },
+    "continuousBackupConfig": {
+      "description": "Optional. Continuous backup configuration for this cluster.",
+      "$ref": "ContinuousBackupConfig"
+    },
+    "continuousBackupInfo": {
+      "description": "Output only. Continuous backup properties for this cluster.",
+      "readOnly": true,
+      "$ref": "ContinuousBackupInfo"
+    },
+    "secondaryConfig": {
+      "description": "Cross Region replication config specific to SECONDARY cluster.",
+      "$ref": "SecondaryConfig"
+    },
+    "primaryConfig": {
+      "description": "Output only. Cross Region replication config specific to PRIMARY cluster.",
+      "readOnly": true,
+      "$ref": "PrimaryConfig"
+    },
+    "satisfiesPzs": {
+      "description": "Output only. Reserved for future use.",
+      "readOnly": true,
+      "type": "boolean"
+    },
+    "pscConfig": {
+      "description": "Optional. The configuration for Private Service Connect (PSC) for the cluster.",
+      "$ref": "PscConfig"
+    },
+    "maintenanceUpdatePolicy": {
+      "description": "Optional. The maintenance update policy determines when to allow or deny updates.",
+      "$ref": "MaintenanceUpdatePolicy"
+    },
+    "maintenanceSchedule": {
+      "description": "Output only. The maintenance schedule for the cluster, generated for a specific rollout if a maintenance window is set.",
+      "readOnly": true,
+      "$ref": "MaintenanceSchedule"
+    },
+    "subscriptionType": {
+      "description": "Optional. Subscription type of the cluster.",
+      "type": "string",
+      "enumDescriptions": [
+        "This is an unknown subscription type. By default, the subscription type is STANDARD.",
+        "Standard subscription.",
+        "Trial subscription."
+      ],
+      "enum": [
+        "SUBSCRIPTION_TYPE_UNSPECIFIED",
+        "STANDARD",
+        "TRIAL"
+      ]
+    },
+    "trialMetadata": {
+      "description": "Output only. Metadata for free trial clusters",
+      "readOnly": true,
+      "$ref": "TrialMetadata"
+    },
+    "tags": {
+      "description": "Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: ``` \"123/environment\": \"production\", \"123/costCenter\": \"marketing\" ```",
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    }
+  }
+}

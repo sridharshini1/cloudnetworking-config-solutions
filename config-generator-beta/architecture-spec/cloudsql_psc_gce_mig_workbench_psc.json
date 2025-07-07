@@ -1,0 +1,89 @@
+{
+    "description": "This reference architecture showcases a sophisticated, enterprise-grade pattern for providing a single, secure Cloud SQL database to multiple, heterogeneous consumer workloads. Leveraging a Shared VPC model for centralized network control, this setup deploys a Cloud SQL instance (producer) in a service project and makes it privately accessible via a single Private Service Connect (PSC) endpoint. The key feature of this architecture is its support for three distinct consumer types, representing different business functions: a standalone GCE VM (for a backend service), a Managed Instance Group (MIG) for a scalable application, and a Vertex AI Workbench instance for data science development. Access control is managed elegantly through tag-based firewall rules; the application VM and MIG use a 'db-accessor' tag, while the Workbench uses a 'data-science' tag, demonstrating granular, role-based security. The configuration also includes a Cloud NAT gateway to provide all consumer instances with controlled internet egress. Architecture : https://github.com/GoogleCloudPlatform/cloudnetworking-config-solutions/blob/main/docs/CloudSQL/images/cloudsql_psc_image1.png",
+    "defaultRegion": "us-central1",
+    "namePrefix" : "",
+    "projects": [
+      {
+        "projectId": "your-project-3",
+        "hostProject": true,
+        "vpc": [
+          {
+            "type": "vpc",
+            "name": "central-shared-vpc",
+            "createNat": true,
+            "subnets": [
+              {
+                "name": "app-services-subnet",
+                "ipCidrRange": "10.100.0.0/20",
+                "region": "us-central1"
+              },
+              {
+                "name": "cloudsql-psc-subnet",
+                "ipCidrRange": "10.100.32.0/24",
+                "region": "us-central1"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "projectId": "your-project-3",
+        "producers": [
+          {
+            "type": "cloudsql",
+            "count" : 5,
+            "network" : "central-shared-vpc",
+            "subnet" : "cloudsql-psc-subnet",
+            "name": "my-database-instance",
+            "region": "us-central1",
+            "createRequiredFwRules": true,
+            "allowedConsumersTags": ["db-accessor", "data-science"]
+          }
+        ],
+        "consumers": [
+          {
+            "type": "vm",
+            "name": "my-app-vm",
+            "count": 4,
+            "region": "us-central1",
+            "zone": "us-central1-a",
+            "networkInterfaces": [
+              {
+                "network": "projects/your-project-3/global/networks/central-shared-vpc",
+                "subnetwork": "projects/your-project-3/regions/us-central1/subnetworks/app-services-subnet"
+              }
+            ],
+            "tags": { "items": ["db-accessor"] }
+          },
+          {
+            "type": "mig",
+            "name": "my-autoscaling-app-mig",
+            "count": 3,
+            "region": "us-central1",
+            "zone": "us-central1-a",
+            "networkInterfaces": [
+              {
+                "network": "projects/your-project-3/global/networks/central-shared-vpc",
+                "subnetwork": "projects/your-project-3/regions/us-central1/subnetworks/app-services-subnet"
+              }
+            ],
+            "tags": { "items": ["db-accessor"] }
+          },
+          {
+            "type": "workbench",
+            "name": "my-datascience-workbench",
+            "count": 3,
+            "region": "us-central1",
+            "zone": "us-central1-b",
+            "networkInterfaces": [
+              {
+                "network": "projects/your-project-3/global/networks/central-shared-vpc",
+                "subnetwork": "projects/your-project-3/regions/us-central1/subnetworks/app-services-subnet"
+              }
+            ],
+            "tags": { "items": ["data-science"] }
+          }
+        ]
+      }
+    ]
+}

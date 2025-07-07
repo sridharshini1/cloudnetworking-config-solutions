@@ -1,0 +1,14 @@
+{
+  "description": "Router configured for Cloud NAT by default",
+  "nats": [
+    {
+      "name": "default-nat-config",
+      "natIpAllocateOption": "AUTO_ONLY",
+      "enableDynamicPortAllocation": false,
+      "logConfig": {
+         "enable": true,
+         "filter": "ERRORS_ONLY"
+       }
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+    "description": "This reference architecture demonstrates a secure, multi-project cloud foundation using a Shared VPC to provide private, high-performance database connectivity. The primary business impact is to allow applications running on GCE to securely access a powerful AlloyDB database without exposing either service to the public internet. The architecture deploys an AlloyDB cluster (producer) in a dedicated database services project. This cluster is securely exposed via a Private Service Connect (PSC) endpoint, which resides in a subnet within the central Shared VPC host project. A consumer GCE VM, representing the application layer, attached to the Shared VPC, allowing it to communicate with the AlloyDB cluster securely and privately across project boundaries. This pattern is ideal for high-performance database workloads that require strong security, centralized network management, and a clear separation of concerns. In this setup, we enable on-prem connectivity through HA-VPN. Architecture : https://github.com/GoogleCloudPlatform/cloudnetworking-config-solutions/blob/main/docs/AlloyDB/alloydbinstance-using-psc.md#request-flow",
+    "defaultRegion": "us-central1",
+    "namePrefix" : "",
+    "nameSuffix" : "",
+    "projects": [
+      {
+        "projectId": "network-host-project",
+        "hostProject": true,
+        "vpc": [
+          {
+            "type": "vpc",
+            "name": "central-shared-vpc",
+            "createNat": true,
+            "subnets": [
+              {
+                "name": "app-services-subnet",
+                "ipCidrRange": "10.100.0.0/20",
+                "region": "us-central1"
+              },
+              {
+                "name": "alloydb-psc-subnet",
+                "ipCidrRange": "10.100.32.0/24",
+                "region": "us-central1"
+              }
+            ],
+            "haVpnGateways": [
+            {
+                "name": "default",
+                "peer_gcp_gateway_link": "projects/peer-project-id/regions/us-east1/vpnGateways/peer-gateway-name",
+                "tunnels": {
+                "tunnel_1": {
+                    "router_bgp_session_range" : "100.0.0.0/16",
+                    "bgp_peer_asn": 64515,
+                    "bgp_peer_ip_address": "169.254.1.2",
+                    "shared_secret": "a-very-secret-key-1"
+                    },
+                "tunnel_2": {
+                    "router_bgp_session_range" : "100.0.0.0/16",
+                    "bgp_peer_asn": 64515,
+                    "bgp_peer_ip_address": "169.254.2.2",
+                    "shared_secret": "a-very-secret-key-2"
+                    }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "projectId": "app-services-project",
+        "pscSettings": {
+          "networkForPsc": "central-shared-vpc",
+          "subnetForPsc": "alloydb-psc-subnet"
+        },
+        "producers": [
+          {
+            "type": "alloydb",
+            "count" : 5,
+            "name": "my-database-instance",
+            "region": "us-central1",
+            "createRequiredFwRules": true,
+            "allowedConsumersTags": ["tag-1"]
+          }
+        ],
+        "consumers": [
+          {
+            "type": "vm",
+            "name": "my-alloydb-vm",
+            "count": 3,
+            "region": "us-central1",
+            "zone": "us-central1-a",
+            "networkInterfaces": [
+              {
+                "network": "projects/network-host-project/global/networks/central-shared-vpc",
+                "subnetwork": "projects/network-host-project/regions/us-central1/subnetworks/app-services-subnet"
+              }
+            ],
+            "tags": { "items": ["tag-1"] }
+          }
+        ]
+      }
+    ]
+}

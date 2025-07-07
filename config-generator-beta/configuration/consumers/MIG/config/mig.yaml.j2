@@ -1,0 +1,6 @@
+name: {{ instance.name }}
+project_id: {{ projectId }}
+location: {{ instance.region }}
+zone: {{ instance.zone }}
+vpc_name: {{ instance.networkInterfaces[0].network | regex_replace('^projects/[^/]+/global/networks/', '') }}
+subnetwork_name: {{ instance.networkInterfaces[0].subnetwork | regex_replace('^projects/[^/]+/regions/[^/]+/subnetworks/', '') }}

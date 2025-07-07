@@ -1,0 +1,11 @@
+project_id = "{{ projectId }}"
+network    = "{{ networkPath }}"  // Full network path, e.g., projects/projectId/global/networks/networkName
+egress_rules = {
+  allow-egress-cloudsql = {
+    deny = false // Assuming this is typically false to allow egress
+    rules = [{
+      protocol = "tcp"
+      ports    = ["3306"] // Note: Common MySQL port. Adjust if your default is different (e.g., 3307) or based on DB type.
+    }]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "container_name": "default-service-container",
+  "image": "us-docker.pkg.dev/cloudrun/container/hello",
+  "template": {
+    "scaling": {
+      "minInstanceCount": 0,
+      "maxInstanceCount": 2
+    },
+    "containers": [
+      {
+        "resources": {
+          "limits": {
+            "cpu": "1",
+            "memory": "512Mi"
+          }
+        }
+      }
+    ]
+  },
+  "ingress": "INGRESS_TRAFFIC_ALLOW_INTERNAL_ONLY",
+  "executionEnvironment": "EXECUTION_ENVIRONMENT_GEN2"
+}

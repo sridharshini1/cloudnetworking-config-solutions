@@ -1,0 +1,13 @@
+project_id = "{{ projectId }}"
+network    = "{{ networkPath }}"
+egress_rules = {
+  allow-egress-online-endpoint = {
+    deny = true
+  }
+}
+ingress_rules = {
+  allow-ingress-online-endpoint = {
+    deny = true
+  }
+}
+# As no fw rules are required for vertex connectivity

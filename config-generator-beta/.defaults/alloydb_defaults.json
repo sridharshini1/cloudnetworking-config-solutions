@@ -1,0 +1,29 @@
+{
+  "clusterType": "PRIMARY",
+  "automatedBackupPolicy": {
+    "enabled": false,
+    "weeklySchedule": {
+      "startTimes": [
+        {
+          "hours": 22,
+          "minutes": 0,
+          "seconds": 0,
+          "nanos": 0
+        }
+      ],
+      "daysOfWeek": [
+        "SUNDAY"
+      ]
+    },
+    "backupWindow": "7200s"
+  },
+  "initialUser": {
+    "user": "postgres"
+  },
+  "primaryInstance": {
+    "displayName": "Default Primary Instance",
+    "instanceType": "PRIMARY",
+    "machineCpuCount": 2
+  },
+  "readPoolInstance": null
+}

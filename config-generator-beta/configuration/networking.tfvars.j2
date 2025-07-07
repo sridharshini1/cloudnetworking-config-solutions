@@ -1,0 +1,66 @@
+project_id = "{{ projectId }}"
+region     = "{{ region }}"
+
+## VPC input variables
+
+network_name = "{{ networkName }}"
+subnets = [
+{%- for subnet in subnetsData %}
+  {
+    name                  = "{{ subnet.name }}"
+    ip_cidr_range         = "{{ subnet.ipCidrRange }}"
+    region                = "{{ subnet.region }}"
+    enable_private_access = {{ 'true' if subnet.privateIpGoogleAccess else 'false' }}
+{%- if subnet.secondaryIpRanges %},
+    secondary_ip_ranges = {
+    {%- for range_item in subnet.secondaryIpRanges %}
+      "{{ range_item.rangeName }}" = "{{ range_item.ipCidrRange }}"{% if not loop.last %},{% endif %}
+    {%- endfor %}
+    }
+{%- endif %}
+  }{% if not loop.last %},{% endif %}
+{%- endfor %}
+]
+
+# Configuration for setting up a Shared VPC Host project
+shared_vpc_host = {{ sharedVpcHost | string | lower }}
+{% if sharedVpcHost == 'true' %}
+shared_vpc_service_projects = {{ sharedVpcServiceProjects | tojson(indent=2) }}
+{% endif %}
+
+# Service Connection Policy variables
+create_scp_policy      = {{ createScpPolicy }}
+subnets_for_scp_policy = [{%- for subnet in subnetsForScpPolicy %}"{{ subnet }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+
+## Cloud Nat input variables
+create_nat = {{ createNat | string | lower }}
+
+## HA-VPN input variables
+create_havpn = {{ createHavpn }}
+
+{% set gateway = (primaryVpc.haVpnGateways[0] if primaryVpc.haVpnGateways) or {} %}
+{% set peer_gateways_data = { gateway.name: {'gcp': gateway.peerGcpGatewayLink} } if gateway.name and gateway.peerGcpGatewayLink else {} %}
+{% set tunnels = gateway.get('tunnels', {}) %}
+{% set tunnel_1 = tunnels.get('tunnel_1', {}) %}
+{% set tunnel_2 = tunnels.get('tunnel_2', {}) %}
+
+peer_gateways = {
+{%- for gw_name, gw_details in peer_gateways_data.items() %}
+  {{ gw_name }} = {
+    gcp = "{{ gw_details.gcp }}"
+  }
+{%- endfor %}
+}
+
+tunnel_1_router_bgp_session_range = "{{ tunnel_1.routerBgpSessionRange | default('') }}"
+tunnel_1_bgp_peer_asn             = {{ tunnel_1.bgpPeerAsn | default(64514) }}
+tunnel_1_bgp_peer_ip_address      = "{{ tunnel_1.bgpPeerIpAddress | default('') }}"
+tunnel_1_shared_secret            = "{{ tunnel_1.sharedSecret | default('') }}"
+
+tunnel_2_router_bgp_session_range = "{{ tunnel_2.routerBgpSessionRange | default('') }}"
+tunnel_2_bgp_peer_asn             = {{ tunnel_2.bgpPeerAsn | default(64514) }}
+tunnel_2_bgp_peer_ip_address      = "{{ tunnel_2.bgpPeerIpAddress | default('') }}"
+tunnel_2_shared_secret            = "{{ tunnel_2.sharedSecret | default('') }}"
+
+## Cloud Interconnect input variables
+create_interconnect = {{ createInterconnect }}

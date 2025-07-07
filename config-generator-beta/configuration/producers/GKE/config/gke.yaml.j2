@@ -1,0 +1,7 @@
+name: {{ instance.name }}
+project_id: {{ projectId }}
+network: {{ instance.network }}
+subnetwork: {{ instance.subnetwork }}
+ip_range_pods: {{ instance.ipAllocationPolicy.clusterSecondaryRangeName }}
+ip_range_services: {{ instance.ipAllocationPolicy.servicesSecondaryRangeName }}
+kubernetes_version: {{ instance.initialClusterVersion }}

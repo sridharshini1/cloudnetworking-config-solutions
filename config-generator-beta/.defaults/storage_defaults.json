@@ -1,0 +1,17 @@
+{
+    "location": "us-central1",
+    "storageClass": "STANDARD",
+    "versioning": {
+      "enabled": false
+    },
+    "iamConfiguration": {
+      "uniformBucketLevelAccess": {
+        "enabled": true
+      }
+    },
+    "website": {
+      "mainPageSuffix": null,
+      "notFoundPage": null
+    },
+    "cors": []
+  }

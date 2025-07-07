@@ -1,0 +1,17 @@
+project_id: {{ projectId }}
+service: {{ instance.name }}
+version_id: {{ instance.version_id }}
+runtime: {{ instance.runtime }}
+flexible_runtime_settings: {{ instance.flexible_runtime_settings | tojson(indent=2) }}
+instance_class: {{ instance.instance_class }}
+network:
+  name: {{ instance.network.name }}
+  subnetwork: {{ instance.network.subnetwork }}
+automatic_scaling: {{ instance.automatic_scaling | tojson(indent=2) }}
+entrypoint:
+  shell: {{ instance.entrypoint.shell }}
+deployment:
+  zip:
+    source_url: {{ instance.deployment.zip.source_url }}
+liveness_check: {{ instance.liveness_check | tojson(indent=2) }}
+readiness_check: {{ instance.readiness_check | tojson(indent=2) }}

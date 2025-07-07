@@ -1,0 +1,42 @@
+{
+    "machineType": "zones/us-central1-a/machineTypes/e2-micro",
+    "disks": [
+      {
+        "boot": true,
+        "autoDelete": true,
+        "initializeParams": {
+          "sourceImage": "projects/debian-cloud/global/images/family/debian-11",
+          "diskSizeGb": "10"
+        }
+      }
+    ],
+    "networkInterfaces": [
+      {
+        "accessConfigs": [
+          {
+            "type": "ONE_TO_ONE_NAT",
+            "name": "External NAT"
+          }
+        ]
+      }
+    ],
+    "scheduling": {
+      "automaticRestart": true,
+      "onHostMaintenance": "MIGRATE",
+      "preemptible": false
+    },
+    "tags": {
+      "items": [
+        "http-server",
+        "allow-ssh"
+      ]
+    },
+    "metadata": {
+      "items": [
+        {
+          "key": "startup-script-url",
+          "value": ""
+        }
+      ]
+    }
+  }

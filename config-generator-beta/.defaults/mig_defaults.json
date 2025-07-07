@@ -1,0 +1,26 @@
+{
+  "instanceTemplate": {
+    "properties": {
+      "machineType": "e2-micro",
+      "disks": [
+        {
+          "boot": true,
+          "autoDelete": true,
+          "initializeParams": {
+            "sourceImage": "projects/debian-cloud/global/images/family/debian-11",
+            "diskSizeGb": "10"
+          }
+        }
+      ],
+      "networkInterfaces": [
+        {} 
+      ],
+      "scheduling": {
+        "automaticRestart": true,
+        "onHostMaintenance": "MIGRATE"
+      }
+    }
+  },
+  "targetSize": 1,
+  "baseInstanceName": "mig-instance"
+}
