@@ -1,0 +1,12 @@
+name: {{ instance.name }}
+project_id: {{ project_id }}
+region: {{ instance.region }}
+{% if instance.subnet_name %}
+subnet:
+  name: {{ instance.subnet_name }}
+{% elif instance.ip_cidr_range %}
+network: {{ instance.network }}
+ip_cidr_range: {{ instance.ip_cidr_range }}
+{% endif %}
+min_throughput: {{ instance.min_throughput }}
+max_throughput: {{ instance.max_throughput }}

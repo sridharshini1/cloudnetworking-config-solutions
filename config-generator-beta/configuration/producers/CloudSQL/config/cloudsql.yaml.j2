@@ -1,0 +1,14 @@
+name: {{ instance.name }}
+project_id: {{ projectId }}
+region: {{ instance.region }}
+database_version: {{ instance.databaseVersion }}
+{% set pscProjects = instance.settings.get('ipConfiguration', {}).get('pscConfig', {}).get('allowedConsumerProjects') %}
+{% if pscProjects is defined and pscProjects is not none %}
+network_config:
+  connectivity:
+    psc_allowed_consumer_projects: {{ pscProjects | tojson }}
+{% endif %}
+{% if instance.settings and instance.settings.tier %}
+settings:
+  tier: {{ instance.settings.tier }}
+{% endif %}

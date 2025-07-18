@@ -1,0 +1,12 @@
+{
+  "gceSetup": {
+    "machineType": "e2-standard-4",
+    "bootDisk": {
+      "diskSizeGb": "100"
+    },
+    "networkInterfaces": [
+      {}
+    ]
+  },
+  "disableProxyAccess": true
+}

@@ -1,0 +1,5 @@
+{
+  "addressType": "INTERNAL",
+  "purpose": "PRIVATE_SERVICE_CONNECT",
+  "prefixLength": 24
+}

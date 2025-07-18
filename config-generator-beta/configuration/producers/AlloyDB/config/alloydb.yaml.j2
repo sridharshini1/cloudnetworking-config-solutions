@@ -1,0 +1,32 @@
+cluster_id: {{ instance.name }}
+cluster_display_name: {{ instance.name }}
+project_id: {{ projectId }}
+region: {{ instance.region }}
+{% if instance.initialUser and instance.initialUser.user and instance.initialUser.password %}
+initial_user:
+  user: "{{ instance.initialUser.user }}"
+  password: "{{ instance.initialUser.password }}"
+{% endif %}
+primary_instance:
+  instance_id: "{{ instance.name }}-primary"
+  display_name: {{ instance.displayName }}
+  instance_type: PRIMARY
+  machine_cpu_count: {{ instance.machineCpuCount }}
+{% if instance.databaseFlags %}
+database_flags:
+  {% for key, value in instance.databaseFlags.items() %}
+  {{ key }}: "{{ value }}"
+  {% endfor %}
+{% else %}
+database_flags: {}
+{% endif %}
+{% if instance.readPoolInstance %}
+read_pool_instance:
+  {% for pool in instance.readPoolInstance %}
+  - instance_id: "{{ pool.instanceId | default(instance.name ~ '-read-' ~ loop.index) }}"
+    node_count: {{ pool.nodeCount | default(1) }}
+    machine_cpu_count: {{ pool.machineCpuCount | default(instance.machineConfig.cpuCount) }}
+  {% endfor %}
+{% else %}
+read_pool_instance: []
+{% endif %}

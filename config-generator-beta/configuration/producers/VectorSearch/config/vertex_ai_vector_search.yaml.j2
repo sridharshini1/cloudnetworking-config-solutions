@@ -1,0 +1,15 @@
+project_id: {{ projectId }}
+region: {{ instance.region }}
+index_display_name: {{ instance.displayName }}
+index_update_method: {{ instance.indexUpdateMethod }}
+dimension: {{ instance.dimension }}
+approximate_neighbors_count: {{ instance.approximateNeighborsCount }}
+shard_size: {{ instance.shardSize }}
+distance_measure_type: {{ instance.distanceMeasureType }}
+index_endpoint_display_name: "{{ instance.name }}-endpoint"
+index_endpoint_network: {{ instance.network }}
+tree_ah_config:
+  leaf_node_embedding_count: {{ instance.treeAhConfig.leafNodeEmbeddingCount }}
+  leaf_nodes_to_search_percent: {{ instance.treeAhConfig.leafNodesToSearchPercent }}
+brute_force_config: {{ instance.bruteForceConfig }}
+deployed_index_id: "{{ instance.name }}-deployed"

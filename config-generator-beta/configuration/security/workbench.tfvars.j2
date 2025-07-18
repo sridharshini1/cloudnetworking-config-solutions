@@ -1,0 +1,26 @@
+# Project ID for the Google Cloud project
+project_id = "{{ projectId }}"
+
+# Network name where the firewall rules will be applied
+network = "{{ networkPath }}"
+
+# Ingress rules configuration
+ingress_rules = {
+  "allow-ssh-custom-ranges-workbench" = {
+    deny             = false
+    description      = "Allow SSH access to Workbench instances from trusted sources"
+    destination_ranges = []
+    disabled         = false
+    enable_logging = {
+      include_metadata = true
+    }
+    priority = 1000
+    targets = ["allow-ssh-custom-ranges-workbench"]
+    rules = [
+      {
+        protocol = "tcp"
+        ports    = ["22"]
+      }
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+{
+    "autoCreateSubnetworks": true,
+    "routingConfig": {
+      "routingMode": "REGIONAL"
+    },
+    "mtu": 1460,
+    "description" : "test-vpc"
+  }

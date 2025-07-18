@@ -1,0 +1,46 @@
+{
+    "description": "This reference architecture demonstrates how to integrate a Google-managed service directly into a VPC network for ultra-low latency communication, using Memorystore for Redis Cluster as a high-performance in-memory cache. The setup is contained within a single project and VPC, showcasing the Service Connecting Policy (SCP) pattern. This pattern peers the Memorystore for Redis Cluster (producer) directly with the application's subnet, making the managed service act like a native resource accessible via a private IP within the VPC. A GCE VM instance (consumer), representing an application that requires high-speed caching, is deployed in the same subnet. This co-location allows the VM to communicate with the Redis cluster with the lowest possible network latency, as if it were another VM in the same network, all without traversing the public internet. This pattern is ideal for performance-sensitive applications that rely on a fast caching layer for tasks like session management, real-time analytics, or leaderboards. Architecture : https://github.com/GoogleCloudPlatform/cloudnetworking-config-solutions/blob/main/docs/MRC/images/image1.png",
+    "defaultRegion": "us-central1",
+    "namePrefix" : "",
+    "projects": [
+      {
+        "projectId": "app-project",
+        "producers": [
+          {
+            "type": "memorystore_redis_cluster",
+            "count" : 5,
+            "name": "my-main-redis-cluster",
+            "region": "us-central1",
+            "subnet": "main-app-subnet"
+          }
+        ],
+        "consumers": [
+          {
+            "type": "vm",
+            "count" : 5,
+            "name": "redis-client-gce",
+            "zone": "us-central1-a",
+            "networkInterfaces": [
+              {
+                "network": "projects/app-project/global/networks/main-scp-vpc",
+                "subnetwork": "projects/app-project/regions/us-central1/subnetworks/main-app-subnet"
+              }
+            ]
+          }
+        ],
+        "vpc": [
+          {
+            "type": "vpc",
+            "name": "main-scp-vpc",
+            "subnets": [
+              {
+                "name": "main-app-subnet",
+                "ipCidrRange": "10.60.0.0/20",
+                "region": "us-central1"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+}

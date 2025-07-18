@@ -1,0 +1,6 @@
+{
+  "shardCount": 1,
+  "replicaCount": 1,
+  "transitEncryptionMode": "SERVER_AUTHENTICATION",
+  "authEnabled": true
+}

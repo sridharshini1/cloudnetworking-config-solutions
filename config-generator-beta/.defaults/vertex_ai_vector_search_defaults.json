@@ -1,0 +1,18 @@
+{
+  "publicEndpointEnabled": false,
+  "displayName": "Default Vector Index",
+  "indexUpdateMethod": "BATCH_UPDATE",
+  "dimension": 2,
+  "approximateNeighborsCount": 150,
+  "shardSize": "SHARD_SIZE_SMALL",
+  "distanceMeasureType": "DOT_PRODUCT_DISTANCE",
+  "treeAhConfig": {
+    "leafNodeEmbeddingCount": 500,
+    "leafNodesToSearchPercent": 7
+  },
+  "bruteForceConfig": null,
+  "privateServiceConnectConfig": {
+    "enablePrivateServiceConnect": true,
+    "projectAllowlist": []
+  }
+}

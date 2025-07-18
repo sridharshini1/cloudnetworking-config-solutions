@@ -1,0 +1,12 @@
+{
+  "initialClusterVersion": "1.30",
+  "nodePools": [
+    {
+      "name": "default-pool",
+      "initialNodeCount": 1,
+      "config": {
+        "machineType": "e2-medium"
+      }
+    }
+  ]
+}

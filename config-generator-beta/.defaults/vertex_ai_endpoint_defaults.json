@@ -1,0 +1,8 @@
+{
+  "encryptionSpec": {
+    "kmsKeyName": ""
+  },
+  "displayName": "Default Model Endpoint",
+  "description": "Endpoint created by CNCS configuration generator.",
+  "dimension": 8
+}

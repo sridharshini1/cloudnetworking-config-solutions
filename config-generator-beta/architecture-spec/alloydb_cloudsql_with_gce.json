@@ -1,0 +1,78 @@
+{
+    "description": "This reference architecture demonstrates a comprehensive hybrid cloud setup. It establishes a dedicated, private connection to an on-premises data center via Cloud Interconnect within a Shared VPC host project. A separate service project hosts multiple database producers (Cloud SQL and AlloyDB) and an application consumer (GCE VM). Both databases are securely exposed to the consumer using Private Service Connect (PSC) endpoints, ensuring all cloud-native and hybrid traffic remains on a private, secure network. This pattern is ideal for enterprises extending their on-premises environment to Google Cloud to run applications that require secure access to multiple, high-performance managed databases. Architecture : https://github.com/GoogleCloudPlatform/cloudnetworking-config-solutions/blob/main/docs/Networking/images/cloudsqlwithpsc.png",
+    "namePrefix" : "",
+    "defaultRegion": "us-central1",
+    "projects": [
+      {
+        "projectId": "network-host-project",
+        "hostProject": true,
+        "vpc": [
+          {
+            "type": "vpc",
+            "name": "hybrid-shared-vpc",
+            "createNat": true,
+            "createInterconnect": false,
+            "subnets": [
+              {
+                "name": "app-subnet",
+                "ipCidrRange": "10.130.0.0/20",
+                "region": "us-central1"
+              },
+              {
+                "name": "psc-subnet",
+                "ipCidrRange": "10.130.16.0/24",
+                "region": "us-central1"
+              },
+              {
+                "name": "dev-subnet",
+                "ipCidrRange": "10.130.17.0/24",
+                "region": "us-central1"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "projectId": "app-services-project",
+        "pscSettings": {
+          "networkForPsc": "hybrid-shared-vpc",
+          "subnetForPsc" : "psc-subnet"
+        },
+        "producers": [
+          {
+            "type": "cloudsql",
+            "count": 5,
+            "name": "main-sql-instance",
+            "region": "us-central1",
+            "network": "hybrid-shared-vpc",
+            "createRequiredFwRules": true,
+            "allowedConsumersTags": ["db-accessor"]
+          },
+          {
+            "type": "alloydb",
+            "count": 5,
+            "name": "main-alloydb-cluster",
+            "region": "us-central1",
+            "network": "hybrid-shared-vpc",
+            "createRequiredFwRules": true,
+            "allowedConsumersTags": ["db-accessor"]
+          }
+        ],
+        "consumers": [
+          {
+            "type": "vm",
+            "name": "app-client-vm",
+            "count": 5,
+            "zone": "us-central1-a",
+            "networkInterfaces": [
+              {
+                "network": "projects/network-host-project/global/networks/hybrid-shared-vpc",
+                "subnetwork": "projects/network-host-project/regions/us-central1/subnetworks/app-subnet"
+              }
+            ],
+            "tags": { "items": ["db-accessor"] }
+          }
+        ]
+      }
+    ]
+}

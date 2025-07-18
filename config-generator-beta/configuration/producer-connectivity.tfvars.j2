@@ -1,0 +1,30 @@
+psc_endpoints = [
+{%- for endpoint in pscEndpointsData %}
+  {
+    endpoint_project_id          = "{{ endpoint.endpointProjectId }}"
+    producer_instance_project_id = "{{ endpoint.producerInstanceProjectId }}"
+    subnetwork_name              = "{{ endpoint.subnetworkName }}"
+    network_name                 = "{{ endpoint.networkName }}"
+    ip_address_name              = "{{ endpoint.ipAddressName }}"
+    region                       = "{{ endpoint.region }}"
+
+    {# Check for CloudSQL #}
+    {% if endpoint.producerType == 'cloudsql' %}
+    producer_cloudsql = {
+      instance_name = "{{ endpoint.producerName }}"
+    }
+    {# Check for AlloyDB #}
+    {% elif endpoint.producerType == 'alloydb' %}
+    producer_alloydb = {
+      instance_name = "{{ endpoint.producer.name ~ '-primary' }}",
+      cluster_id    = "{{ endpoint.producer.name }}"
+    }
+    {% elif endpoint.producerType == 'vertex_ai_endpoint' %}
+    producer_vertex_ai_endpoint = {
+      endpoint_name = "{{ endpoint.producerName }}"
+    }
+    {% endif %}
+    {# Add other 'elif' blocks here for other future PSC producers #}
+  }{% if not loop.last %},{% endif %}
+{%- endfor %}
+]

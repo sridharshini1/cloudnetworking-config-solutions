@@ -1,0 +1,7 @@
+name: {{ instance.name }}
+project_id: {{ projectId }}
+location: {{ instance.zone }}
+gce_setup:
+  network_interfaces:
+    - network: {{ instance.networkInterfaces[0].network }}
+      subnet: {{ instance.networkInterfaces[0].subnetwork }}
