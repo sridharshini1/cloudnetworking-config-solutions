@@ -1,0 +1,31 @@
+project_id: {{ projectId }}
+service: {{ instance.name }}
+version_id: {{ instance.version_id }}
+runtime: {{ instance.runtime }}
+{% if instance.deployment and instance.deployment.files %}
+deployment:
+  files:
+    name: {{ instance.deployment.files.name }}
+    source_url: {{ instance.deployment.files.source_url }}
+{% endif %}
+{% if instance.entrypoint %}
+entrypoint:
+  shell: {{ instance.entrypoint.shell }}
+{% endif %}
+{% if instance.instance_class %}
+instance_class: {{ instance.instance_class }}
+{% endif %}
+{# --- THIS IS THE FIX FOR THE CURRENT ERROR --- #}
+{% if instance.manual_scaling %}
+manual_scaling:
+  instances: {{ instance.manual_scaling.instances }}
+{% endif %}
+{% if instance.handlers %}
+handlers: {{ instance.handlers | tojson(indent=2) }}
+{% endif %}
+{% if instance.vpc_access_connector and instance.vpc_access_connector.name %}
+vpc_access_connector:
+  name: "projects/{{ project_id }}/locations/{{ instance.region }}/connectors/{{ instance.vpc_access_connector.name }}"
+  egress_setting: {{ instance.vpc_access_connector.egress_setting | default('private-ranges-only') }}
+{% endif %}
+delete_service_on_destroy: {{ instance.delete_service_on_destroy | tojson }}

@@ -1,0 +1,219 @@
+{
+  "id": "Cluster",
+  "description": "A cluster instance.",
+  "type": "object",
+  "properties": {
+    "gcsSource": {
+      "description": "Optional. Backups stored in Cloud Storage buckets. The Cloud Storage buckets need to be the same region as the clusters. Read permission is required to import from the provided Cloud Storage objects.",
+      "$ref": "GcsBackupSource"
+    },
+    "managedBackupSource": {
+      "description": "Optional. Backups generated and managed by memorystore service.",
+      "$ref": "ManagedBackupSource"
+    },
+    "name": {
+      "description": "Required. Identifier. Unique name of the resource in this scope including project and location using the form: `projects/{project_id}/locations/{location_id}/clusters/{cluster_id}`",
+      "type": "string"
+    },
+    "createTime": {
+      "description": "Output only. The timestamp associated with the cluster creation request.",
+      "readOnly": true,
+      "type": "string",
+      "format": "google-datetime"
+    },
+    "state": {
+      "description": "Output only. The current state of this cluster. Can be CREATING, READY, UPDATING, DELETING and SUSPENDED",
+      "readOnly": true,
+      "type": "string",
+      "enumDescriptions": [
+        "Not set.",
+        "Redis cluster is being created.",
+        "Redis cluster has been created and is fully usable.",
+        "Redis cluster configuration is being updated.",
+        "Redis cluster is being deleted."
+      ],
+      "enum": [
+        "STATE_UNSPECIFIED",
+        "CREATING",
+        "ACTIVE",
+        "UPDATING",
+        "DELETING"
+      ]
+    },
+    "uid": {
+      "description": "Output only. System assigned, unique identifier for the cluster.",
+      "readOnly": true,
+      "type": "string"
+    },
+    "replicaCount": {
+      "description": "Optional. The number of replica nodes per shard.",
+      "type": "integer",
+      "format": "int32"
+    },
+    "authorizationMode": {
+      "description": "Optional. The authorization mode of the Redis cluster. If not provided, auth feature is disabled for the cluster.",
+      "type": "string",
+      "enumDescriptions": [
+        "Not set.",
+        "IAM basic authorization mode",
+        "Authorization disabled mode"
+      ],
+      "enum": [
+        "AUTH_MODE_UNSPECIFIED",
+        "AUTH_MODE_IAM_AUTH",
+        "AUTH_MODE_DISABLED"
+      ]
+    },
+    "transitEncryptionMode": {
+      "description": "Optional. The in-transit encryption for the Redis cluster. If not provided, encryption is disabled for the cluster.",
+      "type": "string",
+      "enumDescriptions": [
+        "In-transit encryption not set.",
+        "In-transit encryption disabled.",
+        "Use server managed encryption for in-transit encryption."
+      ],
+      "enum": [
+        "TRANSIT_ENCRYPTION_MODE_UNSPECIFIED",
+        "TRANSIT_ENCRYPTION_MODE_DISABLED",
+        "TRANSIT_ENCRYPTION_MODE_SERVER_AUTHENTICATION"
+      ]
+    },
+    "sizeGb": {
+      "description": "Output only. Redis memory size in GB for the entire cluster rounded up to the next integer.",
+      "readOnly": true,
+      "type": "integer",
+      "format": "int32"
+    },
+    "shardCount": {
+      "description": "Optional. Number of shards for the Redis cluster.",
+      "type": "integer",
+      "format": "int32"
+    },
+    "pscConfigs": {
+      "description": "Optional. Each PscConfig configures the consumer network where IPs will be designated to the cluster for client access through Private Service Connect Automation. Currently, only one PscConfig is supported.",
+      "type": "array",
+      "items": {
+        "$ref": "PscConfig"
+      }
+    },
+    "discoveryEndpoints": {
+      "description": "Output only. Endpoints created on each given network, for Redis clients to connect to the cluster. Currently only one discovery endpoint is supported.",
+      "readOnly": true,
+      "type": "array",
+      "items": {
+        "$ref": "DiscoveryEndpoint"
+      }
+    },
+    "pscConnections": {
+      "description": "Output only. The list of PSC connections that are auto-created through service connectivity automation.",
+      "readOnly": true,
+      "type": "array",
+      "items": {
+        "$ref": "PscConnection"
+      }
+    },
+    "stateInfo": {
+      "description": "Output only. Additional information about the current state of the cluster.",
+      "readOnly": true,
+      "$ref": "StateInfo"
+    },
+    "nodeType": {
+      "description": "Optional. The type of a redis node in the cluster. NodeType determines the underlying machine-type of a redis node.",
+      "type": "string",
+      "enumDescriptions": [
+        "Node type unspecified",
+        "Redis shared core nano node_type.",
+        "Redis highmem medium node_type.",
+        "Redis highmem xlarge node_type.",
+        "Redis standard small node_type."
+      ],
+      "enum": [
+        "NODE_TYPE_UNSPECIFIED",
+        "REDIS_SHARED_CORE_NANO",
+        "REDIS_HIGHMEM_MEDIUM",
+        "REDIS_HIGHMEM_XLARGE",
+        "REDIS_STANDARD_SMALL"
+      ]
+    },
+    "persistenceConfig": {
+      "description": "Optional. Persistence config (RDB, AOF) for the cluster.",
+      "$ref": "ClusterPersistenceConfig"
+    },
+    "redisConfigs": {
+      "description": "Optional. Key/Value pairs of customer overrides for mutable Redis Configs",
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "preciseSizeGb": {
+      "description": "Output only. Precise value of redis memory size in GB for the entire cluster.",
+      "readOnly": true,
+      "type": "number",
+      "format": "double"
+    },
+    "zoneDistributionConfig": {
+      "description": "Optional. This config will be used to determine how the customer wants us to distribute cluster resources within the region.",
+      "$ref": "ZoneDistributionConfig"
+    },
+    "crossClusterReplicationConfig": {
+      "description": "Optional. Cross cluster replication config.",
+      "$ref": "CrossClusterReplicationConfig"
+    },
+    "deletionProtectionEnabled": {
+      "description": "Optional. The delete operation will fail when the value is set to true.",
+      "type": "boolean"
+    },
+    "maintenancePolicy": {
+      "description": "Optional. ClusterMaintenancePolicy determines when to allow or deny updates.",
+      "$ref": "ClusterMaintenancePolicy"
+    },
+    "maintenanceSchedule": {
+      "description": "Output only. ClusterMaintenanceSchedule Output only Published maintenance schedule.",
+      "readOnly": true,
+      "$ref": "ClusterMaintenanceSchedule"
+    },
+    "pscServiceAttachments": {
+      "description": "Output only. Service attachment details to configure Psc connections",
+      "readOnly": true,
+      "type": "array",
+      "items": {
+        "$ref": "PscServiceAttachment"
+      }
+    },
+    "clusterEndpoints": {
+      "description": "Optional. A list of cluster endpoints.",
+      "type": "array",
+      "items": {
+        "$ref": "ClusterEndpoint"
+      }
+    },
+    "backupCollection": {
+      "description": "Optional. Output only. The backup collection full resource name. Example: projects/{project}/locations/{location}/backupCollections/{collection}",
+      "readOnly": true,
+      "type": "string"
+    },
+    "kmsKey": {
+      "description": "Optional. The KMS key used to encrypt the at-rest data of the cluster.",
+      "type": "string"
+    },
+    "ondemandMaintenance": {
+      "description": "Optional. Input only. Ondemand maintenance for the cluster. This field can be used to trigger ondemand critical update on the cluster.",
+      "deprecated": true,
+      "type": "boolean"
+    },
+    "automatedBackupConfig": {
+      "description": "Optional. The automated backup config for the cluster.",
+      "$ref": "AutomatedBackupConfig"
+    },
+    "encryptionInfo": {
+      "description": "Output only. Encryption information of the data at rest of the cluster.",
+      "readOnly": true,
+      "$ref": "EncryptionInfo"
+    },
+    "asyncClusterEndpointsDeletionEnabled": {
+      "description": "Optional. If true, cluster endpoints that are created and registered by customers can be deleted asynchronously. That is, such a cluster endpoint can be de-registered before the forwarding rules in the cluster endpoint are deleted.",
+      "type": "boolean"
+    }
+  }
+}

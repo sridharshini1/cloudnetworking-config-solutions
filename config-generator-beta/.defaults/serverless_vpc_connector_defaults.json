@@ -1,0 +1,7 @@
+{
+  "min_instances": 2,
+  "max_instances": 3,
+  "machineType": "e2-micro",
+  "min_throughput" : 200,
+  "max_throughput" : 300
+}

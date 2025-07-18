@@ -1,0 +1,74 @@
+{
+    "description": "This reference architecture demonstrates how to build modern, serverless applications on Cloud Run that require secure, private access to a stateful database backend like Cloud SQL. The setup utilizes a Shared VPC for centralized network management, where a Cloud SQL instance (producer) is deployed and exposed privately using a Private Service Connect (PSC) endpoint. A key feature of this pattern is bridging the serverless environment with the VPC network by provisioning a Serverless VPC Access Connector in its own dedicated subnet. This connector acts as a secure gateway for all egress traffic from the Cloud Run consumers. The architecture showcases two types of serverless consumers representing different workloads: a continuously running Cloud Run Service (ideal for a web application or API) and an event-driven Cloud Run Job (ideal for batch processing or scheduled tasks). Both services route their traffic through the VPC Connector to privately access the Cloud SQL database via its PSC endpoint, ensuring no public internet exposure for the database. Architecture : https://github.com/GoogleCloudPlatform/cloudnetworking-config-solutions/blob/main/docs/CloudRun/cloudrun-job-direct-vpc-egress.md#architecture-components",
+    "defaultRegion": "us-central1",
+    "namePrefix" : "",
+    "projects": [
+      {
+        "projectId": "network-host-project",
+        "hostProject": true,
+        "vpc": [
+          {
+            "type": "vpc",
+            "name": "central-shared-vpc",
+            "createNat": true,
+            "subnets": [
+              {
+                "name": "serverless-connector-subnet",
+                "ipCidrRange": "10.100.0.0/28",
+                "region": "us-central1"
+              },
+              {
+                "name": "cloudsql-psc-subnet",
+                "ipCidrRange": "10.100.32.0/24",
+                "region": "us-central1"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "projectId": "app-services-project",
+        "pscSettings": {
+          "networkForPsc": "central-shared-vpc",
+          "subnetForPsc": "cloudsql-psc-subnet"
+        },
+        "producers": [
+          {
+            "type": "cloudsql",
+            "count" : 5,
+            "name": "my-private-database",
+            "region": "us-central1",
+            "allowedConsumersTags": ["tag-1"]
+          }
+        ],
+        "consumers": [
+          {
+            "type": "cloudrun_service",
+            "count" : 5,
+            "name": "my-webapp-service",
+            "region": "us-central1"
+                    },
+          {
+            "type": "cloudrun_job",
+            "count" : 5,
+            "name": "my-monthly-report-job",
+            "region": "us-central1"
+          },
+          {
+            "type": "vm",
+            "name": "my-app-vm",
+            "count": 4,
+            "region": "us-central1",
+            "zone": "us-central1-a",
+            "networkInterfaces": [
+              {
+                "network": "projects/network-host-project/global/networks/central-shared-vpc",
+                "subnetwork": "projects/network-host-project/regions/us-central1/subnetworks/serverless-connector-subnet"
+              }
+            ],
+           "tags": { "items": ["tag-1"] }
+          }
+        ]
+      }
+    ]
+}

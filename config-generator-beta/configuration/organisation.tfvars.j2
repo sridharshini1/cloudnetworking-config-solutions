@@ -1,0 +1,13 @@
+activate_api_identities = {
+{# Outer loop for projects #}
+{% for projectIdVal, apis in projectApis.items() -%}
+  "{{ projectIdVal | replace('.', '-') | replace(':', '-') }}" = {
+    project_id  = "{{ projectIdVal }}"
+    activate_apis = [
+{%- for api in apis -%} {# Inner loop for APIs: {%- removes newline before first API #}
+      "{{ api }}"{% if not loop.last %},{% endif %}
+{% endfor -%} {# -% removes newline after last API in list #}
+    ]
+  }{% if not loop.last %},{% endif %}
+{% endfor %} {# No -% here, allows newline after closing } if it's not the last project #}
+}

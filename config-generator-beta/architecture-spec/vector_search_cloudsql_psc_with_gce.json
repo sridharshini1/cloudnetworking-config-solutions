@@ -1,0 +1,70 @@
+{
+    "description": "This reference architecture provides a secure and scalable foundation for building modern AI-powered applications using Vertex AI Vector Search. The setup leverages a two-project Shared VPC model for centralized network control. A Vertex AI Vector Search endpoint (producer), which hosts a queryable index for tasks like semantic search or recommendation engines, is deployed in a dedicated service project. This AI endpoint is exposed securely and privately using a Private Service Connect (PSC) endpoint within the Shared VPC. A scalable application tier, represented by a group of three GCE VM instances, resides in the same service project. These VMs can query the Vector Search index with low latency, with all network traffic, including sensitive query vectors and results, remaining entirely on Google's private network. The configuration enhances security by automatically provisioning a Cloud NAT gateway for controlled internet egress and generating tag-based firewall rules to ensure only authorized applications can access the AI endpoint. This pattern is ideal for developing Generative AI applications using Retrieval-Augmented Generation (RAG) or other systems that rely on fast, secure vector similarity searches, while enforcing enterprise-grade security for the underlying AI infrastructure. Architecture : https://github.com/GoogleCloudPlatform/cloudnetworking-config-solutions/blob/main/docs/VectorSearch/images/vectorsearch-using-psa-psc.png",
+    "defaultRegion": "us-central1",
+    "namePrefix" : "",
+    "nameSuffix" : "",
+    "projects": [
+      {
+        "projectId": "network-host-project",
+        "vpc": [
+          {
+            "type": "vpc",
+            "name": "central-shared-vpc",
+            "createNat": true,
+            "subnets": [
+              {
+                "name": "app-services-subnet",
+                "ipCidrRange": "10.100.0.0/20",
+                "region": "us-central1"
+              },
+              {
+                "name": "alloydb-psc-subnet",
+                "ipCidrRange": "10.100.32.0/24",
+                "region": "us-central1"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "projectId": "app-services-project",
+        "pscSettings": {
+          "networkForPsc": "central-shared-vpc",
+          "subnetForPsc": "alloydb-psc-subnet"
+        },
+        "producers": [
+          {
+            "type": "cloudsql",
+            "name": "my-database-instance",
+            "count" : 3,
+            "region": "us-central1",
+            "createRequiredFwRules": true,
+            "allowedConsumersTags": ["tag-1"]
+          },
+          {
+            "type": "vertex_ai_vector_search",
+            "name": "my-psc-vector-endpoint",
+            "count" : 5,
+            "region": "us-central1",
+            "createRequiredFwRules": true
+          }
+        ],
+        "consumers": [
+          {
+            "type": "vm",
+            "name": "my-alloydb-vm",
+            "count": 3,
+            "region": "us-central1",
+            "zone": "us-central1-a",
+            "networkInterfaces": [
+              {
+                "network": "projects/network-host-project/global/networks/central-shared-vpc",
+                "subnetwork": "projects/network-host-project/regions/us-central1/subnetworks/app-services-subnet"
+              }
+            ],
+            "tags": { "items": ["tag-1"] }
+          }
+        ]
+      }
+    ]
+}

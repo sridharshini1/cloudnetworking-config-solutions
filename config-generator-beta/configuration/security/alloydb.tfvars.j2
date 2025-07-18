@@ -1,0 +1,11 @@
+project_id = "{{ projectId }}"
+network    = "{{ networkPath }}"
+egress_rules = {
+  allow-egress-alloydb = {
+    deny = false
+    rules = [{
+      protocol = "tcp"
+      ports    = ["5432"]
+    }]
+  }
+}

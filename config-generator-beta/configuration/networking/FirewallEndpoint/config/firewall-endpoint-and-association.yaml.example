@@ -1,0 +1,20 @@
+# The location must be a specific zone. Please update the placeholder below.
+location: <zone>  # e.g., "us-central1-a"
+
+firewall_endpoint:
+  create: true
+  name: <endpoint-name> # e.g., "test-fw-endpoint1"
+  organization_id: <organization-id> # e.g., "123456789012"
+  billing_project_id: "billing-project-id" # e.g., "test-project"
+  labels:
+    env: "test"
+    purpose: "firewall-endpoint-testing"
+
+firewall_endpoint_association:
+  create: true
+  association_project_id: <association-project-id> # e.g., "test-project"
+  name: <association-name> # e.g., "test-fw-association"
+  vpc_id: "projects/<project-id>/global/networks/<vpc-network>" # e.g., "projects/my-production-project/global/networks/prod-vpc-us-east"
+  labels:
+    env: "test"
+  tls_inspection_policy_id: "projects/<project-id>/locations/<region>/tlsInspectionPolicies/<tls-ploicy-name>" # e.g., "projects/test-project/locations/us-central1/tlsInspectionPolicies/my-tls-inspection-policy"

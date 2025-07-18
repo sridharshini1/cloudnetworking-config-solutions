@@ -1,0 +1,66 @@
+{
+    "description": "This reference architecture demonstrates a foundational pattern for running a VPC-native Google Kubernetes Engine (GKE) cluster that requires seamless, private network communication with traditional VM-based workloads. The entire environment is self-contained within a single project and VPC network. A key feature of this setup is the VPC subnet, which is specifically configured with secondary IP ranges for GKE Pods and Services. The GKE cluster is provisioned as a VPC-native cluster using an IP Allocation Policy that leverages these secondary ranges. This allows Pods running containerized applications within the cluster to receive their own IP addresses directly from the VPC network, making them first-class network citizens. This configuration enables a consumer GCE VM, representing a traditional application or management host, to directly and efficiently communicate with the services running inside the GKE cluster using private IP addresses. Architecture : https://github.com/GoogleCloudPlatform/cloudnetworking-config-solutions/blob/main/docs/GKE/images/gke-gce.png",    
+    "defaultRegion": "us-central1",
+    "namePrefix" : "",
+    "projects": [
+      {
+        "projectId": "gke-app-project",
+        "vpc": [
+          {
+            "type": "vpc",
+            "name": "gke-app-vpc",
+            "subnets": [
+              {
+                "name": "gke-app-subnet",
+                "ipCidrRange": "10.50.0.0/20",
+                "region": "us-central1",
+                "secondaryIpRanges": [
+                  {
+                    "rangeName": "pods-range",
+                    "ipCidrRange": "192.168.0.0/20"
+                  },
+                  {
+                    "rangeName": "services-range",
+                    "ipCidrRange": "192.168.128.0/20"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "producers": [
+          {
+            "type": "gke",
+            "count" : 5,
+            "name": "main-app-cluster",
+            "location": "us-central1",
+            "network": "projects/gke-app-project/global/networks/gke-app-vpc",
+            "subnetwork": "projects/gke-app-project/regions/us-central1/subnetworks/gke-app-subnet",
+            "ipAllocationPolicy": {
+                "clusterSecondaryRangeName": "pods-range",
+                "servicesSecondaryRangeName": "services-range"
+            }
+          }
+        ],
+        "consumers": [
+          {
+            "type": "vm",
+            "name": "client-vm",
+            "count" : 4,
+            "zone": "us-central1-a",
+            "networkInterfaces": [
+              {
+                "network": "projects/gke-app-project/global/networks/gke-app-vpc",
+                "subnetwork": "projects/gke-app-project/regions/us-central1/subnetworks/gke-app-subnet"
+              }
+            ],
+            "tags": {
+              "items": [
+                "gke-client"
+              ]
+            }
+          }
+        ]
+      }
+    ]
+}

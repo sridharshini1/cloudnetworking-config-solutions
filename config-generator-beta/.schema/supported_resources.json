@@ -1,0 +1,288 @@
+{
+  "cloudsql": {
+    "resource": "instances",
+    "discoveryUrl": "https://sqladmin.googleapis.com/$discovery/rest?version={apiVersion}",
+    "apiVersion": "v1",
+    "method": "insert",
+    "connectivityOptions": ["psc"],
+    "generationConfig": {
+      "category": "producer",
+      "folderName": "CloudSQL",
+      "templateFilename": "cloudsql.yaml.j2"
+    },
+    "securityConfigTemplate": "cloudsql.tfvars.j2",
+    "uriTemplate": "projects/{projectId}/instances/{name}",
+    "referenceFields": ["privateNetwork"],
+    "location": "regional"
+  },
+  "alloydb": {
+    "resource": "projects.locations.clusters",
+    "discoveryUrl": "https://alloydb.googleapis.com/$discovery/rest?version={apiVersion}",
+    "apiVersion": "v1",
+    "method": "create",
+    "connectivityOptions": ["psc"],
+    "generationConfig": {
+      "category": "producer",
+      "folderName": "AlloyDB",
+      "templateFilename": "alloydb.yaml.j2"
+    },
+    "securityConfigTemplate": "alloydb.tfvars.j2",
+    "uriTemplate": "projects/{projectId}/locations/{region}/clusters/{name}",
+    "referenceFields": ["network"],
+    "location": "regional"
+  },
+  "memorystore_redis_cluster": {
+    "resource": "projects.locations.clusters",
+    "discoveryUrl": "https://redis.googleapis.com/$discovery/rest?version={apiVersion}",
+    "apiVersion": "v1",
+    "method": "create",
+    "connectivityOptions": ["scp"],
+    "generationConfig": {
+      "category": "producer",
+      "folderName": "MRC",
+      "templateFilename": "memorystore_redis_cluster.yaml.j2"
+    },
+    "securityConfigTemplate": "memorystore_redis_cluster.tfvars.j2",
+    "uriTemplate": "projects/{projectId}/locations/{region}/clusters/{name}",
+    "referenceFields": ["network"],
+    "location": "regional"
+  },
+  "vertex_ai_endpoint": {
+    "resource": "projects.locations.endpoints",
+    "discoveryUrl": "https://aiplatform.googleapis.com/$discovery/rest?version={apiVersion}",
+    "apiVersion": "v1",
+    "method": "create",
+    "connectivityOptions": ["psc"],
+    "generationConfig": {
+      "category": "producer",
+      "folderName": "Vertex-AI-Online-Endpoints",
+      "templateFilename": "vertex_ai_endpoint.yaml.j2"
+    },
+    "securityConfigTemplate": "online_endpoint.tfvars.j2",
+    "uriTemplate": "projects/{projectId}/locations/{region}/endpoints/{name}",
+    "referenceFields": ["network"],
+    "location": "regional"
+  },
+  "vertex_ai_vector_search": {
+    "resource": "projects.locations.indexEndpoints",
+    "discoveryUrl": "https://aiplatform.googleapis.com/$discovery/rest?version={apiVersion}",
+    "apiVersion": "v1",
+    "method": "create",
+    "connectivityOptions": ["psc", "psa"],
+    "generationConfig": {
+      "category": "producer",
+      "folderName": "VectorSearch",
+      "templateFilename": "vertex_ai_vector_search.yaml.j2"
+    },
+    "securityConfigTemplate": "vector_search.tfvars.j2",
+    "uriTemplate": "projects/{projectId}/locations/{region}/indexEndpoints/{name}",
+    "referenceFields": ["network"],
+    "location": "regional"
+  },
+  "gke": {
+    "resource": "projects.locations.clusters",
+    "discoveryUrl": "https://container.googleapis.com/$discovery/rest?version={apiVersion}",
+    "apiVersion": "v1",
+    "method": "create",
+    "connectivityOptions": [],
+    "generationConfig": {
+      "category": "producer",
+      "folderName": "GKE",
+      "templateFilename": "gke.yaml.j2"
+    },
+    "uriTemplate": "projects/{projectId}/locations/{location}/clusters/{name}",
+    "referenceFields": ["network", "subnetwork"],
+    "location": "zonal"
+  },
+  "vm": {
+    "resource": "instances",
+    "discoveryUrl": "https://www.googleapis.com/discovery/v1/apis/compute/{apiVersion}/rest",
+    "apiVersion": "v1",
+    "method": "insert",
+    "generationConfig": {
+      "category": "consumer",
+      "folderName": "GCE",
+      "templateFilename": "gce.yaml.j2"
+    },
+    "securityConfigTemplate": "vm.tfvars.j2",
+    "uriTemplate": "projects/{projectId}/zones/{zone}/instances/{name}",
+    "referenceFields": ["network", "subnetwork"],
+    "hasNetworkInterfaceShorthand": true,
+    "location": "zonal"
+  },
+  "mig": {
+    "resource": "instanceGroupManagers",
+    "discoveryUrl": "https://www.googleapis.com/discovery/v1/apis/compute/{apiVersion}/rest",
+    "apiVersion": "v1",
+    "method": "insert",
+    "generationConfig": {
+      "category": "consumer",
+      "folderName": "MIG",
+      "templateFilename": "mig.yaml.j2"
+    },
+    "uriTemplate": "projects/{projectId}/regions/{region}/instanceGroupManagers/{name}",
+    "referenceFields": ["network", "subnetwork"],
+    "location": "regional",
+    "securityConfigTemplate": "mig.tfvars.j2"
+  },
+  "workbench": {
+    "resource": "projects.locations.instances",
+    "discoveryUrl": "https://notebooks.googleapis.com/$discovery/rest?version={apiVersion}",
+    "apiVersion": "v1",
+    "method": "create",
+    "generationConfig": {
+      "category": "consumer",
+      "folderName": "Workbench",
+      "templateFilename": "workbench.yaml.j2"
+    },
+    "uriTemplate": "projects/{projectId}/locations/{zone}/instances/{name}",
+    "referenceFields": ["network", "subnetwork"],
+    "location": "zonal",
+    "securityConfigTemplate": "workbench.tfvars.j2"
+  },
+  "cloudrun_service": {
+    "resource": "projects.locations.services",
+    "discoveryUrl": "https://run.googleapis.com/$discovery/rest?version={apiVersion}",
+    "apiVersion": "v2",
+    "method": "create",
+    "generationConfig": {
+      "category": "consumer",
+      "folderName": "Serverless/CloudRun/Service",
+      "templateFilename": "cloudrun_service.yaml.j2",
+      "staticTfvarsFilename": "cloudrunservice.tfvars"
+    },
+    "uriTemplate": "projects/{projectId}/locations/{region}/services/{name}",
+    "location": "regional"
+  },
+  "cloudrun_job": {
+    "resource": "projects.locations.jobs",
+    "discoveryUrl": "https://run.googleapis.com/$discovery/rest?version={apiVersion}",
+    "apiVersion": "v2",
+    "method": "create",
+    "generationConfig": {
+      "category": "consumer",
+      "folderName": "Serverless/CloudRun/Job",
+      "templateFilename": "cloudrun_job.yaml.j2",
+      "staticTfvarsFilename": "cloudrunjob.tfvars"
+    },
+    "uriTemplate": "projects/{projectId}/locations/{region}/jobs/{name}",
+    "location": "regional"
+  },
+  "app_engine_standard": {
+    "resource": "apps.services.versions",
+    "discoveryUrl": "https://appengine.googleapis.com/$discovery/rest?version={apiVersion}",
+    "apiVersion": "v1",
+    "method": "create",
+    "generationConfig": {
+      "category": "consumer",
+      "folderName": "Serverless/AppEngine/Standard",
+      "templateFilename": "app_engine_standard.yaml.j2"
+    },
+    "uriTemplate": "apps/{projectId}/services/{service}/versions/{name}",
+    "referenceFields": ["name"],
+    "location": "regional"
+  },
+  "app_engine_flexible": {
+    "resource": "apps.services.versions",
+    "discoveryUrl": "https://appengine.googleapis.com/$discovery/rest?version={apiVersion}",
+    "apiVersion": "v1",
+    "method": "create",
+    "generationConfig": {
+      "category": "consumer",
+      "folderName": "Serverless/AppEngine/Flexible",
+      "templateFilename": "app_engine_flexible.yaml.j2"
+    },
+    "uriTemplate": "apps/{projectId}/services/{service}/versions/{name}",
+    "referenceFields": ["network", "subnetwork"],
+    "location": "regional"
+  },
+  "serverless_vpc_connector": {
+    "resource": "projects.locations.connectors",
+    "discoveryUrl": "https://vpcaccess.googleapis.com/$discovery/rest?version={apiVersion}",
+    "apiVersion": "v1",
+    "method": "create",
+    "generationConfig": {
+      "category": "consumer",
+      "folderName": "Serverless/VPCAccessConnector",
+      "templateFilename": "serverless_vpc_connector.yaml.j2"
+    },
+    "uriTemplate": "projects/{projectId}/locations/{region}/connectors/{name}",
+    "referenceFields": ["network", "name"],
+    "location": "regional"
+  },
+  "vpc": {
+    "resource": "networks",
+    "discoveryUrl": "https://www.googleapis.com/discovery/v1/apis/compute/{apiVersion}/rest",
+    "apiVersion": "v1",
+    "method": "insert",
+    "nestedResources": {
+      "subnets": "subnetwork",
+      "haVpnGateways": "ha_vpn_gateway"
+    },
+    "uriTemplate": "projects/{projectId}/global/networks/{name}",
+    "location": "global"
+  },
+  "subnetwork": {
+    "resource": "subnetworks",
+    "discoveryUrl": "https://www.googleapis.com/discovery/v1/apis/compute/{apiVersion}/rest",
+    "apiVersion": "v1",
+    "method": "insert",
+    "uriTemplate": "projects/{projectId}/regions/{region}/subnetworks/{name}",
+    "referenceFields": ["network"],
+    "location": "regional"
+  },
+  "address": {
+    "resource": "addresses",
+    "discoveryUrl": "https://www.googleapis.com/discovery/v1/apis/compute/{apiVersion}/rest",
+    "apiVersion": "v1",
+    "method": "insert",
+    "uriTemplate": "projects/{projectId}/regions/{region}/addresses/{name}",
+    "referenceFields": ["subnetwork"],
+    "location": "regional"
+  },
+  "forwardingrule": {
+    "resource": "forwardingRules",
+    "discoveryUrl": "https://www.googleapis.com/discovery/v1/apis/compute/{apiVersion}/rest",
+    "apiVersion": "v1",
+    "method": "insert",
+    "uriTemplate": "projects/{projectId}/regions/{region}/forwardingRules/{name}",
+    "referenceFields": ["network", "subnetwork", "IPAddress", "target"],
+    "location": "regional"
+  },
+  "router": {
+    "resource": "routers",
+    "discoveryUrl": "https://www.googleapis.com/discovery/v1/apis/compute/{apiVersion}/rest",
+    "apiVersion": "v1",
+    "method": "insert",
+    "uriTemplate": "projects/{projectId}/regions/{region}/routers/{name}",
+    "referenceFields": ["network"],
+    "location": "regional"
+  },
+  "firewall_rule": {
+    "resource": "firewalls",
+    "discoveryUrl": "https://www.googleapis.com/discovery/v1/apis/compute/{apiVersion}/rest",
+    "apiVersion": "v1",
+    "method": "insert",
+    "uriTemplate": "projects/{projectId}/global/firewalls/{name}",
+    "referenceFields": ["network"],
+    "location": "global"
+  },
+  "ha_vpn_gateway": {
+    "resource": "vpnGateways",
+    "discoveryUrl": "https://www.googleapis.com/discovery/v1/apis/compute/{apiVersion}/rest",
+    "apiVersion": "v1",
+    "method": "insert",
+    "uriTemplate": "projects/{projectId}/regions/{region}/vpnGateways/{name}",
+    "referenceFields": ["network"],
+    "location": "regional"
+  },
+  "vpn_tunnel": {
+    "resource": "vpnTunnels",
+    "discoveryUrl": "https://www.googleapis.com/discovery/v1/apis/compute/{apiVersion}/rest",
+    "apiVersion": "v1",
+    "method": "insert",
+    "uriTemplate": "projects/{projectId}/regions/{region}/vpnTunnels/{name}",
+    "referenceFields": ["vpnGateway", "peerGcpGateway", "router"],
+    "location": "regional"
+  }
+}

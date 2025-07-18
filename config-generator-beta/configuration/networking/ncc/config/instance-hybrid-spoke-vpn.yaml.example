@@ -1,0 +1,24 @@
+hubs:
+  - name: <hub_name>
+    project_id: <hub_project_id>
+    export_psc: true
+    policy_mode: PRESET
+    preset_topology: MESH
+    auto_accept_projects:
+      - <hub_project_id>
+    create_new_hub: false
+    existing_hub_uri: "projects/<hub_project_id>/locations/global/hubs/<hub_name>"
+    group_name: default
+    group_decription: "Auto-accept group"
+spokes:
+  - type: linked_vpc_network
+    name: <vpc-spoke-name>
+    project_id: <vpc-spoke-project-id>
+    uri: projects/<vpc-spoke-projectid>/global/networks/<vpc-name>
+  - type:  linked_vpn_tunnels
+    name: <vpn-spoke-name>
+    project_id: <vpn-spoke-project-id>
+    location: <region>
+    uris:
+    - projects/<vpn-spoke-project-id>/regions/<region>/vpnTunnels/<tunnel-name-1>
+    - projects/<vpn-spoke-project-id>/regions/<region>/vpnTunnels/<tunnel-name-2>

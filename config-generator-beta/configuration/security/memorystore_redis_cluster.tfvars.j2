@@ -1,0 +1,11 @@
+project_id = "{{ projectId }}"
+network    = "{{ networkPath }}"  // Full network path, e.g., projects/projectId/global/networks/networkName
+egress_rules = {
+  allow-egress-mrc = {
+    deny = false
+    rules = [{
+      protocol = "tcp"
+      ports    = ["6379"]
+    }]
+  }
+}

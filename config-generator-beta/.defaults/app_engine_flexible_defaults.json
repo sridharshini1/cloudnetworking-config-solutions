@@ -1,0 +1,11 @@
+{
+  "automatic_scaling": {
+    "cool_down_period": "120s",
+    "max_concurrent_requests": 80,
+    "max_total_instances": 5,
+    "min_total_instances": 1,
+    "cpu_utilization": {
+      "target_utilization": 0.7
+    }
+  }
+}

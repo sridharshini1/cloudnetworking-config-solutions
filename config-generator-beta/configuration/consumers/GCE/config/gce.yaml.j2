@@ -1,0 +1,10 @@
+name: {{ instance.name }}
+project_id: {{ projectId }}
+region: {{ instance.zone | regex_replace('-[a-z]$', '') | default('') }}
+zone: {{ instance.zone | default('') }}
+image: {{ (instance.disks[0].initializeParams.sourceImage | default('')) if instance.disks }}
+network: {{ (instance.networkInterfaces[0].network | default('')) if instance.networkInterfaces }}
+subnetwork: {{ (instance.networkInterfaces[0].subnetwork | default('')) if instance.networkInterfaces }}
+{% if instance.tags and instance.tags['items'] %}
+tags: {{ instance.tags['items'] | tojson }}
+{% endif %}

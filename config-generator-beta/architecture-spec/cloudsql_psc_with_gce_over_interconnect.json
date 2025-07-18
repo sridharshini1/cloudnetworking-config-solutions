@@ -1,0 +1,60 @@
+{
+    "description": "This reference architecture creates a secure and scalable foundation using a two-project Shared VPC model. A central networking project hosts the Shared VPC, its subnets, and a Cloud NAT gateway for controlled internet egress. A separate service project contains the application and database tiers. A Cloud SQL instance (producer) is deployed and made privately accessible via a Private Service Connect (PSC) endpoint. A scalable application tier, represented by a group of three VM instances (consumers), connects to the database securely through this endpoint. All traffic between the application and the database remains entirely on Google's private network, with no public IP exposure for the database. The configuration streamlines security by automatically generating the necessary tag-based firewall rules to allow communication between the specified consumers and the producer. Architecture : https://github.com/GoogleCloudPlatform/cloudnetworking-config-solutions/blob/main/docs/CloudSQL/images/cloudsql_psc_image1.png",
+    "defaultRegion": "us-central1",
+    "namePrefix" : "",
+    "nameSuffix" : "",
+    "projects": [
+      {
+        "projectId": "network-host-project",
+        "hostProject": true,
+        "vpc": [
+          {
+            "type": "vpc",
+            "name": "central-shared-vpc",
+            "subnets": [
+              {
+                "name": "app-services-subnet",
+                "region": "us-central1",
+                "ipCidrRange": "10.100.0.0/20"
+              },
+              {
+                "name": "cloudsql-psc-subnet",
+                "region": "us-central1",
+                "ipCidrRange": "10.100.32.0/24"
+              }
+            ],
+            "createNat" : true,
+            "createInterconnect" : true
+          }
+        ]
+      },
+      {
+        "projectId": "app-services-project",
+        "pscSettings": {
+          "networkForPsc": "central-shared-vpc",
+          "subnetForPsc": "cloudsql-psc-subnet"
+        },
+        "producers": [
+          {
+            "type": "cloudsql",
+            "count" : 5,
+            "name": "my-database-instance",
+            "network": "central-shared-vpc",
+            "subnet": "cloudsql-psc-subnet",
+            "createRequiredFwRules" : true,
+            "allowedConsumersTags" : ["tag-1"]
+          }
+        ],
+        "consumers": [
+          {
+            "type": "vm",
+            "name": "my-cloudsql-vm",
+            "count": 3,
+            "vpc": "central-shared-vpc",
+            "subnet": "app-services-subnet",
+            "tags": { "items": ["tag-1"] }
+          }
+        ]
+      }
+    ]
+}
