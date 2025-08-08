@@ -3,15 +3,29 @@
 
 **On this page**
 
-1. [Introduction](#introduction)
-2. [Objectives](#objectives)
-3. [Architecture](#architecture)
-4. [Request flow](#request-flow)
-5. [Deploy the solution](#deploy-the-solution)
-6. [Prerequisites](#prerequisites)
-7. [Deploy through “terraform-cli”](#deploy-through-terraform-cli)
-8. [Optional: Delete the deployment](#optional-delete-the-deployment)
-9. [Submit feedback](#submit-feedback)
+  1. Introduction
+
+  2. Objectives
+
+  3. Architecture
+
+  4. Request Flow
+
+  5. Architecture Components
+
+  6. Deploy the Solution
+
+  7. Prerequisites
+
+  8. Deploy with "single-click"
+
+  9. Deploy through Terraform-cli
+
+  10. Optional - Delete the Deployment
+
+  11. Troubleshoot Errors
+
+  12. Submit Feedback
 
 ## Introduction
 
@@ -57,6 +71,32 @@ This section guides you through the process of deploying the solution.
 ### Prerequisites
 
 For the common prerequisites for this repository, please refer to the **[prerequisites.md](../prerequisites.md)** guide. Any additional prerequisites specific to this user journey will be listed below.
+
+### Deploy with "single click"
+
+1. Click on Open in Google Cloud Shell button below.
+
+    <a href="https://ssh.cloud.google.com/cloudshell/editor?shellonly=true&cloudshell_git_repo=https://github.com/sridharshini1/cloudnetworking-config-solutions.git&cloudshell_open_in_editor=configuration/organization.tfvars&cloudshell_open_in_editor=configuration/networking.tfvars&cloudshell_open_in_editor=configuration/networking/ncc/ncc.tfvars&cloudshell_open_in_editor=configuration/networking/ncc/config/instance-vpc-spoke-lite.yaml.example&cloudshell_tutorial=docs/Networking/NCC/ncc-mesh.md" target="_new">
+        <img alt="Open in Cloud Shell" src="https://gstatic.com/cloudssh/images/open-btn.svg">
+    </a>
+
+2. Run the prerequisites script to enable APIs and set Cloud Build permissions.
+    ```
+    sh docs/NCC/helper-script/prereq-vpcspoke.sh
+    ```
+
+3. Update the configuration files that gets loaded in the Cloud shell editor and run the cloud build job to create resources
+
+    ```
+    gcloud builds submit . --config docs/NCC/build/VPCSpokeMesh/cloudbuild-vpcspoke.yaml --ignore-file=".gcloudignore"
+    ```
+
+4. [Optional] Run the Cloud Build Job to destroy resources
+
+    ```
+    gcloud builds submit . --config docs/NCC/build/VPCSpokeMesh/cloudbuild-vpcspoke-destroy.yaml --ignore-file=".gcloudignore"
+    ```
+
 
 ### Deploy through terraform-cli
 
