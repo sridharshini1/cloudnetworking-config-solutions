@@ -58,7 +58,7 @@ steps:
         
         echo "Executing 07-consumer-load-balancing/Network/Passthrough/Internal stage for NLB..."
         # This assumes run.sh correctly maps this long stage name
-        ./run.sh -s load-balancing/network/passthrough/internal -t init-apply-auto-approve
+        ./run.sh -s load-balancing/network/passthrough/external -t init-apply-auto-approve
 
         echo "NLB Passthrough deployment completed."
 
