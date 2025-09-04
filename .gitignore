@@ -6,7 +6,6 @@
 **/.terraform.lock.hcl
 **/*.auto.tfvars
 **/pkg*
-go.mod
 go.sum
 **/*.log
 **/*plan*
